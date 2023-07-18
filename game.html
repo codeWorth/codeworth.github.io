@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>1960 Election Game</title>
+        <link rel="stylesheet" type="text/css" href="./styles.css">
+        <link rel="stylesheet" type="text/css" href="./states.css">
+        <link rel="stylesheet" type="text/css" href="./joinPage.css">
+        <link rel="stylesheet" type="text/css" href="./choosePage.css">
+        <link rel="stylesheet" type="text/css" href="./gamePage.css">
+    </head>
+    <body>
+        <div id="header">
+            <h3 id="name">Log in to play!</h1>
+            <button id="logout" class="hidden">Log Out</button>
+            <button id="login" class="hidden">Log In</button>
+        </div>
+        <div id="joinPage" class="hidden">
+            <h4>Games:</h4>
+            <div id="gameIds"></div>
+            <button id="createGame">Create Game</button><br/>
+            <input id="gameCode" type="text"/>
+            <button id="joinGame">Join Game</button>
+            <button id="deleteGame">(Delete Game)</button>
+        </div>
+        <div id="choosePage" class="hidden">
+            <img id="nixon" height="400"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/2/2c/Richard_Nixon_presidential_portrait_%281%29.jpg/1200px-Richard_Nixon_presidential_portrait_%281%29.jpg"/>
+            <img id="kennedy" height="400"
+                src="https://upload.wikimedia.org/wikipedia/commons/thumb/c/c3/John_F._Kennedy%2C_White_House_color_photo_portrait.jpg/1200px-John_F._Kennedy%2C_White_House_color_photo_portrait.jpg"/>
+        </div>
+        <div id="gamePage" class="hidden">
+            <img id="colorsImg" src="./colors.png"/>
+            <img id="mapImg" src="./map.png"/>
+            <img id="colorsImg" src="./map_regions.png"/>
+            <button id="showElectors">Show (E)lectors</button>
+
+            <div id="westMedia" data-key="west" class="media"><div></div></div>
+            <div id="eastMedia" data-key="east" class="media"><div></div></div>
+            <div id="midMedia" data-key="mid" class="media"><div></div></div>
+            <div id="southMedia" data-key="south" class="media"><div></div></div>
+            <div id="westEndorse" data-key="west" class="endorse"><div></div></div>
+            <div id="eastEndorse" data-key="east" class="endorse"><div></div></div>
+            <div id="midEndorse" data-key="mid" class="endorse"><div></div></div>
+            <div id="southEndorse" data-key="south" class="endorse"><div></div></div>
+
+            <div id="issue1" data-index="0" class="issue-select"><div></div></div>
+            <div id="issue2" data-index="1" class="issue-select"><div></div></div>
+            <div id="issue3" data-index="2" class="issue-select"><div></div></div>
+
+            <div id="hand">
+                <div id="card1" class="card hidden">
+                    <h3 class="header"></h3>
+                    <div class="body"></div>
+                    <img class="candidate" width="40px" src="nixon.png"/>
+                    <img class="issue" width="40px" src="defense.png"/>
+                    <div class="info">
+                        <div class="cp"></div>
+                        <div class="state"></div>
+                        <div class="rest"></div>
+                    </div>
+                    <div class="pointsCover hidden"></div>
+                </div>
+                <div id="card2" class="card hidden">
+                    <h3 class="header"></h3>
+                    <div class="body"></div>
+                    <img class="candidate" width="40px" src="nixon.png"/>
+                    <img class="issue" width="40px" src="defense.png"/>
+                    <div class="info">
+                        <div class="cp"></div>
+                        <div class="state"></div>
+                        <div class="rest"></div>
+                    </div>
+                    <div class="pointsCover hidden"></div>
+                </div>
+                <div id="card3" class="card hidden">
+                    <h3 class="header"></h3>
+                    <div class="body"></div>
+                    <img class="candidate" width="40px" src="nixon.png"/>
+                    <img class="issue" width="40px" src="defense.png"/>
+                    <div class="info">
+                        <div class="cp"></div>
+                        <div class="state"></div>
+                        <div class="rest"></div>
+                    </div>
+                    <div class="pointsCover hidden"></div>
+                </div>
+                <div id="card4" class="card hidden">
+                    <h3 class="header"></h3>
+                    <div class="body"></div>
+                    <img class="candidate" width="40px" src="nixon.png"/>
+                    <img class="issue" width="40px" src="defense.png"/>
+                    <div class="info">
+                        <div class="cp"></div>
+                        <div class="state"></div>
+                        <div class="rest"></div>
+                    </div>
+                    <div class="pointsCover hidden"></div>
+                </div>
+                <div id="card5" class="card hidden">
+                    <h3 class="header"></h3>
+                    <div class="body"></div>
+                    <img class="candidate" width="40px" src="nixon.png"/>
+                    <img class="issue" width="40px" src="defense.png"/>
+                    <div class="info">
+                        <div class="cp"></div>
+                        <div class="state"></div>
+                        <div class="rest"></div>
+                    </div>
+                    <div class="pointsCover hidden"></div>
+                </div>
+                <div id="card6" class="card hidden">
+                    <h3 class="header"></h3>
+                    <div class="body"></div>
+                    <img class="candidate" width="40px" src="nixon.png"/>
+                    <img class="issue" width="40px" src="defense.png"/>
+                    <div class="info">
+                        <div class="cp"></div>
+                        <div class="state"></div>
+                        <div class="rest"></div>
+                    </div>
+                    <div class="pointsCover hidden"></div>
+                </div>
+                <div id="card7" class="card hidden">
+                    <h3 class="header"></h3>
+                    <div class="body"></div>
+                    <img class="candidate" width="40px" src="nixon.png"/>
+                    <img class="issue" width="40px" src="defense.png"/>
+                    <div class="info">
+                        <div class="cp"></div>
+                        <div class="state"></div>
+                        <div class="rest"></div>
+                    </div>
+                    <div class="pointsCover hidden"></div>
+                </div>
+                <div id="card8" class="card hidden">
+                    <h3 class="header"></h3>
+                    <div class="body"></div>
+                    <img class="candidate" width="40px" src="nixon.png"/>
+                    <img class="issue" width="40px" src="defense.png"/>
+                    <div class="info">
+                        <div class="cp"></div>
+                        <div class="state"></div>
+                        <div class="rest"></div>
+                    </div>
+                    <div class="pointsCover hidden"></div>
+                </div>
+            </div>
+
+            <div id="nixonIcon" class="pi">
+                <img width="36px" src="./nixon.png"/>
+            </div>
+            <div id="kennedyIcon" class="pi">
+                <img width="36px" src="./kennedy.png"/>
+            </div>
+            <h3 id="turnIndicator" class="hidden">Your turn!</h3>
+
+            <div id="washington" class="sb"><div></div></div>
+            <div id="oregon" class="sb"><div></div></div>
+            <div id="california" class="sb"><div></div></div>
+            <div id="alaska" class="sb"><div></div></div>
+            <div id="idaho" class="sb"><div></div></div>
+            <div id="nevada" class="sb"><div></div></div>
+            <div id="montana" class="sb"><div></div></div>
+            <div id="wyoming" class="sb"><div></div></div>
+            <div id="utah" class="sb"><div></div></div>
+            <div id="arizona" class="sb"><div></div></div>
+            <div id="colorado" class="sb"><div></div></div>
+            <div id="newmexico" class="sb"><div></div></div>
+            <div id="northdaktoa" class="sb"><div></div></div>
+            <div id="southdakota" class="sb"><div></div></div>
+            <div id="nebraska" class="sb"><div></div></div>
+            <div id="kansas" class="sb"><div></div></div>
+            <div id="oklahoma" class="sb"><div></div></div>
+            <div id="texas" class="sb"><div></div></div>
+            <div id="minnesota" class="sb"><div></div></div>
+            <div id="iowa" class="sb"><div></div></div>
+            <div id="missouri" class="sb"><div></div></div>
+            <div id="arkansas" class="sb"><div></div></div>
+            <div id="louisiana" class="sb"><div></div></div>
+            <div id="wisconsin" class="sb"><div></div></div>
+            <div id="illinois" class="sb"><div></div></div>
+            <div id="kentucky" class="sb"><div></div></div>
+            <div id="tennessee" class="sb"><div></div></div>
+            <div id="mississippi" class="sb"><div></div></div>
+            <div id="michigan" class="sb"><div></div></div>
+            <div id="indiana" class="sb"><div></div></div>
+            <div id="alabama" class="sb"><div></div></div>
+            <div id="ohio" class="sb"><div></div></div>
+            <div id="georgia" class="sb"><div></div></div>
+            <div id="florida" class="sb"><div></div></div>
+            <div id="newyork" class="sb"><div></div></div>
+            <div id="pennsylvania" class="sb"><div></div></div>
+            <div id="westvirginia" class="sb"><div></div></div>
+            <div id="virginia" class="sb"><div></div></div>
+            <div id="northcarolina" class="sb"><div></div></div>
+            <div id="southcarolina" class="sb"><div></div></div>
+            <div id="maine" class="sb"><div></div></div>
+            <div id="newhampshire" class="sb"><div></div></div>
+            <div id="vermont" class="sb"><div></div></div>
+            <div id="massachusetts" class="sb"><div></div></div>
+            <div id="connecticut" class="sb"><div></div></div>
+            <div id="rhodeisland" class="sb"><div></div></div>
+            <div id="newjersey" class="sb"><div></div></div>
+            <div id="delaware" class="sb"><div></div></div>
+            <div id="maryland" class="sb"><div></div></div>
+            <div id="hawaii" class="sb"><div></div></div>
+        
+            <div id="choosePopup" class="hidden">
+                <div id="chooseWindow">
+                    <h3 class="header">Would you like to go first or second?</h3>
+                    <div id="buttonContainer"></div>
+                </div>
+            </div>
+        </div>
+        
+        
+        <script src="util.js"></script>
+        <script src="cards.js"></script>
+        <script src="statecodes.js"></script>
+        <script src="dom.js"></script>
+        <script src="game.js"></script>
+        <script type="module">
+            import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
+            import { 
+                getAuth, 
+                signInWithPopup, 
+                GoogleAuthProvider, 
+                signOut  
+            } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+            import { 
+                getFirestore, onSnapshot,
+                doc, collection, query,
+                getDoc, setDoc, getDocs, deleteDoc, updateDoc
+            } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
+
+            const firebaseConfig = {
+                apiKey: "AIzaSyAudyd3kBHsh6aDlLb4lDoZNLaNyoUPxh0",
+                authDomain: "tichu-f86a8.firebaseapp.com",
+                projectId: "tichu-f86a8",
+                storageBucket: "tichu-f86a8.appspot.com",
+                messagingSenderId: "549138176153",
+                appId: "1:549138176153:web:1a9dc709f64e6a49304008"
+            };
+
+            // Initialize Firebase
+            const app = initializeApp(firebaseConfig);
+            const db = getFirestore(app);
+
+            const auth = getAuth();
+            auth.onAuthStateChanged(user => {
+                if (user) {
+                    setup(user, db, doc, collection, query, getDoc, setDoc, getDocs, deleteDoc, updateDoc, onSnapshot);
+                    removeCSSClass(joinPage, "hidden");
+                    removeCSSClass(logoutButton, "hidden");
+                    addCSSClass(loginButton, "hidden");
+                } else {
+                    addCSSClass(joinPage, "hidden");
+                    addCSSClass(logoutButton, "hidden");
+                    removeCSSClass(loginButton, "hidden");
+                }
+            });
+            
+            function login() {
+                const provider = new GoogleAuthProvider();
+                signInWithPopup(auth, provider)
+                    .then((result) => {
+                    }).catch((error) => {
+                        const errorCode = error.code;
+                        const errorMessage = error.message;
+                        const email = error.customData.email;
+                        console.error(`login error for ${email} (${errorCode}): ${errorMessage}`);
+                    });
+            }
+            
+            function logout() {
+                signOut(auth);
+                userNameField.innerText = `Log in to play!`;
+            }
+
+            loginButton.onclick = login;
+            logoutButton.onclick = logout;
+          </script>
+    </body>

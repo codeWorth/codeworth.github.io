@@ -1,0 +1,24 @@
+body {
+    margin: 0px;
+}
+
+.hidden {
+    display: none;
+}
+
+#header {
+    margin: 0px;
+    margin-bottom: 20px;
+    padding: 10px;
+    padding-left: 0px;
+    width: calc(100vw-10px);
+    background-color: rgb(40, 40, 40);
+    
+    display: flex;
+    justify-content: flex-start;
+    color: rgb(250, 250, 250);
+}
+
+#header h3 {
+    margin: 0px 10px;
+}

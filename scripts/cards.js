@@ -18,15 +18,15 @@ const LOCATION = {
 };
 
 const PARTY_URL = {
-	[PARTY.DEMOCRAT]: "./kennedy.png",
-	[PARTY.REPUBLICAN]: "./nixon.png",
-	[PARTY.BOTH]: "./both.png"
+	[PARTY.DEMOCRAT]: "../images/kennedy.png",
+	[PARTY.REPUBLICAN]: "../images/nixon.png",
+	[PARTY.BOTH]: "../images/both.png"
 };
 
 const ISSUE_URL = {
-	[ISSUE.ECONOMY]: "./economy.png",
-	[ISSUE.CIVIL_RIGHTS]: "./civilrights.png",
-	[ISSUE.DEFENSE]: "./defense.png"
+	[ISSUE.ECONOMY]: "../images/economy.png",
+	[ISSUE.CIVIL_RIGHTS]: "../images/civilrights.png",
+	[ISSUE.DEFENSE]: "../images/defense.png"
 };
 
 const CARDS = {

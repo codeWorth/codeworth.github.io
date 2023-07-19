@@ -114,17 +114,17 @@
 }
 
 #issue1 {
-    background-image: url(civilrights.png);
+    background-image: url(../images/civilrights.png);
     left: 1270px;
     top: 30px;
 }
 #issue2 {
-    background-image: url(economy.png);
+    background-image: url(../images/economy.png);
     left: 1371px;
     top: 30px;
 }
 #issue3 {
-    background-image: url(defense.png);
+    background-image: url(../images/defense.png);
     left: 1472px;
     top: 30px;
 }

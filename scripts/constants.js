@@ -1,17 +1,3 @@
-function removeCSSClass(elem, className) {
-    const classes = elem.className.split(" ");
-    elem.className = classes.filter(name => name != className).join(" ");
-}
-
-function addCSSClass(elem, className) {
-    removeCSSClass(elem, className);
-    elem.className = elem.className + " " + className;
-}
-
-function removeAllChildren(elem) {
-    while (elem.firstChild) elem.removeChild(elem.firstChild);
-}
-
 const PHASE = {
     CHOOSE_FIRST: "choose_first",
     PLAY_CARDS: "play_cards",
@@ -19,9 +5,9 @@ const PHASE = {
 }
 
 const ISSUE_URLS = {
-    DEFENSE: "defense_gray.png",
-    CIVIL_RIGHTS: "civilrights_gray.png",
-    ECONOMY: "economy_gray.png"
+    DEFENSE: "../images/defense_gray.png",
+    CIVIL_RIGHTS: "../images/civilrights_gray.png",
+    ECONOMY: "../images/economy_gray.png"
 }
 
 const defaultCounts = {
@@ -288,3 +274,56 @@ const movePath = {
         [REGION.NORTHEAST]: REGION.NORTHEAST
     },
 };
+
+const stateCodes = {
+    "al": "alabama",
+    "ak": "alaska",
+    "az": "arizona",
+    "ar": "arkansas",
+    "ca": "california",
+    "co": "colorado",
+    "ct": "connecticut",
+    "de": "delaware",
+    "fl": "florida",
+    "ga": "georgia",
+    "hi": "hawaii",
+    "id": "idaho",
+    "il": "illinois",
+    "in": "indiana",
+    "ia": "iowa",
+    "ks": "kansas",
+    "ky": "kentucky",
+    "la": "louisiana",
+    "me": "maine",
+    "md": "maryland",
+    "ma": "massachusetts",
+    "mi": "michigan",
+    "mn": "minnesota",
+    "ms": "mississippi",
+    "mo": "missouri",
+    "mt": "montana",
+    "ne": "nebraska",
+    "nv": "nevada",
+    "nh": "newhampshire",
+    "nj": "newjersey",
+    "nm": "newmexico",
+    "ny": "newyork",
+    "nc": "northcarolina",
+    "nd": "northdakota",
+    "oh": "ohio",
+    "ok": "oklahoma",
+    "or": "oregon",
+    "pa": "pennsylvania",
+    "ri": "rhodeisland",
+    "sc": "southcarolina",
+    "sd": "southdakota",
+    "tn": "tennessee",
+    "tx": "texas",
+    "ut": "utah",
+    "vt": "vermont",
+    "va": "virginia",
+    "wa": "washington",
+    "wv": "westvirginia",
+    "wi": "wisconsin",
+    "wy": "wyoming"
+}

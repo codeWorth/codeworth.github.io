@@ -113,7 +113,7 @@ function moveIcons(gameData) {
     moveIconTo(nixonIcon, gameData.nixon.state);
 }
 
-function displayHand(hand, chooseCard) {
+function displayHand(hand, exhausted, candidate, chooseCard) {
     const handCards = hand.map(name => CARDS[name]);
     for (let i = 0; i < 8; i++) {
         addCSSClass(cardSlots[i+1].card, "hidden");
@@ -131,6 +131,23 @@ function displayHand(hand, chooseCard) {
         cardSlot.state.innerText = card.state === null ? "" : card.state.toUpperCase();
         cardSlot.candidateImg.src = PARTY_URL[card.party];
         cardSlot.issueImg.src = card.issue === null ? "" : ISSUE_URL[card.issue];
+        removeCSSClass(cardSlot.card, "hidden");
+
+        cardSlot.card.onclick = () => {
+            chooseCard(cardName, card, cardSlot);
+        }
+    }
+
+    if (!exhausted) {
+        const cardSlot = cardSlots[handCards.length];
+
+        cardSlot.header.innerText = "Candidate Card";
+        cardSlot.body.innerText = "";
+        cardSlot.cp.innerText = "5 CP";
+        cardSlot.rest.innerText = "0 Rest";
+        cardSlot.state.innerText = candidate === "kennedy" ? "massachusetts" : "california";
+        cardSlot.candidateImg.src = candidate === "kennedy" ? PARTY_URL[PARTY.DEMOCRAT] : PARTY[PARTY.REPUBLICAN];
+        cardSlot.issueImg.src = "";
         removeCSSClass(cardSlot.card, "hidden");
 
         cardSlot.card.onclick = () => {

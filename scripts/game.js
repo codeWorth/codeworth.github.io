@@ -348,6 +348,6 @@ function gameUpdate(data) {
 
     if (gameData[playerCandidate].hand.length > 0 || (gameData.currentPlayer === playerCandidate && gameData.phase === PHASE.PLAY_CARDS)) {
         getHand(gameData, user.email)
-            .then(hand => displayHand(hand, chooseCard));
+            .then(hand => displayHand(hand, gameData[playerCandidate].exhausted, playerCandidate, chooseCard));
     }
 }

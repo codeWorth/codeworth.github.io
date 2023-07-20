@@ -102,15 +102,17 @@ class GameSetup {
                 email: isKennedy ? selfPlayer : otherPlayer,
                 bag: 0,
                 hand: [],
-                state: "california",
-                rest: 0
+                state: "massachusetts",
+                rest: 0,
+                exhausted: false
             },
             nixon: {
                 email: isKennedy ? otherPlayer : selfPlayer,
                 bag: 0,
                 hand: [],
-                state: "massachusetts",
-                rest: 0
+                state: "california",
+                rest: 0,
+                exhausted: false
             },
             deck: Object.keys(CARDS),
             discard: [],

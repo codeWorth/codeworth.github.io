@@ -218,6 +218,9 @@
         <script src="./scripts/util.js"></script>
         <script src="./scripts/cards.js"></script>
         <script src="./scripts/dom.js"></script>
+        <script src="./scripts/game_data.js"></script>
+        <script src="./scripts/view.js"></script>
+        <script src="./scripts/game_setup.js"></script>
         <script src="./scripts/game.js"></script>
         <script type="module">
             import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
@@ -245,11 +248,12 @@
             // Initialize Firebase
             const app = initializeApp(firebaseConfig);
             const db = getFirestore(app);
+            const fbMethods = new FirebaseMethods(doc, collection, query, getDoc, setDoc, getDocs, deleteDoc, updateDoc, onSnapshot);
 
             const auth = getAuth();
             auth.onAuthStateChanged(user => {
                 if (user) {
-                    setup(user, db, doc, collection, query, getDoc, setDoc, getDocs, deleteDoc, updateDoc, onSnapshot);
+                    setup(user, db, fbMethods);
                     removeCSSClass(joinPage, "hidden");
                     removeCSSClass(logoutButton, "hidden");
                     addCSSClass(loginButton, "hidden");

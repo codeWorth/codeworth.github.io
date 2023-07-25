@@ -74,6 +74,12 @@ class GameSetup {
     }
     
     async startGame(gameId, selfPlayer, otherPlayer) {
+        removeCSSClass(choosePage, "hidden");
+        kennedyButton.onclick = () => this.choosePlayer(gameId, true, selfPlayer, otherPlayer);
+        nixonButton.onclick = () => this.choosePlayer(gameId, false, selfPlayer, otherPlayer);
+    }
+    
+    async choosePlayer(gameId, isKennedy, selfPlayer, otherPlayer) {
         const order = Object.keys(ISSUE_URLS);
         const issues = [];
         for (let i = 0; i < Object.keys(ISSUE_URLS).length; i++) {
@@ -81,41 +87,37 @@ class GameSetup {
             issues[i] = order[index];
             order.splice(index, 1);
         }
-    
-        await this.fb.updateDoc(this.fb.doc(this.db, "elec_games", gameId), {
-            cubes: defaultCounts,
-            issues: issues,
-            choosingPlayer: Math.random() < 0.5 ? "kennedy" : "nixon"
-        });
-        removeCSSClass(choosePage, "hidden");
-        kennedyButton.onclick = () => this.choosePlayer(gameId, true, selfPlayer, otherPlayer);
-        nixonButton.onclick = () => this.choosePlayer(gameId, false, selfPlayer, otherPlayer);
-    }
-    
-    async choosePlayer(gameId, isKennedy, selfPlayer, otherPlayer) {
+
+        let kenCount = 12;
+        let nixCount = 12;
+
+        while (kenCount > 10 && nixCount > 10) {
+            const bagItem = Math.floor(Math.random() * (kenCount + nixCount));
+            const isKennedy = bagItem < kenCount;
+            if (isKennedy) {
+                kenCount--;
+            } else {
+                nixCount--;
+            }
+        }
+        const kenWon = kenCount < nixCount;
+
         await this.fb.updateDoc(this.fb.doc(this.db, "elec_games", gameId), {
             started: true,
-            round: 1,
+            choosingPlayer: kenWon ? "kennedy" : "nixon",
             currentPlayer: null,
             phase: PHASE.CHOOSE_FIRST,
-            kennedy: {
-                email: isKennedy ? selfPlayer : otherPlayer,
-                bag: 0,
-                hand: [],
-                state: "massachusetts",
-                rest: 0,
-                exhausted: false
-            },
-            nixon: {
-                email: isKennedy ? otherPlayer : selfPlayer,
-                bag: 0,
-                hand: [],
-                state: "california",
-                rest: 0,
-                exhausted: false
-            },
+            cubes: defaultCounts,
+            issues: issues,
             deck: Object.keys(CARDS),
             discard: [],
+            turn: 0,
+            totalTurns: 0,
+            lastInitiative: {
+                kennedy: 12 - kenCount,
+                nixon: 12 - nixCount
+            },
+            lastSupport: null,
             endorsements: {
                 west: 0,
                 east: 0,
@@ -132,6 +134,26 @@ class GameSetup {
                 [Object.keys(ISSUE_URLS)[0]]: 0,
                 [Object.keys(ISSUE_URLS)[1]]: 0,
                 [Object.keys(ISSUE_URLS)[2]]: 0
+            },
+            kennedy: {
+                email: isKennedy ? selfPlayer : otherPlayer,
+                bag: 0,
+                hand: [],
+                state: "massachusetts",
+                rest: 0,
+                exhausted: false,
+                momentum: 2,
+                discard: []
+            },
+            nixon: {
+                email: isKennedy ? otherPlayer : selfPlayer,
+                bag: 0,
+                hand: [],
+                state: "california",
+                rest: 0,
+                exhausted: false,
+                momentum: 2,
+                discard: []
             }
         });
         addCSSClass(choosePage, "hidden");

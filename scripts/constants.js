@@ -1,7 +1,10 @@
+const TURNS_PER_ROUND = 10;
+
 const PHASE = {
     CHOOSE_FIRST: "choose_first",
     PLAY_CARDS: "play_cards",
-    END_ROUND: "end_round"
+    MOMENTUM: "momentum",
+    STRATEGY: "strategy"
 }
 
 const ISSUE_URLS = {

@@ -36,7 +36,8 @@ const CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.ECONOMY,
 		state: "ny",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: hellHarry
 	},
     "Fatigue Sets In": {
 		text: "If opponent's candidate card is currently available for play, flip it over to its Exhausted side",

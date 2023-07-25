@@ -52,10 +52,12 @@ function grabBagIsKennedy(count) {
 
         const bagItem = Math.floor(Math.random() * (gameData.kennedy.bag + gameData.nixon.bag));
         const isKennedy = bagItem < gameData.kennedy.bag;
-
-        gameData.kennedy.bag--;
-        gameData.nixon.bag--;
-        kenCount += isKennedy ? 1 : 0;
+        if (isKennedy) {
+            gameData.kennedy.bag--;
+            kenCount++;
+        } else {
+            gameData.nixon.bag--;
+        }
     }
 
     updateDoc(doc(db, "elec_games", gameId), {
@@ -89,7 +91,7 @@ async function getHand(gameEntry) {
     return hand;
 }
 
-function chooseCard(cardName, card, cardSlot) {
+function chooseCard(cardName, card, cardSlot, isCandidate) {
     if (gameData.currentPlayer !== getPlayerCandidate(gameData)) return;
 
     if (cpMode || mediaMode || issuesMode) {
@@ -114,7 +116,7 @@ function chooseCard(cardName, card, cardSlot) {
         return;
     }
 
-    const {eventButton, cpButton, mediaButton, issueButton} = showCardPopup();
+    const {eventButton, cpButton, mediaButton, issueButton} = showCardPopup(cardName, isCandidate);
 
     cpButton.onclick = () => {
         cardSlot.pointsCover.innerText = card.points;
@@ -218,8 +220,18 @@ function usedCard(cardSlot, cardName, card) {
     const playerCandidate = getPlayerCandidate(gameData);
     const playerData = gameData[playerCandidate];
     playerData.hand = playerData.hand.filter(name => name != cardName);
-    playerData.rest += 4 - card.points;
+    if (card.isCandidate) playerData.exhausted = true;
+    if (!card.isCandidate) playerData.rest += 4 - card.points;
+    nextTurn(playerData, playerCandidate, cardName);
+}
+
+function nextTurn(playerData, playerCandidate, cardName) {
+    gameData.turn++;
+    gameData.totalTurns++;
+
     updateDoc(doc(db, "elec_games", gameId), {
+        turn: gameData.turn,
+        totalTurns: gameData.totalTurns,
         cubes: gameData.cubes,
         media: gameData.media,
         issueScores: gameData.issueScores,
@@ -300,21 +312,25 @@ async function enterGame(gameId_) {
     showCubes(gameData);
 }
 
+function nextRound() {
+    gameData.turns = 0;
+    gameData.kennedy.momentum = Math.ceil(gameData.kennedy.momentum / 2);
+    gameData.nixon.momentum = Math.ceil(gameData.nixon.momentum / 2);
+}
+
 function gameUpdate(data) {
     gameData = data;
     if (!gameData.started) return;
     updateCubes(gameData);
 
+    const playerCandidate = getPlayerCandidate(gameData);
     showEndorsements(gameData);
     showMedia(gameData);
     showMedia(gameData);
     moveIcons(gameData);
-    const playerCandidate = getPlayerCandidate(gameData);
-    if (data.currentPlayer === playerCandidate) {
-        removeCSSClass(turnIndicator, "hidden");
-    } else {
-        addCSSClass(turnIndicator, "hidden");
-    }
+    showRound(gameData, playerCandidate);
+    infoDiv.innerText = "";
+    if (gameData.turn === 0) showInitiativeRoll(gameData);
 
     if (gameData.phase === PHASE.CHOOSE_FIRST && gameData.choosingPlayer === playerCandidate) {
         removeAllChildren(chooseButtonsContainer);
@@ -346,8 +362,20 @@ function gameUpdate(data) {
         return;
     }
 
+    // if (gameData.turn >= TURNS_PER_ROUND) {
+    //     if (gameData[playerCandidate].hand.length === 1) {
+    //         gameData[playerCandidate].discard.push(gameData[playerCandidate].hand[0]);
+    //         gameData[playerCandidate].hand = [];
+    //         gameData.turn++;
+    //         gameData.totalTurns++;
+    //         if (gameData.turn === TURNS_PER_ROUND + 2) nextRound();
+    //     }
+    //     return;
+    // }
+    
     if (gameData[playerCandidate].hand.length > 0 || (gameData.currentPlayer === playerCandidate && gameData.phase === PHASE.PLAY_CARDS)) {
         getHand(gameData, user.email)
             .then(hand => displayHand(hand, gameData[playerCandidate].exhausted, playerCandidate, chooseCard));
+        return;
     }
 }

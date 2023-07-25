@@ -109,3 +109,5 @@ const issueButtons = Object.fromEntries([...document.getElementsByClassName("iss
         }
     }
 ]));
+
+const infoDiv = document.getElementById("info");

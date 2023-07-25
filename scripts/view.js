@@ -75,12 +75,13 @@ choosePopup.onclick = () => {
 };
 chooseWindow.onclick = e => e.stopPropagation();
 
-function showCardPopup() {
+function showCardPopup(cardName, disableEvent) {
     removeAllChildren(chooseButtonsContainer);
     chooseTitle.innerText = `What would you like to use '${cardName}' for?`;
 
     const eventButton = document.createElement("button");
     eventButton.innerText = "Event";
+    eventButton.disabled = disableEvent;
     const cpButton = document.createElement("button");
     cpButton.innerText = "Campaign";
     const issueButton = document.createElement("button");
@@ -134,7 +135,7 @@ function displayHand(hand, exhausted, candidate, chooseCard) {
         removeCSSClass(cardSlot.card, "hidden");
 
         cardSlot.card.onclick = () => {
-            chooseCard(cardName, card, cardSlot);
+            chooseCard(cardName, card, cardSlot, false);
         }
     }
 
@@ -142,16 +143,34 @@ function displayHand(hand, exhausted, candidate, chooseCard) {
         const cardSlot = cardSlots[handCards.length];
 
         cardSlot.header.innerText = "Candidate Card";
-        cardSlot.body.innerText = "";
+        cardSlot.body.innerText = "This card may only be played for campaign points. Once played, it is flipped to the exhausted side.";
         cardSlot.cp.innerText = "5 CP";
         cardSlot.rest.innerText = "0 Rest";
-        cardSlot.state.innerText = candidate === "kennedy" ? "massachusetts" : "california";
-        cardSlot.candidateImg.src = candidate === "kennedy" ? PARTY_URL[PARTY.DEMOCRAT] : PARTY[PARTY.REPUBLICAN];
+        cardSlot.state.innerText = candidate === "kennedy" ? "MA" : "CA";
+        cardSlot.candidateImg.src = candidate === "kennedy" ? PARTY_URL[PARTY.DEMOCRAT] : PARTY_URL[PARTY.REPUBLICAN];
         cardSlot.issueImg.src = "";
         removeCSSClass(cardSlot.card, "hidden");
 
         cardSlot.card.onclick = () => {
-            chooseCard(cardName, card, cardSlot);
+            chooseCard("Candidate Card", {points: 5, isCandidate: true}, cardSlot, true);
         }
     }
+}
+
+function showRound(gameData, playerCandidate) {
+    const round = Math.floor(gameData.totalTurns / (TURNS_PER_ROUND + 2)) + 1;
+
+    if (gameData.currentPlayer === playerCandidate && gameData.turn < TURNS_PER_ROUND) {
+        turnIndicator.innerText = `Your turn! (Round ${round})`;
+    } else {
+        turnIndicator.innerText = `(Round ${round})`;
+    }
+}
+
+function showInitiativeRoll(gameData) {
+    infoDiv.innerText = `-Initiative-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
+}
+
+function showSupportChecks(gameData) {
+    infoDiv.innerText = `-Support Checks-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
 }

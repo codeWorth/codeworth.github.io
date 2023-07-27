@@ -3,9 +3,9 @@ function playerIsKennedy(gameData) {
 }
 
 function getPlayerCandidate(gameData) {
-    return playerIsKennedy(gameData) ? "kennedy" : "nixon";
+    return playerIsKennedy(gameData) ? KENNEDY : NIXON;
 }
 
 function getOtherCandidate(gameData) {
-    return playerIsKennedy(gameData) ? "nixon" : "kennedy";
+    return playerIsKennedy(gameData) ? NIXON : KENNEDY;
 }

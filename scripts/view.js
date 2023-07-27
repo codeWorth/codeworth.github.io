@@ -146,8 +146,8 @@ function displayHand(hand, exhausted, candidate, chooseCard) {
         cardSlot.body.innerText = "This card may only be played for campaign points. Once played, it is flipped to the exhausted side.";
         cardSlot.cp.innerText = "5 CP";
         cardSlot.rest.innerText = "0 Rest";
-        cardSlot.state.innerText = candidate === "kennedy" ? "MA" : "CA";
-        cardSlot.candidateImg.src = candidate === "kennedy" ? PARTY_URL[PARTY.DEMOCRAT] : PARTY_URL[PARTY.REPUBLICAN];
+        cardSlot.state.innerText = candidate === KENNEDY ? "MA" : "CA";
+        cardSlot.candidateImg.src = candidate === KENNEDY ? PARTY_URL[PARTY.DEMOCRAT] : PARTY_URL[PARTY.REPUBLICAN];
         cardSlot.issueImg.src = "";
         removeCSSClass(cardSlot.card, "hidden");
 
@@ -158,7 +158,7 @@ function displayHand(hand, exhausted, candidate, chooseCard) {
 }
 
 function showRound(gameData, playerCandidate) {
-    const round = Math.floor(gameData.totalTurns / (TURNS_PER_ROUND + 2)) + 1;
+    const round = gameData.round;
 
     if (gameData.currentPlayer === playerCandidate && gameData.turn < TURNS_PER_ROUND) {
         turnIndicator.innerText = `Your turn! (Round ${round})`;
@@ -167,10 +167,11 @@ function showRound(gameData, playerCandidate) {
     }
 }
 
-function showInitiativeRoll(gameData) {
-    infoDiv.innerText = `-Initiative-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
+function showBagRoll(gameData) {
+    if (gameData.lastBagOut === null) return;
+    infoDiv.innerText = `-${gameData.lastBagOut.name}-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
 }
 
-function showSupportChecks(gameData) {
-    infoDiv.innerText = `-Support Checks-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
+function showShouldSwap() {
+    infoDiv.innerText = "Select an issue\nto swap it left";
 }

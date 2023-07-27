@@ -92,7 +92,8 @@ async function getHand(gameEntry) {
 }
 
 function chooseCard(cardName, card, cardSlot, isCandidate) {
-    if (gameData.currentPlayer !== getPlayerCandidate(gameData)) return;
+    const playerCandidate = getPlayerCandidate(gameData);
+    if (gameData.currentPlayer !== playerCandidate) return;
 
     if (cpMode || mediaMode || issuesMode) {
         if (cardSlot !== activeCard.cardSlot) return; 
@@ -227,11 +228,9 @@ function usedCard(cardSlot, cardName, card) {
 
 function nextTurn(playerData, playerCandidate, cardName) {
     gameData.turn++;
-    gameData.totalTurns++;
-
-    updateDoc(doc(db, "elec_games", gameId), {
+    gameData[playerCandidate] = playerData;
+    const updateData = {
         turn: gameData.turn,
-        totalTurns: gameData.totalTurns,
         cubes: gameData.cubes,
         media: gameData.media,
         issueScores: gameData.issueScores,
@@ -239,7 +238,65 @@ function nextTurn(playerData, playerCandidate, cardName) {
         [playerCandidate]: playerData,
         currentPlayer: getOtherCandidate(gameData),
         discard: [...gameData.discard, cardName]
-    });
+    };
+
+    if (gameData.turn === TURNS_PER_ROUND) {
+        updateData.currentPlayer = null;
+        updateDoc(doc(db, "elec_games", gameId), updateData)
+            .then(() => endPlayPhase(gameData));
+    } else {
+        updateDoc(doc(db, "elec_games", gameId), updateData);
+    }
+}
+
+function endPlayPhase(gameData) {
+    const updateData = {
+        kennedy: gameData.kennedy,
+        nixon: gameData.nixon
+    };
+
+    updateData.phase = PHASE.MOMENTUM;
+    updateData.turns = 0;
+    updateData.kennedy.momentum = Math.ceil(gameData.kennedy.momentum / 2);
+    updateData.nixon.momentum = Math.ceil(gameData.nixon.momentum / 2);
+
+    const media = gameData.media.west + gameData.media.east + gameData.media.south + gameData.media.mid;
+    if (media > 0) {
+        updateData.choosingPlayer = NIXON;
+        updateData.phase = PHASE.ISSUE_SWAP;
+        updateDoc(doc(db, "elec_games", gameId), updateData);
+    } else if (media < 0) {
+        updateData.choosingPlayer = KENNEDY;
+        updateData.phase = PHASE.ISSUE_SWAP;
+        updateDoc(doc(db, "elec_games", gameId), updateData);
+    } else {
+        updateDoc(doc(db, "elec_games", gameId), updateData)
+            .then(() => momentumAwards(gameData, updateData));
+    }
+}
+
+function momentumAwards(gameData, updateData) {
+    const issue1Name = gameData.issues[0];
+    const issue2Name = gameData.issues[1];
+    const issue3Name = gameData.issues[2];
+
+    const issue1Score = gameData.issueScores[issue1Name];
+    const issue2Score = gameData.issueScores[issue2Name];
+    const issue3Score = gameData.issueScores[issue3Name];
+
+    if (issue3Score > 0) {
+        updateData.nixon.momentum++;
+    } else if (issue3Score < 0) {
+        updateData.kennedy.momentum++;
+    }
+
+    if (issue2Score > 0) {
+        updateData.choosingPlayer = NIXON;
+        updateData.phase = PHASE.ISSUE_REWARD_CHOICE;
+    } else if (issue2Score < 0) {
+        updateData.choosingPlayer = NIXON;
+        updateData.phase = PHASE.ISSUE_REWARD_CHOICE;
+    }
 }
 
 function losePoints(count, cardSlot) {
@@ -262,13 +319,13 @@ function clickedState(stateName, cardSlot){
     if (pointsRemaining <= 0) return;
     const playerCandidate = getPlayerCandidate(gameData);
     const playerLocation = gameData[playerCandidate].state;
-    const dp = playerCandidate === "nixon" ? 1 : -1;
+    const dp = playerCandidate === NIXON ? 1 : -1;
 
     const mc = moveCost(movementRegion(playerLocation), movementRegion(stateName));
     if (mc > pointsRemaining) return;
     losePoints(mc, cardSlot);
     gameData[playerCandidate].state = stateName;
-    moveIconTo(playerCandidate === "nixon" ?  nixonIcon : kennedyIcon, stateName);
+    moveIconTo(playerCandidate === NIXON ?  nixonIcon : kennedyIcon, stateName);
 
     if (pointsRemaining <= 0) return;
     losePoints(1, cardSlot);
@@ -281,7 +338,7 @@ function clickedMedia(mediaName, cardSlot) {
     if (pointsRemaining <= 0) return;
 
     const playerCandidate = getPlayerCandidate(gameData);
-    const dp = playerCandidate === "nixon" ? 1 : -1;
+    const dp = playerCandidate === NIXON ? 1 : -1;
 
     gameData.media[mediaName] += dp;
     losePoints(1, cardSlot);
@@ -297,7 +354,7 @@ function clickedIssue(index, cardSlot) {
     if (pointsRemaining < cost) return;
 
     const playerCandidate = getPlayerCandidate(gameData);
-    const dp = playerCandidate === "nixon" ? 1 : -1;
+    const dp = playerCandidate === NIXON ? 1 : -1;
     gameData.issueScores[issueName] += dp;
     losePoints(cost, cardSlot);
     showMedia(gameData);
@@ -312,12 +369,6 @@ async function enterGame(gameId_) {
     showCubes(gameData);
 }
 
-function nextRound() {
-    gameData.turns = 0;
-    gameData.kennedy.momentum = Math.ceil(gameData.kennedy.momentum / 2);
-    gameData.nixon.momentum = Math.ceil(gameData.nixon.momentum / 2);
-}
-
 function gameUpdate(data) {
     gameData = data;
     if (!gameData.started) return;
@@ -330,7 +381,7 @@ function gameUpdate(data) {
     moveIcons(gameData);
     showRound(gameData, playerCandidate);
     infoDiv.innerText = "";
-    if (gameData.turn === 0) showInitiativeRoll(gameData);
+    showBagRoll(gameData);
 
     if (gameData.phase === PHASE.CHOOSE_FIRST && gameData.choosingPlayer === playerCandidate) {
         removeAllChildren(chooseButtonsContainer);
@@ -348,14 +399,16 @@ function gameUpdate(data) {
         firstButton.onclick = () => {
             updateDoc(doc(db, "elec_games", gameId), {
                 currentPlayer: playerCandidate,
-                phase: PHASE.PLAY_CARDS
+                phase: PHASE.PLAY_CARDS,
+                choosingPlayer: null
             });
             addCSSClass(choosePopup, "hidden");
         };
         secondButton.onclick = () => {
             updateDoc(doc(db, "elec_games", gameId), {
-                currentPlayer: (playerCandidate === "kennedy" ? "nixon" : "kennedy"),
-                phase: PHASE.PLAY_CARDS
+                currentPlayer: (playerCandidate === KENNEDY ? NIXON : KENNEDY),
+                phase: PHASE.PLAY_CARDS,
+                choosingPlayer: null
             });
             addCSSClass(choosePopup, "hidden");
         };
@@ -377,5 +430,26 @@ function gameUpdate(data) {
         getHand(gameData, user.email)
             .then(hand => displayHand(hand, gameData[playerCandidate].exhausted, playerCandidate, chooseCard));
         return;
+    }
+
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.ISSUE_SWAP) {
+        showShouldSwap();
+        Object.keys(issueButtons).forEach(i => issueButtons[i].button.onclick = () => {
+            if (i === 0) return;
+            const issue = gameData.issues[i];
+            const swapIssue = gameData.issues[i - 1];
+            gameData.issues[i] = swapIssue;
+            gameData.issues[i - 1] = issue;
+
+            updateDoc(doc(db, "elec_games", gameId), {
+                issues: gameData.issues,
+                phase: PHASE.MOMENTUM,
+                choosingPlayer: null
+            }).then(() => momentumAwards(gameData, {
+                kennedy: gameData.kennedy,
+                nixon: gameData.nixon
+            }));
+        });
+
     }
 }

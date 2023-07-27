@@ -104,7 +104,7 @@ class GameSetup {
 
         await this.fb.updateDoc(this.fb.doc(this.db, "elec_games", gameId), {
             started: true,
-            choosingPlayer: kenWon ? "kennedy" : "nixon",
+            choosingPlayer: kenWon ? KENNEDY : NIXON,
             currentPlayer: null,
             phase: PHASE.CHOOSE_FIRST,
             cubes: defaultCounts,
@@ -112,12 +112,12 @@ class GameSetup {
             deck: Object.keys(CARDS),
             discard: [],
             turn: 0,
-            totalTurns: 0,
-            lastInitiative: {
+            round: 1,
+            lastBagOut: {
                 kennedy: 12 - kenCount,
-                nixon: 12 - nixCount
+                nixon: 12 - nixCount,
+                name: "Initiative"
             },
-            lastSupport: null,
             endorsements: {
                 west: 0,
                 east: 0,
@@ -143,7 +143,8 @@ class GameSetup {
                 rest: 0,
                 exhausted: false,
                 momentum: 2,
-                discard: []
+                discard: [],
+                needDiscard: 0
             },
             nixon: {
                 email: isKennedy ? otherPlayer : selfPlayer,
@@ -153,7 +154,8 @@ class GameSetup {
                 rest: 0,
                 exhausted: false,
                 momentum: 2,
-                discard: []
+                discard: [],
+                needDiscard: 0
             }
         });
         addCSSClass(choosePage, "hidden");

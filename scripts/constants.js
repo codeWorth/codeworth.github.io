@@ -1,9 +1,14 @@
 const TURNS_PER_ROUND = 10;
+const NIXON = "nixon";
+const KENNEDY = "kennedy";
 
 const PHASE = {
     CHOOSE_FIRST: "choose_first",
     PLAY_CARDS: "play_cards",
+    DISCARD_CHOICE: "discard_choice",
     MOMENTUM: "momentum",
+    ISSUE_SWAP: "issue_swap",
+    ISSUE_REWARD_CHOICE: "issue_choice",
     STRATEGY: "strategy"
 }
 

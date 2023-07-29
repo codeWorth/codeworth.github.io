@@ -1,4 +1,4 @@
-let canEscapePopup = false;
+let escapePopup = null;
 let showingElectors = false;
 
 function showEndorsements(gameData) {
@@ -48,7 +48,7 @@ function showPoints(points, cardSlot) {
 
 function hidePopup() {
     addCSSClass(choosePopup, "hidden");
-    canEscapePopup = false;
+    escapePopup = null;
 }
 function toggleShowElectors() {
     if (showingElectors) {
@@ -64,13 +64,9 @@ function toggleShowElectors() {
 showElectorsButton.onclick = toggleShowElectors;
 document.onkeydown = (e) => {
     if (e.key === "e") toggleShowElectors();
-    if (e.key === "Escape" && canEscapePopup) {
-        hidePopup();
-    }
-};
-choosePopup.onclick = () => {
-    if (canEscapePopup) {
-        hidePopup();
+    if (e.key === "Escape" && escapePopup) {
+        escapePopup.resolve(ESCAPE_POPUP);
+        escapePopup = null;
     }
 };
 chooseWindow.onclick = e => e.stopPropagation();
@@ -114,8 +110,9 @@ function moveIcons(gameData) {
     moveIconTo(nixonIcon, gameData.nixon.state);
 }
 
-function displayHand(hand, exhausted, candidate, chooseCard) {
+function displayHand(hand, exhausted, candidateplayerCandidate) {
     const handCards = hand.map(name => CARDS[name]);
+    const cardItems = [];
     for (let i = 0; i < 8; i++) {
         addCSSClass(cardSlots[i+1].card, "hidden");
     }
@@ -134,9 +131,13 @@ function displayHand(hand, exhausted, candidate, chooseCard) {
         cardSlot.issueImg.src = card.issue === null ? "" : ISSUE_URL[card.issue];
         removeCSSClass(cardSlot.card, "hidden");
 
-        cardSlot.card.onclick = () => {
-            chooseCard(cardName, card, cardSlot, false);
-        }
+        cardItems.push({
+            name: cardName,
+            card: card,
+            cardSlot: cardSlot,
+            button: cardSlot.card,
+            isCandidate: false
+        });
     }
 
     if (!exhausted) {
@@ -151,10 +152,16 @@ function displayHand(hand, exhausted, candidate, chooseCard) {
         cardSlot.issueImg.src = "";
         removeCSSClass(cardSlot.card, "hidden");
 
-        cardSlot.card.onclick = () => {
-            chooseCard("Candidate Card", {points: 5, isCandidate: true}, cardSlot, true);
-        }
+        cardItems.push({
+            name: "Candidate Card",
+            card: {points: 5, isCandidate: true},
+            cardSlot: cardSlot,
+            button: cardSlot.card,
+            isCandidate: true
+        });
     }
+
+    return cardItems;
 }
 
 function showRound(gameData, playerCandidate) {
@@ -174,4 +181,46 @@ function showBagRoll(gameData) {
 
 function showShouldSwap() {
     infoDiv.innerText = "Select an issue\nto swap it left";
+}
+
+function showChooseEndorseRegion() {
+    infoDiv.innerText = "Choose a region\nto endorse";
+}
+
+function finalizePopup() {
+    removeAllChildren(chooseButtonsContainer);
+    chooseTitle.innerText = "Finalize these moves?";
+
+    const finalizeButton = document.createElement("button");
+    finalizeButton.innerText = "Finalize";
+    const resetButton = document.createElement("button");
+    resetButton.innerText = "Reset";
+    
+    chooseButtonsContainer.appendChild(finalizeButton);
+    chooseButtonsContainer.appendChild(resetButton);
+
+    removeCSSClass(choosePopup, "hidden");
+    return {finalizeButton: finalizeButton, resetButton: resetButton};
+}
+
+function rewardChoicePopup() {
+    removeAllChildren(chooseButtonsContainer);
+    chooseTitle.innerText = "Which issue reward do you want?";
+
+    const momentumButton = document.createElement("button");
+    momentumButton.innerText = "Momentum";
+    const endorsementButton = document.createElement("button");
+    endorsementButton.innerText = "Endorsement";
+    
+    chooseButtonsContainer.appendChild(momentumButton);
+    chooseButtonsContainer.appendChild(endorsementButton);
+
+    removeCSSClass(choosePopup, "hidden");
+    return {momentumButton: momentumButton, endorsementButton: endorsementButton};
+} 
+
+function showPointsOnCard(cover, points) {
+    cover.innerText = points;
+    if (points === 0) cover.innerText = "Done?";
+    removeCSSClass(cover, "hidden");
 }

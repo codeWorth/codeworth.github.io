@@ -29,6 +29,21 @@ const ISSUE_URL = {
 	[ISSUE.DEFENSE]: "../images/defense.png"
 };
 
+const REGIONS = {
+	WEST: "west",
+	EAST: "east",
+	MID: "mid",
+	SOUTH: "south",
+	ALL: "all"
+};
+const ENDORSEMENT_CARDS = [
+	REGIONS.WEST, REGIONS.WEST, REGIONS.WEST,
+	REGIONS.EAST, REGIONS.EAST, REGIONS.EAST,
+	REGIONS.MID, REGIONS.MID, REGIONS.MID,
+	REGIONS.SOUTH, REGIONS.SOUTH, REGIONS.SOUTH,
+	REGIONS.ALL, REGIONS.ALL, REGIONS.ALL, REGIONS.ALL
+];
+
 const CARDS = {
 	"Give 'Em Hell Harry": {
 		text: "If Kennedy is leading in multiple issues, the Kennedy player loses 1 momentum marker and must subtract a total of 2 issue support",

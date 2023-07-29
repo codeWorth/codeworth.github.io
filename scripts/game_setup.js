@@ -110,6 +110,7 @@ class GameSetup {
             cubes: defaultCounts,
             issues: issues,
             deck: Object.keys(CARDS),
+            endorsementsDeck: ENDORSEMENT_CARDS,
             discard: [],
             turn: 0,
             round: 1,
@@ -119,16 +120,16 @@ class GameSetup {
                 name: "Initiative"
             },
             endorsements: {
-                west: 0,
-                east: 0,
-                mid: 0,
-                south: 0
+                [REGIONS.WEST]: 0,
+                [REGIONS.EAST]: 0,
+                [REGIONS.MID]: 0,
+                [REGIONS.SOUTH]: 0
             },
             media: {
-                west: 0,
-                east: 0,
-                mid: 0,
-                south: 0
+                [REGIONS.WEST]: 0,
+                [REGIONS.EAST]: 0,
+                [REGIONS.MID]: 0,
+                [REGIONS.SOUTH]: 0
             },
             issueScores: {
                 [Object.keys(ISSUE_URLS)[0]]: 0,

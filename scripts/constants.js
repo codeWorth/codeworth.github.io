@@ -1,6 +1,7 @@
 const TURNS_PER_ROUND = 10;
 const NIXON = "nixon";
 const KENNEDY = "kennedy";
+const ESCAPE_POPUP = "escape_popup"
 
 const PHASE = {
     CHOOSE_FIRST: "choose_first",
@@ -9,6 +10,7 @@ const PHASE = {
     MOMENTUM: "momentum",
     ISSUE_SWAP: "issue_swap",
     ISSUE_REWARD_CHOICE: "issue_choice",
+    ENDORSE_REWARD: "endorse_reward",
     STRATEGY: "strategy"
 }
 

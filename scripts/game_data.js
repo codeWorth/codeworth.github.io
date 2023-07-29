@@ -9,3 +9,7 @@ function getPlayerCandidate(gameData) {
 function getOtherCandidate(gameData) {
     return playerIsKennedy(gameData) ? NIXON : KENNEDY;
 }
+
+function candidateDp(candidate) {
+    return candidate === NIXON ? 1 : -1;
+}

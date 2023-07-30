@@ -92,8 +92,13 @@ async function selectCard(hand) {
         gameData[playerCandidate].exhausted, 
         playerCandidate
     );
-    const selectedCard = await awaitClickAndReturn(cardItems);
-    cardChosen(selectedCard.name, selectedCard.card, selectedCard.cardSlot, selectedCard.isCandidate);
+    const selectedCard = await awaitClickAndReturn(...cardItems);
+    const choseCard = await cardChosen(selectedCard.name, selectedCard.card, selectedCard.cardSlot, selectedCard.isCandidate);
+    if (choseCard) {
+        nextTurn(selectedCard.name);
+    } else {
+        selectCard(hand);
+    }
 }
 
 async function cardChosen(cardName, card, cardSlot, isCandidate) {
@@ -101,70 +106,65 @@ async function cardChosen(cardName, card, cardSlot, isCandidate) {
     if (gameData.currentPlayer !== playerCandidate) return;
 
     const {eventButton, cpButton, mediaButton, issueButton} = showCardPopup(cardName, isCandidate);
-    escapePopup = new Deferred();
-    const selectedButton = await Promise.any(
-        awaitClick(eventButton, cpButton, mediaButton, issueButton, choosePopup),
-        escapePopup.promise
-    );
+    const selectedButton = await Deferred()
+        .withAwaitClick(eventButton, cpButton, mediaButton, issueButton, choosePopup)
+        .withAwaitKey(document, "Escape")
+        .build();
     hidePopup();
 
     if (selectedButton === eventButton) {
-
-    } else if (selectedButton === cpButton) {
-
+        return true;
+    }
+    if (selectedButton === cpButton) {
         showPointsOnCard(cardSlot.pointsCover, card.points);
 
-        const done = new Deferred();
-        cardSlot.onclick = () => done.resolve(done.promise);
-        await useCampaignPoints(card.points, cardSlot, done.promise);
+        await useCampaignPoints(card.points, cardSlot, cardSlot.card);
         addCSSClass(cardSlot.pointsCover, "hidden");
-        await confirmCardChoices(cardName, card);
-
-    } else if (selectedButton === mediaButton) {
-
+        return await confirmCardChoices(cardName, card);
+    }
+    if (selectedButton === mediaButton) {
         const points = grabBagIsKennedy(card.points);
         if (!playerIsKennedy(gameData)) {
             points = card.points - points;
         }
         showPointsOnCard(cardSlot.pointsCover, points);
 
-        const done = new Deferred();
-        cardSlot.onclick = () => done.resolve(done.promise);
-
-        await useMediaPoints(points, cardSlot, done.promise);
+        await useMediaPoints(points, cardSlot, cardSlot.card);
         addCSSClass(cardSlot.pointsCover, "hidden");
+
         while (await confirmCardChoices(cardName, card)) {
             showPointsOnCard(cardSlot.pointsCover, points);
-            await useMediaPoints(points, cardSlot, done.promise);
+            await useMediaPoints(points, cardSlot, cardSlot.card);
+            addCSSClass(cardSlot.pointsCover, "hidden");
         }
-
-    } else if (selectedButton === mediaButton) {
-
+        return true;
+    }
+    
+    if (selectedButton === issueButton) {
         showPointsOnCard(cardSlot.pointsCover, card.points);
 
-        const done = new Deferred();
-        cardSlot.onclick = () => done.resolve(done.promise);
-        await useIssuePoints(card.points, cardSlot, done.promise);
+        await useIssuePoints(card.points, cardSlot, cardSlot.card);
         addCSSClass(cardSlot.pointsCover, "hidden");
-        await confirmCardChoices(cardName, card);
-
+        return await confirmCardChoices(cardName, card);
     }
+
+    return false;
 }
 
-async function useCampaignPoints(points, cardSlot, donePromise) {
-    const stateButtons = stateNames.map(name => ({
+async function useCampaignPoints(points, cardSlot, doneButton) {
+    const stateItems = stateNames.map(name => ({
         name: name,
         button: stateButtons[name].button
     }));
 
     let exited = false;
     while (points > 0) {
-        const buttonClicked = await Promise.any(
-            awaitClickAndReturn(stateButtons),
-            donePromise
-        );
+        const buttonClicked = await Deferred()
+            .withAwaitClickAndReturn(...stateItems)
+            .withAwaitClick(doneButton)
+            .build();
 
-        if (buttonClicked === donePromise) {
+        if (buttonClicked === doneButton) {
             exited = true;
             break;
         } else {
@@ -173,7 +173,7 @@ async function useCampaignPoints(points, cardSlot, donePromise) {
         }
     }
 
-    if (!exited) await donePromise;
+    if (!exited) await awaitClick(doneButton);
 }
 function movementRegion(stateName) {
     if (stateName === "hawaii" || stateName === "alaska") {
@@ -204,7 +204,7 @@ function spendState(stateName, points){
     return points;
 }
 
-async function useMediaPoints(points, cardSlot, donePromise) {
+async function useMediaPoints(points, cardSlot, doneButton) {
     const playerCandidate = getPlayerCandidate(gameData);
     const mediaItems = Object.values(mediaButtons).map(bt => ({
         name: bt.dataKey,
@@ -212,12 +212,12 @@ async function useMediaPoints(points, cardSlot, donePromise) {
     }));
 
     while (points > 0) {
-        const buttonClicked = await Promise.any(
-            awaitClickAndReturn(mediaItems),
-            donePromise
-        );
+        const buttonClicked = await Deferred()
+            .withAwaitClickAndReturn(...mediaItems)
+            .withAwaitClick(doneButton)
+            .build();
 
-        if (buttonClicked === donePromise) {
+        if (buttonClicked === doneButton) {
             exited = true;
             break;
         } else {
@@ -228,10 +228,10 @@ async function useMediaPoints(points, cardSlot, donePromise) {
         }
     }
 
-    if (!exited) await donePromise;
+    if (!exited) await awaitClick(doneButton);
 }
 
-async function useIssuePoints(points, cardSlot, donePromise) {
+async function useIssuePoints(points, cardSlot, doneButton) {
     const issuesBought = [];
     const issueItems = Object.keys(issueButtons).map(index => ({
         name: gameData.issues[index],
@@ -239,12 +239,12 @@ async function useIssuePoints(points, cardSlot, donePromise) {
     }));
 
     while (points > 0) {
-        const buttonClicked = await Promise.any(
-            awaitClickAndReturn(issueItems),
-            donePromise
-        );
+        const buttonClicked = await Deferred()
+            .withAwaitClickAndReturn(...issueItems)
+            .withAwaitClick(doneButton)
+            .build();
 
-        if (buttonClicked === donePromise) {
+        if (buttonClicked === doneButton) {
             exited = true;
             break;
         } else {
@@ -253,7 +253,7 @@ async function useIssuePoints(points, cardSlot, donePromise) {
         }
     }
 
-    if (!exited) await donePromise;    
+    if (!exited) await awaitClick(doneButton);
 }
 function spendIssue(issueName, points, issuesBought) {
     const cost = issuesBought.includes(issueName) ? 2 : 1;
@@ -268,7 +268,9 @@ function spendIssue(issueName, points, issuesBought) {
 
 async function confirmCardChoices(cardName, card) {
     const {finalizeButton, resetButton} = finalizePopup();
-    const popupButton = await awaitClick(finalizeButton, resetButton);
+    const popupButton = await Deferred()
+        .withAwaitClick(finalizeButton, resetButton)
+        .build();
     
     addCSSClass(choosePopup, "hidden");
     if (popupButton === finalizeButton) {
@@ -282,24 +284,23 @@ async function confirmCardChoices(cardName, card) {
 }
 
 function usedCard(cardName, card) {
-    const playerCandidate = getPlayerCandidate(gameData);
-    const playerData = gameData[playerCandidate];
-    playerData.hand = playerData.hand.filter(name => name != cardName);
-    if (card.isCandidate) playerData.exhausted = true;
-    if (!card.isCandidate) playerData.rest += 4 - card.points;
-    nextTurn(playerData, playerCandidate, cardName);
+    const candidate = getPlayerCandidate(gameData);
+    gameData[candidate].hand = gameData[candidate].hand.filter(name => name != cardName);
+    if (card.isCandidate) gameData[candidate].exhausted = true;
+    if (!card.isCandidate) gameData[candidate].rest += 4 - card.points;
 }
 
-function nextTurn(playerData, playerCandidate, cardName) {
+function nextTurn(cardName) {
+    const candidate = getPlayerCandidate(gameData);
     gameData.turn++;
-    gameData[playerCandidate] = playerData;
+
     const updateData = {
         turn: gameData.turn,
         cubes: gameData.cubes,
         media: gameData.media,
         issueScores: gameData.issueScores,
         endorsements: gameData.endorsements,
-        [playerCandidate]: playerData,
+        [candidate]: gameData[candidate],
         currentPlayer: getOtherCandidate(gameData),
         discard: [...gameData.discard, cardName]
     };
@@ -387,7 +388,9 @@ async function momentumAwards(gameData) {
 
 async function chooseIssueReward() {
     const {momentumButton, endorsementButton} = rewardChoicePopup();
-    const choiceButton = await awaitClick(momentumButton, endorsementButton);
+    const choiceButton = await Deferred()
+        .withAwaitClick(momentumButton, endorsementButton)
+        .build();
     addCSSClass(choosePopup, "hidden");
 
     if (choiceButton === momentumButton) {
@@ -421,7 +424,7 @@ async function useEndorsementCard(endorseCard, endPhase) {
             name: bt.dataKey,
             button: bt.button
         }));
-        const clickedEndorsement = await awaitClickAndReturn(endorseItems);
+        const clickedEndorsement = await awaitClickAndReturn(...endorseItems);
 
         gameData.endorsements[clickedEndorsement.name] += candidateDp(playerCandidate);
     } else {

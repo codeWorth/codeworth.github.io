@@ -144,7 +144,7 @@ class GameSetup {
                 rest: 0,
                 exhausted: false,
                 momentum: 2,
-                discard: [],
+                campaignDeck: [],
                 needDiscard: 0
             },
             nixon: {
@@ -155,7 +155,7 @@ class GameSetup {
                 rest: 0,
                 exhausted: false,
                 momentum: 2,
-                discard: [],
+                campaignDeck: [],
                 needDiscard: 0
             }
         });

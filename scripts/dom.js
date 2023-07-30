@@ -33,23 +33,7 @@ const stateButtons = Object.fromEntries([...document.getElementsByClassName("sb"
 ]));
 const showElectorsButton = document.getElementById("showElectors");
 const turnIndicator = document.getElementById("turnIndicator");
-const cardSlots = Object.fromEntries([...Array(8).keys()].map(i => {
-    const parentCard = document.getElementById("card" + (i+1));
-    return [
-        i+1,
-        {
-            card: parentCard,
-            header: parentCard.getElementsByClassName("header")[0],
-            body: parentCard.getElementsByClassName("body")[0],
-            candidateImg: parentCard.getElementsByClassName("candidate")[0],
-            issueImg: parentCard.getElementsByClassName("issue")[0],
-            cp: parentCard.getElementsByClassName("cp")[0],
-            state: parentCard.getElementsByClassName("state")[0],
-            rest: parentCard.getElementsByClassName("rest")[0],
-            pointsCover: parentCard.getElementsByClassName("pointsCover")[0]
-        }
-    ];
-}));
+const handDiv = document.getElementById("hand");
 
 const choosePopup = document.getElementById("choosePopup");
 const chooseWindow = document.getElementById("chooseWindow");

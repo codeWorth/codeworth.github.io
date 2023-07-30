@@ -48,7 +48,6 @@ function showPoints(points, cardSlot) {
 
 function hidePopup() {
     addCSSClass(choosePopup, "hidden");
-    escapePopup = null;
 }
 function toggleShowElectors() {
     if (showingElectors) {
@@ -62,13 +61,9 @@ function toggleShowElectors() {
     }
 }
 showElectorsButton.onclick = toggleShowElectors;
-document.onkeydown = (e) => {
+document.addEventListener("keydown", e => {
     if (e.key === "e") toggleShowElectors();
-    if (e.key === "Escape" && escapePopup) {
-        escapePopup.resolve(ESCAPE_POPUP);
-        escapePopup = null;
-    }
-};
+});
 chooseWindow.onclick = e => e.stopPropagation();
 
 function showCardPopup(cardName, disableEvent) {
@@ -110,17 +105,66 @@ function moveIcons(gameData) {
     moveIconTo(nixonIcon, gameData.nixon.state);
 }
 
-function displayHand(hand, exhausted, candidateplayerCandidate) {
+function makeEmptyCard() {
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const header = document.createElement("h3");
+    header.className = "header";
+    const body = document.createElement("div");
+    body.className = "body";
+    const candidateImg = document.createElement("img");
+    candidateImg.width = "40";
+    candidateImg.className = "candidate";
+    const issueImg = document.createElement("img");
+    issueImg.width = "40";
+    issueImg.className = "issue";
+
+    const info = document.createElement("div");
+    info.className = "info";
+    const cp = document.createElement("div");
+    cp.className = "cp";
+    const state = document.createElement("div");
+    state.className = "state";
+    const rest = document.createElement("div");
+    rest.className = "rest";
+    info.appendChild(cp);
+    info.appendChild(state);
+    info.appendChild(rest);
+
+    const pointsCover = document.createElement("div");
+    pointsCover.className = "pointsCover hidden";
+
+    card.appendChild(header);
+    card.appendChild(body);
+    card.appendChild(candidateImg);
+    card.appendChild(issueImg);
+    card.appendChild(info);
+    card.appendChild(pointsCover);
+
+    return {
+        card: card, 
+        header: header, 
+        body: body, 
+        candidateImg: candidateImg, 
+        issueImg: issueImg, 
+        cp: cp, 
+        state: state, 
+        rest: rest, 
+        pointsCover: pointsCover
+    };
+}
+
+function displayHand(hand, exhausted, candidate) {
     const handCards = hand.map(name => CARDS[name]);
     const cardItems = [];
-    for (let i = 0; i < 8; i++) {
-        addCSSClass(cardSlots[i+1].card, "hidden");
-    }
+    while (handDiv.firstChild) handDiv.removeChild(handDiv.lastChild);
 
     for (let i = 0; i < handCards.length; i++) {
         const cardName = hand[i];
         const card = handCards[i];
-        const cardSlot = cardSlots[i+1];
+        const cardSlot = makeEmptyCard();
+        handDiv.appendChild(cardSlot.card);
 
         cardSlot.header.innerText = cardName;
         cardSlot.body.innerText = card.text;
@@ -141,7 +185,8 @@ function displayHand(hand, exhausted, candidateplayerCandidate) {
     }
 
     if (!exhausted) {
-        const cardSlot = cardSlots[handCards.length];
+        const cardSlot = makeEmptyCard();
+        handDiv.appendChild(cardSlot.card);
 
         cardSlot.header.innerText = "Candidate Card";
         cardSlot.body.innerText = "This card may only be played for campaign points. Once played, it is flipped to the exhausted side.";

@@ -85,19 +85,13 @@ async function getHand(gameEntry) {
     return hand;
 }
 
-async function selectCard(hand) {
-    const playerCandidate = getPlayerCandidate(gameData);
-    const cardItems = displayHand(
-        hand, 
-        gameData[playerCandidate].exhausted, 
-        playerCandidate
-    );
+async function selectCard(cardItems) {
     const selectedCard = await awaitClickAndReturn(...cardItems);
     const choseCard = await cardChosen(selectedCard.name, selectedCard.card, selectedCard.cardSlot, selectedCard.isCandidate);
     if (choseCard) {
         nextTurn(selectedCard.name);
     } else {
-        selectCard(hand);
+        selectCard(cardItems);
     }
 }
 
@@ -305,7 +299,7 @@ function nextTurn(cardName) {
         discard: [...gameData.discard, cardName]
     };
 
-    if (gameData.turn === TURNS_PER_ROUND) {
+    if (gameData.turn === TURNS_PER_ROUND || true) {
         updateData.currentPlayer = null;
         updateDoc(doc(db, "elec_games", gameId), updateData)
             .then(() => endPlayPhase(gameData));
@@ -325,7 +319,7 @@ async function endPlayPhase(gameData) {
     updateData.kennedy.momentum = Math.ceil(gameData.kennedy.momentum / 2);
     updateData.nixon.momentum = Math.ceil(gameData.nixon.momentum / 2);
 
-    const media = REGIONS
+    const media = Object.values(REGIONS)
         .map(region => gameData.media[region] ? gameData.media[region] : 0)
         .reduce((a,b)=>a+b, 0);
     if (media > 0) {
@@ -333,6 +327,9 @@ async function endPlayPhase(gameData) {
         updateData.phase = PHASE.ISSUE_SWAP;
     } else if (media < 0) {
         updateData.choosingPlayer = KENNEDY;
+        updateData.phase = PHASE.ISSUE_SWAP;
+    } else {
+        updateData.choosingPlayer = NIXON;
         updateData.phase = PHASE.ISSUE_SWAP;
     }
 
@@ -384,6 +381,30 @@ async function momentumAwards(gameData) {
     }
     await updateDoc(doc(db, "elec_games", gameId), updateData);
     await fbPromises.await(data => data.phase === PHASE.MOMENTUM);
+}
+
+async function issueSwap() {
+    showShouldSwap();
+    const issueItems = Object.keys(issueButtons).map(index => ({
+        index: index,
+        button: issueButtons[index].button
+    }));
+
+    const issueClicked = await awaitClickAndReturn(...issueItems);
+
+    const i = issueClicked.index;
+    if (i === 0) return issueSwap();
+
+    const issue = gameData.issues[i];
+    const swapIssue = gameData.issues[i - 1];
+    gameData.issues[i] = swapIssue;
+    gameData.issues[i - 1] = issue;
+
+    return updateDoc(doc(db, "elec_games", gameId), {
+        issues: gameData.issues,
+        phase: PHASE.MOMENTUM,
+        choosingPlayer: null
+    });
 }
 
 async function chooseIssueReward() {
@@ -461,6 +482,17 @@ function gameUpdate(data) {
     infoDiv.innerText = "";
     showBagRoll(gameData);
 
+    DeferredBuilder.cancelAll();
+    fbPromises.cancel();
+    gameAction()
+        .catch(error => {
+            if (error.message !== CLEARED_MESSAGE) throw error;
+        });
+}
+
+async function gameAction() {
+    const playerCandidate = getPlayerCandidate(gameData);
+
     if (gameData.phase === PHASE.CHOOSE_FIRST && gameData.choosingPlayer === playerCandidate) {
         removeAllChildren(chooseButtonsContainer);
         chooseTitle.innerText = "Would you like to go first or second?";
@@ -493,39 +525,32 @@ function gameUpdate(data) {
         return;
     }
     
-    if (gameData[playerCandidate].hand.length > 0 || (gameData.currentPlayer === playerCandidate && gameData.phase === PHASE.PLAY_CARDS)) {
-        getHand(gameData, user.email).then(selectCard);
-        return;
+    if (gameData.currentPlayer === playerCandidate && gameData.phase === PHASE.PLAY_CARDS) {
+        const hand = await getHand(gameData, user.email);
+        let cardItems = displayHand(
+            hand, 
+            gameData[playerCandidate].exhausted, 
+            playerCandidate
+        );
+        return selectCard(cardItems);
+    } else if (gameData[playerCandidate].hand.length > 0) {
+        const hand = await getHand(gameData, user.email);
+        displayHand(
+            hand, 
+            gameData[playerCandidate].exhausted, 
+            playerCandidate
+        );
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.ISSUE_SWAP) {
-        showShouldSwap();
-        Object.keys(issueButtons).forEach(i => issueButtons[i].button.onclick = () => {
-            if (gameData.phase !== PHASE.ISSUE_SWAP) return;
-            if (i === 0) return;
-            const issue = gameData.issues[i];
-            const swapIssue = gameData.issues[i - 1];
-            gameData.issues[i] = swapIssue;
-            gameData.issues[i - 1] = issue;
-
-            updateDoc(doc(db, "elec_games", gameId), {
-                issues: gameData.issues,
-                phase: PHASE.MOMENTUM,
-                choosingPlayer: null
-            }).then(() => momentumAwards(gameData, {
-                kennedy: gameData.kennedy,
-                nixon: gameData.nixon
-            }));
-        });
-        return;
+        return issueSwap();
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.ISSUE_REWARD_CHOICE) {
-        chooseIssueReward();
-        return;
+        return chooseIssueReward();
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.ENDORSE_REWARD) {
-        useEndorsementCard(drawEndorsementCard(), PHASE.MOMENTUM);
+        return useEndorsementCard(drawEndorsementCard(), PHASE.MOMENTUM);
     }
 }

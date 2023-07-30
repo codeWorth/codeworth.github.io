@@ -9,7 +9,7 @@ function addCSSClass(elem, className) {
 }
 
 function removeAllChildren(elem) {
-    while (elem.firstChild) elem.removeChild(elem.firstChild);
+    while (elem.firstChild) elem.removeChild(elem.lastChild);
 }
 
 class FirebaseMethods {

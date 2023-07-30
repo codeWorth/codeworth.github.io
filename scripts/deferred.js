@@ -1,10 +1,12 @@
+const CLEARED_MESSAGE = "All promises were cleared";
+
 class FbPromises {
     constructor() {
         this.promises = [];
     }
 
     await(condition) {
-        const deferred = new Deferred();
+        const deferred = new _deferred();
         this.promises.push({
             deferred: deferred,
             condition: condition
@@ -20,11 +22,12 @@ class FbPromises {
 
     cancel() {
         this.promises
-            .forEach(prom => prom.deferred.reject(new Error("FbPromises was canceled.")));
+            .forEach(prom => prom.deferred.reject(new Error(CLEARED_MESSAGE)));
     }
 }
 
 class DeferredBuilder {
+    static deferrals = [];
     constructor() {
         this.def = new _deferred();
     }
@@ -45,7 +48,14 @@ class DeferredBuilder {
     }
 
     build() {
+        DeferredBuilder.deferrals.push(this.def);
         return this.def.promise;
+    }
+
+    static cancelAll() {
+        DeferredBuilder.deferrals.forEach(deferral => 
+            deferral.reject(new Error(CLEARED_MESSAGE))
+        );
     }
 }
 

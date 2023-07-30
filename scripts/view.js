@@ -158,7 +158,7 @@ function makeEmptyCard() {
 function displayHand(hand, exhausted, candidate) {
     const handCards = hand.map(name => CARDS[name]);
     const cardItems = [];
-    while (handDiv.firstChild) handDiv.removeChild(handDiv.lastChild);
+    removeAllChildren(handDiv);
 
     for (let i = 0; i < handCards.length; i++) {
         const cardName = hand[i];
@@ -173,7 +173,6 @@ function displayHand(hand, exhausted, candidate) {
         cardSlot.state.innerText = card.state === null ? "" : card.state.toUpperCase();
         cardSlot.candidateImg.src = PARTY_URL[card.party];
         cardSlot.issueImg.src = card.issue === null ? "" : ISSUE_URL[card.issue];
-        removeCSSClass(cardSlot.card, "hidden");
 
         cardItems.push({
             name: cardName,
@@ -195,7 +194,6 @@ function displayHand(hand, exhausted, candidate) {
         cardSlot.state.innerText = candidate === KENNEDY ? "MA" : "CA";
         cardSlot.candidateImg.src = candidate === KENNEDY ? PARTY_URL[PARTY.DEMOCRAT] : PARTY_URL[PARTY.REPUBLICAN];
         cardSlot.issueImg.src = "";
-        removeCSSClass(cardSlot.card, "hidden");
 
         cardItems.push({
             name: "Candidate Card",

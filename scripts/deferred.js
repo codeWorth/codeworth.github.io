@@ -1,35 +1,12 @@
-const CLEARED_MESSAGE = "All promises were cleared";
-
-class FbPromises {
-    constructor() {
-        this.promises = [];
-    }
-
-    await(condition) {
-        const deferred = new _deferred();
-        this.promises.push({
-            deferred: deferred,
-            condition: condition
-        });
-        return deferred.promise;
-    }
-
-    update(state) {
-        this.promises
-            .filter(prom => prom.condition(state))
-            .forEach(prom => prom.deferred.resolve(state));
-    }
-
-    cancel() {
-        this.promises
-            .forEach(prom => prom.deferred.reject(new Error(CLEARED_MESSAGE)));
+class AbortError extends Error {
+    constructor(...args) {
+        super(...args);
     }
 }
 
 class DeferredBuilder {
-    static deferrals = [];
-    constructor() {
-        this.def = new _deferred();
+    constructor(abortSignal) {
+        this.def = new _deferred(abortSignal);
     }
 
     withAwaitClick(...clickables) {
@@ -47,25 +24,31 @@ class DeferredBuilder {
         return this;
     }
 
-    build() {
-        DeferredBuilder.deferrals.push(this.def);
-        return this.def.promise;
+    withOnFinish(task) {
+        this.def.onFinish(task);
+        return this;
     }
 
-    static cancelAll() {
-        DeferredBuilder.deferrals.forEach(deferral => 
-            deferral.reject(new Error(CLEARED_MESSAGE))
-        );
+    build() {
+        return this.def.promise;
     }
 }
 
 class _deferred {
-    constructor() {
+    constructor(externalAbortSignal) {
         this.aborter = new AbortController();
         this.promise = new Promise((resolve, reject) => {
             this._resolve = resolve;
             this._reject = reject;
         });
+
+        this.externalAbortSignal.addEventListener("abort", () => {
+            this.reject(new AbortError("Global abort was triggered"));
+        }, {once: true});
+    }
+
+    onFinish(task) {
+        this.aborter.signal.addEventListener("abort", task, {once: true});
     }
 
     resolve(result) {
@@ -107,14 +90,14 @@ class _deferred {
     }
 }
 
-function Deferred() {
-    return new DeferredBuilder();
+function Deferred(abortSignal) {
+    return new DeferredBuilder(abortSignal);
 }
 
-function awaitClick(...clickables) {
-    return Deferred().withAwaitClick(...clickables).build();
+function awaitClick(abortSignal, ...clickables) {
+    return Deferred(abortSignal).withAwaitClick(...clickables).build();
 }
 
-function awaitClickAndReturn(...items) {
-    return Deferred().withAwaitClickAndReturn(...items).build();
+function awaitClickAndReturn(abortSignal, ...items) {
+    return Deferred(abortSignal).withAwaitClickAndReturn(...items).build();
 }

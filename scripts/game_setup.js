@@ -119,6 +119,7 @@ class GameSetup {
                 nixon: 12 - nixCount,
                 name: "Initiative"
             },
+            lastRoll: null,
             endorsements: {
                 [REGIONS.WEST]: 0,
                 [REGIONS.EAST]: 0,

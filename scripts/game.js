@@ -11,9 +11,9 @@ var deleteDoc = undefined;
 var updateDoc = undefined;
 var onSnapshot = undefined
 
-const fbPromises = new FbPromises();
 let gameSetup = null;
 let gameData = null;
+let cancelUI = new AbortController();
 
 async function setup(user_, db_, fbMethods) {
     user = user_;
@@ -53,11 +53,11 @@ function grabBagIsKennedy(count) {
             gameData.nixon.bag--;
         }
     }
-
     updateDoc(doc(db, "elec_games", gameId), {
         kennedy: gameData.kennedy,
         nixon: gameData.nixon
     });
+
     return kenCount;
 }
 
@@ -86,8 +86,26 @@ async function getHand(gameEntry) {
 }
 
 async function selectCard(cardItems) {
-    const selectedCard = await awaitClickAndReturn(...cardItems);
-    const choseCard = await cardChosen(selectedCard.name, selectedCard.card, selectedCard.cardSlot, selectedCard.isCandidate);
+    let choseCard = false;
+
+    if (gameData.lastRoll === null) {
+        const selectedCard = await awaitClickAndReturn(...cardItems);
+        choseCard = await cardChosen(
+            selectedCard.name, 
+            selectedCard.card, 
+            selectedCard.cardSlot,
+            selectedCard.isCandidate
+        );
+    } else {
+        const selectedCard = cardItems.find(item => item.name === gameData.lastRoll.cardName);
+        choseCard = await alreadyChoseMediaCard(
+            selectedCard.name, 
+            selectedCard.card, 
+            selectedCard.cardSlot, 
+            gameData.lastRoll.points
+        );
+    }
+
     if (choseCard) {
         nextTurn(selectedCard.name);
     } else {
@@ -95,45 +113,47 @@ async function selectCard(cardItems) {
     }
 }
 
+async function alreadyChoseMediaCard(cardName, card, cardSlot, points) {
+    showPointsOnCard(cardSlot.pointsCover, points);
+
+    await useMediaPoints(points, cardSlot, cardSlot.card);
+    addCSSClass(cardSlot.pointsCover, "hidden");
+    return await confirmCardChoices(cardName, card);
+}
+
 async function cardChosen(cardName, card, cardSlot, isCandidate) {
     const playerCandidate = getPlayerCandidate(gameData);
-    if (gameData.currentPlayer !== playerCandidate) return;
+    if (gameData.currentPlayer !== playerCandidate) return {};
 
     const {eventButton, cpButton, mediaButton, issueButton} = showCardPopup(cardName, isCandidate);
-    const selectedButton = await Deferred()
-        .withAwaitClick(eventButton, cpButton, mediaButton, issueButton, choosePopup)
+    const selectedButton = await popupSelector()
+        .withAwaitClick(choosePopup)
         .withAwaitKey(document, "Escape")
         .build();
-    hidePopup();
 
     if (selectedButton === eventButton) {
-        return true;
+        return {};
     }
     if (selectedButton === cpButton) {
         showPointsOnCard(cardSlot.pointsCover, card.points);
 
         await useCampaignPoints(card.points, cardSlot, cardSlot.card);
         addCSSClass(cardSlot.pointsCover, "hidden");
-        return await confirmCardChoices(cardName, card);
+        return confirmCardChoices(cardName, card);
     }
     if (selectedButton === mediaButton) {
         const points = grabBagIsKennedy(card.points);
         if (!playerIsKennedy(gameData)) {
             points = card.points - points;
         }
-        showPointsOnCard(cardSlot.pointsCover, points);
-
-        await useMediaPoints(points, cardSlot, cardSlot.card);
-        addCSSClass(cardSlot.pointsCover, "hidden");
-
-        while (await confirmCardChoices(cardName, card)) {
-            showPointsOnCard(cardSlot.pointsCover, points);
-            await useMediaPoints(points, cardSlot, cardSlot.card);
-            addCSSClass(cardSlot.pointsCover, "hidden");
-        }
-        return true;
+        updateDoc(doc(db, "elec_games", gameId), {
+            lastRoll: {
+                points: points,
+                cardName: cardName
+            }
+        });
+        return false;
     }
-    
     if (selectedButton === issueButton) {
         showPointsOnCard(cardSlot.pointsCover, card.points);
 
@@ -205,6 +225,7 @@ async function useMediaPoints(points, cardSlot, doneButton) {
         button: bt.button
     }));
 
+    let exited = false;
     while (points > 0) {
         const buttonClicked = await Deferred()
             .withAwaitClickAndReturn(...mediaItems)
@@ -232,6 +253,7 @@ async function useIssuePoints(points, cardSlot, doneButton) {
         button: issueButtons[index].button
     }));
 
+    let exited = false;
     while (points > 0) {
         const buttonClicked = await Deferred()
             .withAwaitClickAndReturn(...issueItems)
@@ -261,27 +283,28 @@ function spendIssue(issueName, points, issuesBought) {
 }
 
 async function confirmCardChoices(cardName, card) {
-    const {finalizeButton, resetButton} = finalizePopup();
-    const popupButton = await Deferred()
-        .withAwaitClick(finalizeButton, resetButton)
-        .build();
+    const [finalizeButton, resetButton] = showPopup("Finalize these moves?", "Finalize", "Reset");
+    const popupButton = await popupSelector().build();
     
-    addCSSClass(choosePopup, "hidden");
     if (popupButton === finalizeButton) {
-        usedCard(cardName, card);
-        return true;
+        return usedCard(cardName, card);
     } else if (popupButton === resetButton) {
-        const gameData = (await getDoc(doc(db, "elec_games", gameId))).data();
-        gameUpdate(gameData);
-        return false;
+        // const gameData = (await getDoc(doc(db, "elec_games", gameId))).data();
+        return null;
     }
 }
 
 function usedCard(cardName, card) {
     const candidate = getPlayerCandidate(gameData);
-    gameData[candidate].hand = gameData[candidate].hand.filter(name => name != cardName);
-    if (card.isCandidate) gameData[candidate].exhausted = true;
-    if (!card.isCandidate) gameData[candidate].rest += 4 - card.points;
+    const updateData = {
+        [candidate]: gameData.candidate
+    };
+
+    updateData[candidate].hand = gameData[candidate].hand.filter(name => name != cardName);
+    if (card.isCandidate) updateData[candidate].exhausted = true;
+    if (!card.isCandidate) updateData[candidate].rest += 4 - card.points;
+
+    return updateData;
 }
 
 function nextTurn(cardName) {
@@ -299,7 +322,7 @@ function nextTurn(cardName) {
         discard: [...gameData.discard, cardName]
     };
 
-    if (gameData.turn === TURNS_PER_ROUND || true) {
+    if (gameData.turn === TURNS_PER_ROUND) {
         updateData.currentPlayer = null;
         updateDoc(doc(db, "elec_games", gameId), updateData)
             .then(() => endPlayPhase(gameData));
@@ -308,13 +331,14 @@ function nextTurn(cardName) {
     }
 }
 
-async function endPlayPhase(gameData) {
+function endPlayPhase(gameData) {
     const updateData = {
         kennedy: gameData.kennedy,
         nixon: gameData.nixon
     };
 
     updateData.phase = PHASE.MOMENTUM;
+    updateData.choosingPlayer = getPlayerCandidate(gameData);
     updateData.turns = 0;
     updateData.kennedy.momentum = Math.ceil(gameData.kennedy.momentum / 2);
     updateData.nixon.momentum = Math.ceil(gameData.nixon.momentum / 2);
@@ -328,59 +352,9 @@ async function endPlayPhase(gameData) {
     } else if (media < 0) {
         updateData.choosingPlayer = KENNEDY;
         updateData.phase = PHASE.ISSUE_SWAP;
-    } else {
-        updateData.choosingPlayer = NIXON;
-        updateData.phase = PHASE.ISSUE_SWAP;
     }
 
-    await updateDoc(doc(db, "elec_games", gameId), updateData);
-    await fbPromises.await(data => data.phase === PHASE.MOMENTUM);
-    momentumAwards(gameData);
-}
-async function momentumAwards(gameData) {
-    const issue1Name = gameData.issues[0];
-    const issue2Name = gameData.issues[1];
-    const issue3Name = gameData.issues[2];
-
-    const issue1Score = gameData.issueScores[issue1Name];
-    const issue2Score = gameData.issueScores[issue2Name];
-    const issue3Score = gameData.issueScores[issue3Name];
-
-    let updateData = {
-        kennedy: gameData.kennedy,
-        nixon: gameData.nixon
-    };
-    if (issue3Score > 0) {
-        updateData.nixon.momentum++;
-    } else if (issue3Score < 0) {
-        updateData.kennedy.momentum++;
-    }
-
-    if (issue2Score > 0) {
-        updateData.choosingPlayer = NIXON;
-        updateData.phase = PHASE.ISSUE_REWARD_CHOICE;
-    } else if (issue2Score < 0) {
-        updateData.choosingPlayer = KENNEDY;
-        updateData.phase = PHASE.ISSUE_REWARD_CHOICE;
-    }
-    await updateDoc(doc(db, "elec_games", gameId), updateData);
-    await fbPromises.await(data => data.phase === PHASE.MOMENTUM);
-
-    updateData = {
-        kennedy: gameData.kennedy,
-        nixon: gameData.nixon
-    };
-    if (issue1Score > 0) {
-        updateData.nixon.momentum++;
-        updateData.phase = PHASE.ENDORSE_REWARD;
-        updateData.choosingPlayer = NIXON;
-    } else {
-        updateData.kennedy.momentum++;
-        updateData.phase = PHASE.ENDORSE_REWARD;
-        updateData.choosingPlayer = KENNEDY;
-    }
-    await updateDoc(doc(db, "elec_games", gameId), updateData);
-    await fbPromises.await(data => data.phase === PHASE.MOMENTUM);
+    updateDoc(doc(db, "elec_games", gameId), updateData);
 }
 
 async function issueSwap() {
@@ -390,7 +364,7 @@ async function issueSwap() {
         button: issueButtons[index].button
     }));
 
-    const issueClicked = await awaitClickAndReturn(...issueItems);
+    const issueClicked = await awaitClickAndReturn(cancelUI, ...issueItems);
 
     const i = issueClicked.index;
     if (i === 0) return issueSwap();
@@ -402,29 +376,70 @@ async function issueSwap() {
 
     return updateDoc(doc(db, "elec_games", gameId), {
         issues: gameData.issues,
-        phase: PHASE.MOMENTUM,
-        choosingPlayer: null
+        phase: PHASE.MOMENTUM
     });
 }
 
+function getIssue1Score() {
+    const issue1Name = gameData.issues[0];
+    return gameData.issueScores[issue1Name];
+}
+function momentumAwards() {
+    const issue2Name = gameData.issues[1];
+    const issue3Name = gameData.issues[2];
+
+    const issue1Score = getIssue1Score();
+    const issue2Score = gameData.issueScores[issue2Name];
+    const issue3Score = gameData.issueScores[issue3Name];
+
+    const updateData = {
+        kennedy: gameData.kennedy,
+        nixon: gameData.nixon
+    };
+    if (issue3Score > 0) {
+        updateData.nixon.momentum++;
+    } else if (issue3Score < 0) {
+        updateData.kennedy.momentum++;
+    }
+
+    updateData.phase = PHASE.ISSUE1_ENDORSE_REWARD;
+    if (issue2Score > 0) {
+        updateData.choosingPlayer = NIXON;
+        updateData.phase = PHASE.ISSUE_REWARD_CHOICE;
+    } else if (issue2Score < 0) {
+        updateData.choosingPlayer = KENNEDY;
+        updateData.phase = PHASE.ISSUE_REWARD_CHOICE;
+    }
+
+    if (issue1Score > 0) {
+        updateData.nixon.momentum++;
+    } else if (issue1Score < 0) {
+        updateData.kennedy.momentum++;
+    }
+
+    updateDoc(doc(db, "elec_games", gameId), updateData);
+}
+
 async function chooseIssueReward() {
-    const {momentumButton, endorsementButton} = rewardChoicePopup();
-    const choiceButton = await Deferred()
-        .withAwaitClick(momentumButton, endorsementButton)
-        .build();
-    addCSSClass(choosePopup, "hidden");
+    const [momentumButton, endorsementButton] = showPopup("Which issue reward do you want?", "Momentum", "Endorsement");
+    const choiceButton = await popupSelector().build();
+
+    const issue1Score = getIssue1Score();
+    const updateData = {
+        phase: PHASE.ISSUE1_ENDORSE_REWARD,
+        choosingPlayer: issue1Score > 0 ? NIXON : KENNEDY
+    };
 
     if (choiceButton === momentumButton) {
-        gameData[playerCandidate].momentum++;
-        updateDoc(doc(db, "elec_games", gameId), {
-            [playerCandidate]: gameData[playerCandidate],
-            phase: PHASE.MOMENTUM,
-            choosingPlayer: null
-        });
+        const candidate = getPlayerCandidate(gameData);
+        gameData[candidate].momentum++;
+        updateData[candidate] = gameData[candidate];
     } else if (choiceButton === endorsementButton) {
         const endorseCard = drawEndorsementCard();
-        useEndorsementCard(endorseCard, PHASE.MOMENTUM);
+        updateData.endorsements = await useEndorsementCard(endorseCard);
     }
+
+    updateDoc(doc(db, "elec_games", gameId), updateData);
 }
 
 function drawEndorsementCard() {
@@ -436,8 +451,9 @@ function drawEndorsementCard() {
     });
     return card;
 }
-async function useEndorsementCard(endorseCard, endPhase) {
+async function useEndorsementCard(endorseCard) {
     const playerCandidate = getPlayerCandidate(gameData);
+    const endorsements = gameData.endorsements;
 
     if (endorseCard === REGIONS.ALL) {
         showChooseEndorseRegion();
@@ -447,16 +463,103 @@ async function useEndorsementCard(endorseCard, endPhase) {
         }));
         const clickedEndorsement = await awaitClickAndReturn(...endorseItems);
 
-        gameData.endorsements[clickedEndorsement.name] += candidateDp(playerCandidate);
+        endorsements[clickedEndorsement.name] += candidateDp(playerCandidate);
     } else {
-        gameData.endorsements[endorseCard] += candidateDp(playerCandidate);
+        endorsements[endorseCard] += candidateDp(playerCandidate);
     }
 
-    updateDoc(doc(db, "elec_games", gameId), {
-        endorsements: gameData.endorsements,
-        phase: endPhase,
-        choosingPlayer: null
-    });
+    return endorsements;
+}
+
+async function discardToCampaign() {
+    const playerCandidate = getPlayerCandidate(gameData);
+    const count = gameData.round <= 5 ? 1 : 2;
+    const playerData = gameData[playerCandidate];
+    showShouldDiscard(count);
+
+    for (let i = 0; i < count; i++) {
+        const cardItems = displayHand(playerData.hand, true, playerCandidate);
+        const selectedCard = await awaitClickAndReturn(...cardItems);
+
+        playerData.campaignDeck.push(selectedCard.name);
+        playerData.hand = playerData.hand.filter(name => name !== selectedCard.name);
+    }
+    
+    return playerData;
+}
+
+async function firstStrategy() {
+    const playerCandidate = getPlayerCandidate(gameData);
+    const updateData = {};
+
+    Object.keys(gameData.issueScores).forEach(name => {
+        const score = gameData.issueScores[name];
+        gameData.issueScores[name] = score - Math.sign(score);
+    })
+    updateData.issueScores = gameData.issueScores;
+
+    updateData[playerCandidate] = await discardToCampaign();
+    updateData[playerCandidate].bag += updateData[playerCandidate].rest;
+    updateData[playerCandidate].rest = 0;
+    updateData.discard = [...gameData.discard, ...updateData[playerCandidate].hand];
+    updateData[playerCandidate].hand = [];
+
+    updateData.phase = PHASE.STRATEGY;
+    updateData.choosingPlayer = getOtherCandidate(gameData);
+    updateDoc(doc(db, "elec_games", gameId), updateData);
+}
+
+function initiativeCheck() {
+    let kenCount = grabBagIsKennedy(2);
+    if (kenCount === 2) {
+        return { 
+            kennedy: 2,
+            nixon: 0
+        };
+    }
+    if (kenCount === -2) {
+        return { 
+            kennedy: 0,
+            nixon: 2
+        };
+    }
+
+    if (grabBagIsKennedy(1) === 1) {
+        return { 
+            kennedy: 2,
+            nixon: 1
+        };
+    } else {
+        return { 
+            kennedy: 1,
+            nixon: 2
+        };
+    }
+}
+
+async function secondStrategy() {
+    const playerCandidate = getPlayerCandidate(gameData);
+    const updateData = {};
+
+    updateData[playerCandidate] = await discardToCampaign();
+    updateData[playerCandidate].bag += updateData[playerCandidate].rest;
+    updateData[playerCandidate].rest = 0;
+    updateData.discard = [...gameData.discard, ...updateData[playerCandidate].hand];
+    updateData[playerCandidate].hand = [];
+
+    const check = initiativeCheck();
+    updateData.choosingPlayer = check.kennedy > check.nixon ? KENNEDY : NIXON;
+    updateData.lastBagOut = {
+        kennedy: check.kennedy,
+        nixon: check.nixon,
+        name: "Initiative"
+    };
+
+    updateData.phase = PHASE.CHOOSE_FIRST;
+    updateData.turn = 0;
+    updateData.round = gameData.round + 1;
+
+    updateDoc(doc(db, "elec_games", gameId), updateData);
 }
 
 async function enterGame(gameId_) {
@@ -469,7 +572,6 @@ async function enterGame(gameId_) {
 
 function gameUpdate(data) {
     gameData = data;
-    fbPromises.update(data);
     if (!gameData.started) return;
     updateCubes(gameData);
 
@@ -481,9 +583,8 @@ function gameUpdate(data) {
     showRound(gameData, playerCandidate);
     infoDiv.innerText = "";
     showBagRoll(gameData);
+    addCSSClass(choosePopup, "hidden");
 
-    DeferredBuilder.cancelAll();
-    fbPromises.cancel();
     gameAction()
         .catch(error => {
             if (error.message !== CLEARED_MESSAGE) throw error;
@@ -493,64 +594,66 @@ function gameUpdate(data) {
 async function gameAction() {
     const playerCandidate = getPlayerCandidate(gameData);
 
-    if (gameData.phase === PHASE.CHOOSE_FIRST && gameData.choosingPlayer === playerCandidate) {
-        removeAllChildren(chooseButtonsContainer);
-        chooseTitle.innerText = "Would you like to go first or second?";
-
-        const firstButton = document.createElement("button");
-        firstButton.innerText = "First";
-        const secondButton = document.createElement("button");
-        secondButton.innerText = "Second";
-        
-        chooseButtonsContainer.appendChild(firstButton);
-        chooseButtonsContainer.appendChild(secondButton);
-
-        removeCSSClass(choosePopup, "hidden");
-        firstButton.onclick = () => {
-            updateDoc(doc(db, "elec_games", gameId), {
-                currentPlayer: playerCandidate,
-                phase: PHASE.PLAY_CARDS,
-                choosingPlayer: null
-            });
-            addCSSClass(choosePopup, "hidden");
-        };
-        secondButton.onclick = () => {
-            updateDoc(doc(db, "elec_games", gameId), {
-                currentPlayer: (playerCandidate === KENNEDY ? NIXON : KENNEDY),
-                phase: PHASE.PLAY_CARDS,
-                choosingPlayer: null
-            });
-            addCSSClass(choosePopup, "hidden");
-        };
-        return;
-    }
-    
     if (gameData.currentPlayer === playerCandidate && gameData.phase === PHASE.PLAY_CARDS) {
         const hand = await getHand(gameData, user.email);
-        let cardItems = displayHand(
+        const cardItems = displayHand(
             hand, 
             gameData[playerCandidate].exhausted, 
             playerCandidate
         );
         return selectCard(cardItems);
     } else if (gameData[playerCandidate].hand.length > 0) {
-        const hand = await getHand(gameData, user.email);
         displayHand(
-            hand, 
+            gameData[playerCandidate].hand, 
             gameData[playerCandidate].exhausted, 
             playerCandidate
         );
+    } 
+
+    if (gameData.phase === PHASE.CHOOSE_FIRST && gameData.choosingPlayer === playerCandidate) {
+        const [first, second] = showPopup("Would you like to go first or second?", "First", "Second");
+        const selection = await popupSelector().build();
+        
+        if (selection === first) {
+            return {
+                currentPlayer: playerCandidate,
+                phase: PHASE.PLAY_CARDS,
+                choosingPlayer: null
+            };
+        } else if (selection === second) {
+            return {
+                currentPlayer: (playerCandidate === KENNEDY ? NIXON : KENNEDY),
+                phase: PHASE.PLAY_CARDS,
+                choosingPlayer: null
+            };
+        }
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.ISSUE_SWAP) {
         return issueSwap();
     }
 
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.MOMENTUM) {
+        return momentumAwards();
+    }
+
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.ISSUE_REWARD_CHOICE) {
         return chooseIssueReward();
     }
 
-    if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.ENDORSE_REWARD) {
-        return useEndorsementCard(drawEndorsementCard(), PHASE.MOMENTUM);
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.ISSUE1_ENDORSE_REWARD) {
+        const issue1Score = getIssue1Score();
+        if (issue1Score === 0) {
+            return firstStrategy();
+        } else {
+            const endorsements = await useEndorsementCard(drawEndorsementCard());
+            const updateData = await firstStrategy();
+            updateData.endorsements = endorsements;
+            return updateData;
+        }
+    }
+
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === PHASE.STRATEGY) {
+        return secondStrategy();
     }
 }

@@ -1,4 +1,3 @@
-let escapePopup = null;
 let showingElectors = false;
 
 function showEndorsements(gameData) {
@@ -45,10 +44,6 @@ function showPoints(points, cardSlot) {
         cardSlot.pointsCover.innerText = "Done?";
     }
 }
-
-function hidePopup() {
-    addCSSClass(choosePopup, "hidden");
-}
 function toggleShowElectors() {
     if (showingElectors) {
         showCubes(gameData);
@@ -65,35 +60,6 @@ document.addEventListener("keydown", e => {
     if (e.key === "e") toggleShowElectors();
 });
 chooseWindow.onclick = e => e.stopPropagation();
-
-function showCardPopup(cardName, disableEvent) {
-    removeAllChildren(chooseButtonsContainer);
-    chooseTitle.innerText = `What would you like to use '${cardName}' for?`;
-
-    const eventButton = document.createElement("button");
-    eventButton.innerText = "Event";
-    eventButton.disabled = disableEvent;
-    const cpButton = document.createElement("button");
-    cpButton.innerText = "Campaign";
-    const issueButton = document.createElement("button");
-    issueButton.innerText = "Issues";
-    const mediaButton = document.createElement("button");
-    mediaButton.innerText = "Media";
-    
-    chooseButtonsContainer.appendChild(eventButton);
-    chooseButtonsContainer.appendChild(cpButton);
-    chooseButtonsContainer.appendChild(issueButton);
-    chooseButtonsContainer.appendChild(mediaButton);
-    removeCSSClass(choosePopup, "hidden");
-    canEscapePopup = true;
-
-    return {
-        eventButton: eventButton, 
-        cpButton: cpButton,
-        issueButton: issueButton,
-        mediaButton: mediaButton
-    };
-}
 
 function moveIconTo(icon, state) {
     const locStyle = window.getComputedStyle(stateButtons[state].button);
@@ -230,37 +196,13 @@ function showChooseEndorseRegion() {
     infoDiv.innerText = "Choose a region\nto endorse";
 }
 
-function finalizePopup() {
-    removeAllChildren(chooseButtonsContainer);
-    chooseTitle.innerText = "Finalize these moves?";
-
-    const finalizeButton = document.createElement("button");
-    finalizeButton.innerText = "Finalize";
-    const resetButton = document.createElement("button");
-    resetButton.innerText = "Reset";
-    
-    chooseButtonsContainer.appendChild(finalizeButton);
-    chooseButtonsContainer.appendChild(resetButton);
-
-    removeCSSClass(choosePopup, "hidden");
-    return {finalizeButton: finalizeButton, resetButton: resetButton};
+function showShouldDiscard(count) {
+    if (count === 1) {
+        infoDiv.innerText = `Select ${count} card\nto discard`;
+    } else {
+        infoDiv.innerText = `Select ${count} cards\nto discard`;
+    }
 }
-
-function rewardChoicePopup() {
-    removeAllChildren(chooseButtonsContainer);
-    chooseTitle.innerText = "Which issue reward do you want?";
-
-    const momentumButton = document.createElement("button");
-    momentumButton.innerText = "Momentum";
-    const endorsementButton = document.createElement("button");
-    endorsementButton.innerText = "Endorsement";
-    
-    chooseButtonsContainer.appendChild(momentumButton);
-    chooseButtonsContainer.appendChild(endorsementButton);
-
-    removeCSSClass(choosePopup, "hidden");
-    return {momentumButton: momentumButton, endorsementButton: endorsementButton};
-} 
 
 function showPointsOnCard(cover, points) {
     cover.innerText = points;

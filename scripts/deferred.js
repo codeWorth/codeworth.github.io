@@ -1,4 +1,4 @@
-class AbortError extends Error {
+export class AbortError extends Error {
     constructor(...args) {
         super(...args);
     }
@@ -42,7 +42,7 @@ class _deferred {
             this._reject = reject;
         });
 
-        this.externalAbortSignal.addEventListener("abort", () => {
+        externalAbortSignal.addEventListener("abort", () => {
             this.reject(new AbortError("Global abort was triggered"));
         }, {once: true});
     }
@@ -84,20 +84,20 @@ class _deferred {
     awaitKey(target, key) {
         target.addEventListener(
             "keydown", 
-            e => { if (e.key === key) waiter.resolve(waiter); }, 
+            e => { if (e.key === key) this.resolve(key); }, 
             {signal: this.aborter.signal}
         );
     }
 }
 
-function Deferred(abortSignal) {
+export function Deferred(abortSignal) {
     return new DeferredBuilder(abortSignal);
 }
 
-function awaitClick(abortSignal, ...clickables) {
+export function awaitClick(abortSignal, ...clickables) {
     return Deferred(abortSignal).withAwaitClick(...clickables).build();
 }
 
-function awaitClickAndReturn(abortSignal, ...items) {
+export function awaitClickAndReturn(abortSignal, ...items) {
     return Deferred(abortSignal).withAwaitClickAndReturn(...items).build();
 }

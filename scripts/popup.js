@@ -1,10 +1,14 @@
-let popupAborter = new AbortController();
+import { 
+    removeAllChildren, 
+    addCSSClass,
+    removeCSSClass 
+} from "./util.js";
+import { chooseButtonsContainer, chooseTitle, choosePopup } from "./dom.js";
+import { Deferred } from "./deferred.js";
+
 let buttons = [];
 
-function showPopup(title, ...buttonNames) {
-    popupAborter.abort();
-    popupAborter = new AbortController();
-
+export function showPopup(title, ...buttonNames) {
     removeAllChildren(chooseButtonsContainer);
     chooseTitle.innerText = title;
 
@@ -19,13 +23,13 @@ function showPopup(title, ...buttonNames) {
     return buttons;
 }
 
-function popupSelector() {
-    return Deferred(popupAborter)
+export function popupSelector(cancelSignal) {
+    return Deferred(cancelSignal)
         .withAwaitClick(...buttons)
         .withOnFinish(() => addCSSClass(choosePopup, "hidden"));
 }
 
-function showCardPopup(cardName, disableEvent) {
+export function showCardPopup(cardName, disableEvent) {
     const [event, campaign, issues, media] = showPopup(
         `What would you like to use '${cardName}' for?`, 
         "Event", "Campaign", "Issues", "Media"

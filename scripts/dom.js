@@ -1,21 +1,23 @@
-const loginPage = document.getElementById("loginPage");
-const loginButton = document.getElementById("login");
+import { addCSSClass, removeCSSClass } from "./util.js";
 
-const joinPageButton = document.getElementById("joinPage");
-const logoutButton = document.getElementById("logout");
-const userNameField = document.getElementById("name");
-const createGameButton = document.getElementById("createGame");
-const gameCodeField = document.getElementById("gameCode");
-const joinGameButton = document.getElementById("joinGame");
-const deleteGameButton = document.getElementById("deleteGame");
-const gameIdsField = document.getElementById("gameIds");
+export const loginPage = document.getElementById("loginPage");
+export const loginButton = document.getElementById("login");
 
-const choosePage = document.getElementById("choosePage");
-const kennedyButton = document.getElementById("kennedy");
-const nixonButton = document.getElementById("nixon");
+export const joinPage = document.getElementById("joinPage");
+export const logoutButton = document.getElementById("logout");
+export const userNameField = document.getElementById("name");
+export const createGameButton = document.getElementById("createGame");
+export const gameCodeField = document.getElementById("gameCode");
+export const joinGameButton = document.getElementById("joinGame");
+export const deleteGameButton = document.getElementById("deleteGame");
+export const gameIdsField = document.getElementById("gameIds");
 
-const gamePage = document.getElementById("gamePage");
-const stateButtons = Object.fromEntries([...document.getElementsByClassName("sb")].map(sb => [
+export const choosePage = document.getElementById("choosePage");
+export const kennedyButton = document.getElementById("kennedy");
+export const nixonButton = document.getElementById("nixon");
+
+export const gamePage = document.getElementById("gamePage");
+export const stateButtons = Object.fromEntries([...document.getElementsByClassName("sb")].map(sb => [
     sb.id, {
         button: sb, 
         setText: s => sb.children[0].innerText = s,
@@ -31,19 +33,19 @@ const stateButtons = Object.fromEntries([...document.getElementsByClassName("sb"
         }
     }
 ]));
-const showElectorsButton = document.getElementById("showElectors");
-const turnIndicator = document.getElementById("turnIndicator");
-const handDiv = document.getElementById("hand");
+export const showElectorsButton = document.getElementById("showElectors");
+export const turnIndicator = document.getElementById("turnIndicator");
+export const handDiv = document.getElementById("hand");
 
-const choosePopup = document.getElementById("choosePopup");
-const chooseWindow = document.getElementById("chooseWindow");
-const chooseTitle = chooseWindow.getElementsByClassName("header")[0];
-const chooseButtonsContainer = document.getElementById("buttonContainer");
+export const choosePopup = document.getElementById("choosePopup");
+export const chooseWindow = document.getElementById("chooseWindow");
+export const chooseTitle = chooseWindow.getElementsByClassName("header")[0];
+export const chooseButtonsContainer = document.getElementById("buttonContainer");
 
-const nixonIcon = document.getElementById("nixonIcon");
-const kennedyIcon = document.getElementById("kennedyIcon");
+export const nixonIcon = document.getElementById("nixonIcon");
+export const kennedyIcon = document.getElementById("kennedyIcon");
 
-const endorseButtons = Object.fromEntries([...document.getElementsByClassName("endorse")].map(sb => [
+export const endorseButtons = Object.fromEntries([...document.getElementsByClassName("endorse")].map(sb => [
     sb.id, {
         button: sb,
         dataKey: sb.dataset.key,
@@ -60,7 +62,7 @@ const endorseButtons = Object.fromEntries([...document.getElementsByClassName("e
         }
     }
 ]));
-const mediaButtons = Object.fromEntries([...document.getElementsByClassName("media")].map(sb => [
+export const mediaButtons = Object.fromEntries([...document.getElementsByClassName("media")].map(sb => [
     sb.id, {
         button: sb,
         dataKey: sb.dataset.key,
@@ -77,7 +79,7 @@ const mediaButtons = Object.fromEntries([...document.getElementsByClassName("med
         }
     }
 ]));
-const issueButtons = Object.fromEntries([...document.getElementsByClassName("issue-select")].map(sb => [
+export const issueButtons = Object.fromEntries([...document.getElementsByClassName("issue-select")].map(sb => [
     parseInt(sb.dataset.index), {
         button: sb,
         setText: s => sb.children[0].innerText = s,
@@ -94,4 +96,4 @@ const issueButtons = Object.fromEntries([...document.getElementsByClassName("iss
     }
 ]));
 
-const infoDiv = document.getElementById("info");
+export const infoDiv = document.getElementById("info");

@@ -1,77 +1,78 @@
+import * as UI from "./dom.js";
+import {
+    ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY
+} from "./constants.js";
+import { CARDS, ISSUE_URL, PARTY, PARTY_URL } from "./cards.js";
+import { removeAllChildren, removeCSSClass } from "./util.js";
+
 let showingElectors = false;
 
-function showEndorsements(gameData) {
-    for (id in endorseButtons) {
-        const val = endorseButtons[id];
+export function showEndorsements(gameData) {
+    for (const id in UI.endorseButtons) {
+        const val = UI.endorseButtons[id];
         val.setCount(gameData.endorsements[val.dataKey]);
     }
 }
 
-function showMedia(gameData) {
-    for (id in mediaButtons) {
-        const val = mediaButtons[id];
+export function showMedia(gameData) {
+    for (const id in UI.mediaButtons) {
+        const val = UI.mediaButtons[id];
         val.setCount(gameData.media[val.dataKey]);
     }
 }
 
-function showIssues(gameData) {
-    for (index in issueButtons) {
-        const val = issueButtons[index];
+export function showIssues(gameData) {
+    for (const index in UI.issueButtons) {
+        const val = UI.issueButtons[index];
         const issueName = gameData.issues[index];
         val.setCount(gameData.issueScores[issueName]);
         val.button.style.backgroundImage = `url(${ISSUE_URLS[issueName]})`;
     }
 }
 
-function showCubes(gameData) {
+export function showCubes(gameData) {
     stateNames.forEach(state => {
-        stateButtons[state].setCount(gameData.cubes[state]);
+        UI.stateButtons[state].setCount(gameData.cubes[state]);
     });
 }
-function updateCubes(gameData) {
+export function updateCubes(gameData) {
     if (!showingElectors) showCubes(gameData);
 }
 
-function showElectors() {
+export function showElectors() {
     stateNames.forEach(state => {
-        stateButtons[state].setText(electors[state]);
+        UI.stateButtons[state].setText(ELECTORS[state]);
     });
 }
 
-function showPoints(points, cardSlot) {
-    cardSlot.pointsCover.innerText = points;
-    if (points === 0) {
-        cardSlot.pointsCover.innerText = "Done?";
-    }
-}
-function toggleShowElectors() {
+export function toggleShowElectors() {
     if (showingElectors) {
         showCubes(gameData);
         showingElectors = false;
-        showElectorsButton.innerText = "Show (E)lectors";
+        UI.showElectorsButton.innerText = "Show (E)lectors";
     } else {
         showElectors();
         showingElectors = true;
-        showElectorsButton.innerText = "Hide (E)lectors";
+        UI.showElectorsButton.innerText = "Hide (E)lectors";
     }
 }
-showElectorsButton.onclick = toggleShowElectors;
+UI.showElectorsButton.onclick = toggleShowElectors;
 document.addEventListener("keydown", e => {
     if (e.key === "e") toggleShowElectors();
 });
-chooseWindow.onclick = e => e.stopPropagation();
+UI.chooseWindow.onclick = e => e.stopPropagation();
 
-function moveIconTo(icon, state) {
-    const locStyle = window.getComputedStyle(stateButtons[state].button);
+export function moveIconTo(icon, state) {
+    const locStyle = window.getComputedStyle(UI.stateButtons[state].button);
     icon.style.left = locStyle.getPropertyValue("left");
     icon.style.top = locStyle.getPropertyValue("top");
 }
-function moveIcons(gameData) {
-    moveIconTo(kennedyIcon, gameData.kennedy.state);
-    moveIconTo(nixonIcon, gameData.nixon.state);
+export function moveIcons(gameData) {
+    moveIconTo(UI.kennedyIcon, gameData.kennedy.state);
+    moveIconTo(UI.nixonIcon, gameData.nixon.state);
 }
 
-function makeEmptyCard() {
+export function makeEmptyCard() {
     const card = document.createElement("div");
     card.className = "card";
 
@@ -121,16 +122,16 @@ function makeEmptyCard() {
     };
 }
 
-function displayHand(hand, exhausted, candidate) {
+export function displayHand(hand, exhausted, candidate) {
     const handCards = hand.map(name => CARDS[name]);
     const cardItems = [];
-    removeAllChildren(handDiv);
+    removeAllChildren(UI.handDiv);
 
     for (let i = 0; i < handCards.length; i++) {
         const cardName = hand[i];
         const card = handCards[i];
         const cardSlot = makeEmptyCard();
-        handDiv.appendChild(cardSlot.card);
+        UI.handDiv.appendChild(cardSlot.card);
 
         cardSlot.header.innerText = cardName;
         cardSlot.body.innerText = card.text;
@@ -151,7 +152,7 @@ function displayHand(hand, exhausted, candidate) {
 
     if (!exhausted) {
         const cardSlot = makeEmptyCard();
-        handDiv.appendChild(cardSlot.card);
+        UI.handDiv.appendChild(cardSlot.card);
 
         cardSlot.header.innerText = "Candidate Card";
         cardSlot.body.innerText = "This card may only be played for campaign points. Once played, it is flipped to the exhausted side.";
@@ -173,38 +174,38 @@ function displayHand(hand, exhausted, candidate) {
     return cardItems;
 }
 
-function showRound(gameData, playerCandidate) {
+export function showRound(gameData, playerCandidate) {
     const round = gameData.round;
 
     if (gameData.currentPlayer === playerCandidate && gameData.turn < TURNS_PER_ROUND) {
-        turnIndicator.innerText = `Your turn! (Round ${round})`;
+        UI.turnIndicator.innerText = `Your turn! (Round ${round})`;
     } else {
-        turnIndicator.innerText = `(Round ${round})`;
+        UI.turnIndicator.innerText = `(Round ${round})`;
     }
 }
 
-function showBagRoll(gameData) {
+export function showBagRoll(gameData) {
     if (gameData.lastBagOut === null) return;
-    infoDiv.innerText = `-${gameData.lastBagOut.name}-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
+    UI.infoDiv.innerText = `-${gameData.lastBagOut.name}-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
 }
 
-function showShouldSwap() {
-    infoDiv.innerText = "Select an issue\nto swap it left";
+export function showShouldSwap() {
+    UI.infoDiv.innerText = "Select an issue\nto swap it left";
 }
 
-function showChooseEndorseRegion() {
-    infoDiv.innerText = "Choose a region\nto endorse";
+export function showChooseEndorseRegion() {
+    UI.infoDiv.innerText = "Choose a region\nto endorse";
 }
 
-function showShouldDiscard(count) {
+export function showShouldDiscard(count) {
     if (count === 1) {
-        infoDiv.innerText = `Select ${count} card\nto discard`;
+        UI.infoDiv.innerText = `Select ${count} card\nto discard`;
     } else {
-        infoDiv.innerText = `Select ${count} cards\nto discard`;
+        UI.infoDiv.innerText = `Select ${count} cards\nto discard`;
     }
 }
 
-function showPointsOnCard(cover, points) {
+export function showPointsOnCard(cover, points) {
     cover.innerText = points;
     if (points === 0) cover.innerText = "Done?";
     removeCSSClass(cover, "hidden");

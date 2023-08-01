@@ -1,50 +1,50 @@
-const PARTY = {
+export const PARTY = {
 	REPUBLICAN: "r",
 	DEMOCRAT: "d",
 	BOTH: "b"
 };
 
-const ISSUE = {
+export const ISSUE = {
 	ECONOMY: "e",
 	CIVIL_RIGHTS: "c",
 	DEFENSE: "d"
 };
 
-const LOCATION = {
+export const LOCATION = {
 	NONE: "n",
 	DEBATE: "d",
 	PREVENTION: "p",
 	ELECTION_DAY: "e"
 };
 
-const PARTY_URL = {
+export const PARTY_URL = {
 	[PARTY.DEMOCRAT]: "../images/kennedy.png",
 	[PARTY.REPUBLICAN]: "../images/nixon.png",
 	[PARTY.BOTH]: "../images/both.png"
 };
 
-const ISSUE_URL = {
+export const ISSUE_URL = {
 	[ISSUE.ECONOMY]: "../images/economy.png",
 	[ISSUE.CIVIL_RIGHTS]: "../images/civilrights.png",
 	[ISSUE.DEFENSE]: "../images/defense.png"
 };
 
-const REGIONS = {
+export const ENDORSE_REGIONS = {
 	WEST: "west",
 	EAST: "east",
 	MID: "mid",
 	SOUTH: "south",
 	ALL: "all"
 };
-const ENDORSEMENT_CARDS = [
-	REGIONS.WEST, REGIONS.WEST, REGIONS.WEST,
-	REGIONS.EAST, REGIONS.EAST, REGIONS.EAST,
-	REGIONS.MID, REGIONS.MID, REGIONS.MID,
-	REGIONS.SOUTH, REGIONS.SOUTH, REGIONS.SOUTH,
-	REGIONS.ALL, REGIONS.ALL, REGIONS.ALL, REGIONS.ALL
+export const ENDORSEMENT_CARDS = [
+	ENDORSE_REGIONS.WEST, ENDORSE_REGIONS.WEST, ENDORSE_REGIONS.WEST,
+	ENDORSE_REGIONS.EAST, ENDORSE_REGIONS.EAST, ENDORSE_REGIONS.EAST,
+	ENDORSE_REGIONS.MID, ENDORSE_REGIONS.MID, ENDORSE_REGIONS.MID,
+	ENDORSE_REGIONS.SOUTH, ENDORSE_REGIONS.SOUTH, ENDORSE_REGIONS.SOUTH,
+	ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL
 ];
 
-const CARDS = {
+export const CARDS = {
 	"Give 'Em Hell Harry": {
 		text: "If Kennedy is leading in multiple issues, the Kennedy player loses 1 momentum marker and must subtract a total of 2 issue support",
 		points: 3,
@@ -52,7 +52,7 @@ const CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "ny",
 		location: LOCATION.NONE,
-		event: hellHarry
+		// event: hellHarry
 	},
     "Fatigue Sets In": {
 		text: "If opponent's candidate card is currently available for play, flip it over to its Exhausted side",

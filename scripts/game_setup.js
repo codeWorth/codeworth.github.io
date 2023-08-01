@@ -1,82 +1,96 @@
+import { 
+    onSnapshot,
+    doc, collection, query,
+    getDoc, setDoc, getDocs, deleteDoc, updateDoc
+} from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
+import { addCSSClass, removeCSSClass } from "./util.js";
+import {
+    NIXON, KENNEDY,
+    PHASE, DEFAULT_COUNTS,
+    ISSUE_URLS
+} from "./constants.js";
+import { CARDS, ENDORSEMENT_CARDS, ENDORSE_REGIONS } from './cards.js';
+import * as UI from "./dom.js";
+
 class GameSetup {
-    constructor(fbMethods, user, db, gameUpdate, enterGame) {
-        this.fb = fbMethods;
+    constructor(user, db, gameUpdate, enterGame) {
         this.user = user;
         this.db = db;
         this.gameUpdate = gameUpdate;
         this.enterGame = enterGame;
 
-        createGameButton.onclick = () => this.makeGame();
-        joinGameButton.onclick = () => this.joinGame(gameCodeField.value);
-        deleteGameButton.onclick = () => this.deleteGame(gameCodeField.value);
+        UI.createGameButton.onclick = () => this.makeGame();
+        UI.joinGameButton.onclick = () => this.joinGame(UI.gameCodeField.value);
+        UI.deleteGameButton.onclick = () => this.deleteGame(UI.gameCodeField.value);
     }
 
     async getGamePlayers(gameId) {
-        const gamePlayers = await this.fb.getDocs(this.fb.query(this.fb.collection(this.db, "elec_games", gameId, "players")));
+        const gamePlayers = await getDocs(query(collection(this.db, "elec_games", gameId, "players")));
         return gamePlayers.docs.map(doc => doc.id);
     }
     
     async getGames() {
-        const userGames = await this.fb.getDocs(this.fb.query(this.fb.collection(this.db, "users", user.email, "elec_games")));
+        const userGames = await getDocs(query(collection(this.db, "users", this.user.email, "elec_games")));
         return userGames.docs.map(doc => doc.id);
     }
     
     async makeGame() {
-        const newGameRef = this.fb.doc(this.fb.collection(this.db, "users", user.email, "elec_games"));
+        const newGameRef = doc(collection(this.db, "users", this.user.email, "elec_games"));
         const gameId = newGameRef.id;
 
-        await this.fb.setDoc(newGameRef, {});
-        await this.fb.setDoc(this.fb.doc(this.db, "elec_games", gameId), {
+        await setDoc(newGameRef, {});
+        await setDoc(doc(this.db, "elec_games", gameId), {
             started: false,
-            owner: user.email
+            owner: this.user.email
         });
     
         await this.joinGame(gameId);
-        gameIdsField.innerText = (await this.getGames()).join("\n");
+        UI.gameIdsField.innerText = (await this.getGames()).join("\n");
     }
     
     async joinGame(gameId) {
-        const gameRef = this.fb.doc(this.db, "elec_games", gameId);
-        const gameEntry = await this.fb.getDoc(gameRef);
+        const gameRef = doc(this.db, "elec_games", gameId);
+        const gameEntry = await getDoc(gameRef);
         if (!gameEntry.exists()) {
             console.error("Failed to join game, doesn't exist");
             return;
         }
     
-        this.fb.onSnapshot(gameRef, game => this.gameUpdate(game.data()));
+        onSnapshot(gameRef, game => this.gameUpdate(game.data()));
     
         if (gameEntry.data().started) {
-            addCSSClass(joinPage, "hidden");
+            addCSSClass(UI.joinPage, "hidden");
             this.enterGame(gameId);
             return;
         }
     
-        await this.fb.setDoc(this.fb.doc(this.db, "users", user.email, "elec_games", gameId), {});
-        await this.fb.setDoc(this.fb.doc(this.db, "elec_games", gameId, "players", user.email), {});
+        await setDoc(doc(this.db, "users", this.user.email, "elec_games", gameId), {});
+        await setDoc(doc(this.db, "elec_games", gameId, "players", this.user.email), {});
         const gamePlayerEmails = await this.getGamePlayers(gameId);
-        const otherPlayerEmail = gamePlayerEmails.filter(email => email != user.email)[0];
+        const otherPlayerEmail = gamePlayerEmails.filter(email => email != this.user.email)[0];
         if (gamePlayerEmails.length >= 2) {
-            addCSSClass(joinPage, "hidden");
-            this.startGame(gameId, user.email, otherPlayerEmail);
+            addCSSClass(UI.joinPage, "hidden");
+            this.startGame(gameId, this.user.email, otherPlayerEmail);
         }
     }
     
     async deleteGame(gameId) {
         const gamePlayerEmails = await this.getGamePlayers(gameId);
         await Promise.all(gamePlayerEmails.map(email => 
-            this.fb.deleteDoc(this.fb.doc(this.db, "users", email, "elec_games", gameId))
+            deleteDoc(doc(this.db, "users", email, "elec_games", gameId))
         ));
         await Promise.all(gamePlayerEmails.map(email =>
-            this.fb.deleteDoc(this.fb.doc(this.db, "elec_games", gameId, "players", email))
+            deleteDoc(doc(this.db, "elec_games", gameId, "players", email))
         ));
         
-        await this.fb.deleteDoc(this.fb.doc(this.db, "elec_games", gameId));
+        await deleteDoc(doc(this.db, "elec_games", gameId));
+        UI.gameIdsField.innerText = (await this.getGames()).join("\n");
     }
     
     async startGame(gameId, selfPlayer, otherPlayer) {
-        removeCSSClass(choosePage, "hidden");
-        kennedyButton.onclick = () => this.choosePlayer(gameId, true, selfPlayer, otherPlayer);
-        nixonButton.onclick = () => this.choosePlayer(gameId, false, selfPlayer, otherPlayer);
+        removeCSSClass(UI.choosePage, "hidden");
+        UI.kennedyButton.onclick = () => this.choosePlayer(gameId, true, selfPlayer, otherPlayer);
+        UI.nixonButton.onclick = () => this.choosePlayer(gameId, false, selfPlayer, otherPlayer);
     }
     
     async choosePlayer(gameId, isKennedy, selfPlayer, otherPlayer) {
@@ -102,12 +116,12 @@ class GameSetup {
         }
         const kenWon = kenCount < nixCount;
 
-        await this.fb.updateDoc(this.fb.doc(this.db, "elec_games", gameId), {
+        await updateDoc(doc(this.db, "elec_games", gameId), {
             started: true,
             choosingPlayer: kenWon ? KENNEDY : NIXON,
             currentPlayer: null,
             phase: PHASE.CHOOSE_FIRST,
-            cubes: defaultCounts,
+            cubes: DEFAULT_COUNTS,
             issues: issues,
             deck: Object.keys(CARDS),
             endorsementsDeck: ENDORSEMENT_CARDS,
@@ -121,16 +135,16 @@ class GameSetup {
             },
             lastRoll: null,
             endorsements: {
-                [REGIONS.WEST]: 0,
-                [REGIONS.EAST]: 0,
-                [REGIONS.MID]: 0,
-                [REGIONS.SOUTH]: 0
+                [ENDORSE_REGIONS.WEST]: 0,
+                [ENDORSE_REGIONS.EAST]: 0,
+                [ENDORSE_REGIONS.MID]: 0,
+                [ENDORSE_REGIONS.SOUTH]: 0
             },
             media: {
-                [REGIONS.WEST]: 0,
-                [REGIONS.EAST]: 0,
-                [REGIONS.MID]: 0,
-                [REGIONS.SOUTH]: 0
+                [ENDORSE_REGIONS.WEST]: 0,
+                [ENDORSE_REGIONS.EAST]: 0,
+                [ENDORSE_REGIONS.MID]: 0,
+                [ENDORSE_REGIONS.SOUTH]: 0
             },
             issueScores: {
                 [Object.keys(ISSUE_URLS)[0]]: 0,
@@ -164,3 +178,5 @@ class GameSetup {
         this.enterGame(gameId);
     }
 }
+
+export default GameSetup;

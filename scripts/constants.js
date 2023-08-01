@@ -1,27 +1,27 @@
 // const TURNS_PER_ROUND = 10;
-const TURNS_PER_ROUND = 3;
-const NIXON = "nixon";
-const KENNEDY = "kennedy";
-const ESCAPE_POPUP = "escape_popup"
+export const TURNS_PER_ROUND = 3;
+export const NIXON = "nixon";
+export const KENNEDY = "kennedy";
+export const ESCAPE_POPUP = "escape_popup"
+export const RESET_SIGNAL = new Object();
 
-const PHASE = {
+export const PHASE = {
     CHOOSE_FIRST: "choose_first",
     PLAY_CARDS: "play_cards",
     DISCARD_CHOICE: "discard_choice",
-    MOMENTUM: "momentum",
     ISSUE_SWAP: "issue_swap",
     ISSUE_REWARD_CHOICE: "issue_choice",
     ISSUE1_ENDORSE_REWARD: "endorse_reward",
     STRATEGY: "strategy"
 }
 
-const ISSUE_URLS = {
+export const ISSUE_URLS = {
     DEFENSE: "../images/defense_gray.png",
     CIVIL_RIGHTS: "../images/civilrights_gray.png",
     ECONOMY: "../images/economy_gray.png"
 }
 
-const defaultCounts = {
+export const DEFAULT_COUNTS = {
     washington: 0,
     oregon: 0,
     california: 0,
@@ -73,9 +73,9 @@ const defaultCounts = {
     maryland: 0,
     hawaii: 0,
 };
-const stateNames = Object.keys(defaultCounts);
+export const stateNames = Object.keys(DEFAULT_COUNTS);
 
-const electors = {
+export const ELECTORS = {
     washington: 9,
     oregon: 6,
     california: 32,
@@ -128,7 +128,7 @@ const electors = {
     hawaii: 3,
 };
 
-const stateLeanNixon = {
+export const stateLeanNixon = {
     washington: true,
     oregon: true,
     california: true,
@@ -181,13 +181,13 @@ const stateLeanNixon = {
     hawaii: false,
 };
 
-const REGION = {
+export const REGION = {
     WEST: 0,
     MIDWEST: 1,
     NORTHEAST: 2,
     SOUTH: 3
 };
-const stateRegion = {
+export const stateRegion = {
     washington: REGION.WEST,
     oregon: REGION.WEST,
     california: REGION.WEST,
@@ -241,7 +241,7 @@ const stateRegion = {
 };
 
 // to get from OUTER to INNER we need to go to VALUE
-const movePath = {
+export const movePath = {
     hawaii: {
         alaska: REGION.WEST,
         [REGION.WEST]: REGION.WEST,
@@ -286,7 +286,7 @@ const movePath = {
     },
 };
 
-const stateCodes = {
+export const stateCodes = {
     "al": "alabama",
     "ak": "alaska",
     "az": "arizona",

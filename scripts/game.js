@@ -73,7 +73,11 @@ async function gameAction(gameData) {
     const playerCandidate = getPlayerCandidate(gameData);
 
     if (gameData.currentPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.PLAY_CARDS) {
-        await logic.playHand();
+        if (gameData[playerCandidate].hand.length === 0) {
+            await logic.getHand();
+        } else {
+            await logic.playHand();
+        }
         return logic.data;
     } else if (gameData[playerCandidate].hand.length > 0) {
         VIEW.displayHand(

@@ -48,6 +48,7 @@ export function gameUpdate(gameData) {
     VIEW.showMedia(gameData);
     VIEW.moveIcons(gameData);
     VIEW.showRound(gameData, playerCandidate);
+    VIEW.showMomentum(gameData);
     infoDiv.innerText = "";
     VIEW.showBagRoll(gameData);
     addCSSClass(choosePopup, "hidden");

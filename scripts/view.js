@@ -210,3 +210,8 @@ export function showPointsOnCard(cover, points) {
     if (points === 0) cover.innerText = "Done?";
     removeCSSClass(cover, "hidden");
 }
+
+export function showMomentum(gameData) {
+    UI.nixonMomentum.innerText = gameData.nixon.momentum;
+    UI.kennedyMomentum.innerText = gameData.kennedy.momentum;
+}

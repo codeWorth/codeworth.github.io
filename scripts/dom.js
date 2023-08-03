@@ -15,6 +15,8 @@ export const gameIdsField = document.getElementById("gameIds");
 export const choosePage = document.getElementById("choosePage");
 export const kennedyButton = document.getElementById("kennedy");
 export const nixonButton = document.getElementById("nixon");
+export const nixonMomentum = document.getElementById("nixonCount");
+export const kennedyMomentum = document.getElementById("kennedyCount");
 
 export const gamePage = document.getElementById("gamePage");
 export const stateButtons = Object.fromEntries([...document.getElementsByClassName("sb")].map(sb => [

@@ -1,5 +1,5 @@
 import { 
-    onSnapshot,
+    onSnapshot, runTransaction,
     doc, collection, query,
     getDoc, setDoc, getDocs, deleteDoc, updateDoc
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
@@ -49,9 +49,13 @@ class GameSetup {
     }
     
     async joinGame(gameId) {
+        const userInRef = doc(this.db, "users", this.user.uid, "elec_games", gameId);
+        await setDoc(userInRef, {});
+
         const gameRef = doc(this.db, "elec_games", gameId);
         const gameEntry = await getDoc(gameRef);
         if (!gameEntry.exists()) {
+            deleteDoc(userInRef);
             console.error("Failed to join game, doesn't exist");
             return;
         }
@@ -64,7 +68,6 @@ class GameSetup {
             return;
         }
     
-        await setDoc(doc(this.db, "users", this.user.uid, "elec_games", gameId), {});
         await setDoc(doc(this.db, "elec_games", gameId, "players", this.user.uid), {});
         const gamePlayerUids = await this.getGamePlayers(gameId);
         const otherPlayerUid = gamePlayerUids.filter(uid => uid != this.user.uid)[0];
@@ -75,15 +78,23 @@ class GameSetup {
     }
     
     async deleteGame(gameId) {
-        const gamePlayerUids = await this.getGamePlayers(gameId);
-        await Promise.all(gamePlayerUids.map(uid => 
-            deleteDoc(doc(this.db, "users", uid, "elec_games", gameId))
-        ));
-        await Promise.all(gamePlayerUids.map(uid =>
-            deleteDoc(doc(this.db, "elec_games", gameId, "players", uid))
-        ));
+        const gameEntry = await getDoc(doc(this.db, "elec_games", gameId));
+        if (gameEntry.data().owner !== this.user.uid) {
+            console.error("Non-owner attempted to delete game.");
+            return;
+        }
+
+        await runTransaction(this.db, async (transaction) => {
+            const gamePlayerUids = await this.getGamePlayers(gameId);
+            gamePlayerUids.forEach(uid =>
+                transaction.delete(doc(this.db, "elec_games", gameId, "players", uid))
+            );
+            gamePlayerUids.forEach(uid => 
+                transaction.delete(doc(this.db, "users", uid, "elec_games", gameId))
+            );
+            transaction.delete(doc(this.db, "elec_games", gameId));
+        });        
         
-        await deleteDoc(doc(this.db, "elec_games", gameId));
         UI.gameIdsField.innerText = (await this.getGames()).join("\n");
     }
     

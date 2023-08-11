@@ -16,7 +16,7 @@ export function removeAllChildren(elem) {
 }
 
 export function playerIsKennedy(gameData) {
-    return gameData.kennedy.email === getUser().email;
+    return gameData.kennedy.uid === getUser().uid;
 }
 
 export function getPlayerCandidate(gameData) {

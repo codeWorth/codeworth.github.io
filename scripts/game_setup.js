@@ -66,21 +66,21 @@ class GameSetup {
     
         await setDoc(doc(this.db, "users", this.user.uid, "elec_games", gameId), {});
         await setDoc(doc(this.db, "elec_games", gameId, "players", this.user.uid), {});
-        const gamePlayerEmails = await this.getGamePlayers(gameId);
-        const otherPlayerEmail = gamePlayerEmails.filter(email => email != this.user.uid)[0];
-        if (gamePlayerEmails.length >= 2) {
+        const gamePlayerUids = await this.getGamePlayers(gameId);
+        const otherPlayerUid = gamePlayerUids.filter(uid => uid != this.user.uid)[0];
+        if (gamePlayerUids.length >= 2) {
             addCSSClass(UI.joinPage, "hidden");
-            this.startGame(gameId, this.user.uid, otherPlayerEmail);
+            this.startGame(gameId, this.user.uid, otherPlayerUid);
         }
     }
     
     async deleteGame(gameId) {
-        const gamePlayerEmails = await this.getGamePlayers(gameId);
-        await Promise.all(gamePlayerEmails.map(email => 
-            deleteDoc(doc(this.db, "users", email, "elec_games", gameId))
+        const gamePlayerUids = await this.getGamePlayers(gameId);
+        await Promise.all(gamePlayerUids.map(uid => 
+            deleteDoc(doc(this.db, "users", uid, "elec_games", gameId))
         ));
-        await Promise.all(gamePlayerEmails.map(email =>
-            deleteDoc(doc(this.db, "elec_games", gameId, "players", email))
+        await Promise.all(gamePlayerUids.map(uid =>
+            deleteDoc(doc(this.db, "elec_games", gameId, "players", uid))
         ));
         
         await deleteDoc(doc(this.db, "elec_games", gameId));
@@ -152,7 +152,7 @@ class GameSetup {
                 [Object.keys(ISSUE_URLS)[2]]: 0
             },
             kennedy: {
-                email: isKennedy ? selfPlayer : otherPlayer,
+                uid: isKennedy ? selfPlayer : otherPlayer,
                 bag: 0,
                 hand: [],
                 state: "massachusetts",
@@ -163,7 +163,7 @@ class GameSetup {
                 needDiscard: 0
             },
             nixon: {
-                email: isKennedy ? otherPlayer : selfPlayer,
+                uid: isKennedy ? otherPlayer : selfPlayer,
                 bag: 0,
                 hand: [],
                 state: "california",

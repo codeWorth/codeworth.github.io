@@ -30,18 +30,18 @@ class GameSetup {
     }
     
     async getGames() {
-        const userGames = await getDocs(query(collection(this.db, "users", this.user.email, "elec_games")));
+        const userGames = await getDocs(query(collection(this.db, "users", this.user.uid, "elec_games")));
         return userGames.docs.map(doc => doc.id);
     }
     
     async makeGame() {
-        const newGameRef = doc(collection(this.db, "users", this.user.email, "elec_games"));
+        const newGameRef = doc(collection(this.db, "users", this.user.uid, "elec_games"));
         const gameId = newGameRef.id;
 
         await setDoc(newGameRef, {});
         await setDoc(doc(this.db, "elec_games", gameId), {
             started: false,
-            owner: this.user.email
+            owner: this.user.uid
         });
     
         await this.joinGame(gameId);
@@ -64,13 +64,13 @@ class GameSetup {
             return;
         }
     
-        await setDoc(doc(this.db, "users", this.user.email, "elec_games", gameId), {});
-        await setDoc(doc(this.db, "elec_games", gameId, "players", this.user.email), {});
+        await setDoc(doc(this.db, "users", this.user.uid, "elec_games", gameId), {});
+        await setDoc(doc(this.db, "elec_games", gameId, "players", this.user.uid), {});
         const gamePlayerEmails = await this.getGamePlayers(gameId);
-        const otherPlayerEmail = gamePlayerEmails.filter(email => email != this.user.email)[0];
+        const otherPlayerEmail = gamePlayerEmails.filter(email => email != this.user.uid)[0];
         if (gamePlayerEmails.length >= 2) {
             addCSSClass(UI.joinPage, "hidden");
-            this.startGame(gameId, this.user.email, otherPlayerEmail);
+            this.startGame(gameId, this.user.uid, otherPlayerEmail);
         }
     }
     

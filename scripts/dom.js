@@ -99,3 +99,15 @@ export const issueButtons = Object.fromEntries([...document.getElementsByClassNa
 ]));
 
 export const infoDiv = document.getElementById("info");
+
+const popupCardDiv = document.getElementById("popupCard");
+export const popupCard = {
+    card: popupCardDiv, 
+    header: popupCardDiv.getElementsByClassName("header")[0], 
+    body: popupCardDiv.getElementsByClassName("body")[0], 
+    candidateImg: popupCardDiv.getElementsByClassName("candidate")[0], 
+    issueImg: popupCardDiv.getElementsByClassName("issue")[0], 
+    cp: popupCardDiv.getElementsByClassName("cp")[0], 
+    state: popupCardDiv.getElementsByClassName("state")[0], 
+    rest: popupCardDiv.getElementsByClassName("rest")[0]
+};

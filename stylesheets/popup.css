@@ -1,0 +1,84 @@
+
+#choosePopup {
+    position: absolute;
+    left: -5rem;
+    right: -5rem;
+    top: -13px;
+    height: calc(100vh - 42px);
+    background-color: rgba(0, 0, 0, 0.7);
+}
+
+#chooseWindow {
+    margin-left: calc(50% - 200px);
+    margin-top: 200px;
+    background-color: rgb(240, 240, 240);
+    width: 400px;
+    border-radius: 5px;
+}
+
+#chooseWindow .header {
+    margin: 0px;
+    padding: 20px;
+    width: calc(100% - 40px);
+    font-family: Tahoma;
+    font-size: 2em;
+    text-align: center;
+}
+
+#buttonContainer {
+    display: flex;
+    width: calc(100% - 10px);
+    justify-content: space-evenly;
+    padding: 0px 5px;
+}
+
+#buttonContainer button {
+    margin: 5px;
+    margin-bottom: 10px;
+    aspect-ratio: 2.5;
+    font-family: Tahoma;
+    flex: 1;
+}
+#buttonContainer button:hover {
+    cursor: pointer;
+}
+
+#popupCard {
+    position: absolute;
+    top: 120rem;
+    right: 120rem;
+    font-size: 2.3rem;
+}
+
+#popupCard .header {
+    font-size: 11em;
+}
+
+#popupCard .body {
+    font-size: 7em;
+    height: calc(100% - 7.2em);
+}
+
+#popupCard .cp {
+    font-size: 9em;
+}
+
+#popupCard .state {
+    font-size: 9em;
+}
+
+#popupCard .rest {
+    font-size: 9em;
+}
+
+#popupCard .candidate {
+    bottom: 20em;
+    width: 35em;
+    height: 35em;
+}
+
+#popupCard .issue {
+    bottom: 20em;
+    width: 35em;
+    height: 35em;
+}

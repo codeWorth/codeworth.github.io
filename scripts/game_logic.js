@@ -167,7 +167,7 @@ class GameLogic {
         const playerCandidate = getPlayerCandidate(this.data);
         if (this.data.currentPlayer !== playerCandidate) return false;
     
-        const {eventButton, cpButton, issueButton, mediaButton} = showCardPopup(cardName, isCandidate);
+        const {eventButton, cpButton, issueButton, mediaButton} = showCardPopup(cardName, card, isCandidate);
         const selectedButton = await popupSelector(this.cancelSignal)
             .withAwaitClick(UI.choosePopup)
             .withAwaitKey(document, "Escape")

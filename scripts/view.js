@@ -78,8 +78,13 @@ export function makeEmptyCard() {
 
     const header = document.createElement("h3");
     header.className = "header";
+
+    const bodyContainer = document.createElement("div");
+    bodyContainer.className = "bodyContainer";
     const body = document.createElement("div");
     body.className = "body";
+    bodyContainer.appendChild(body);
+    
     const candidateImg = document.createElement("img");
     candidateImg.width = "40";
     candidateImg.className = "candidate";
@@ -103,7 +108,7 @@ export function makeEmptyCard() {
     pointsCover.className = "pointsCover hidden";
 
     card.appendChild(header);
-    card.appendChild(body);
+    card.appendChild(bodyContainer);
     card.appendChild(candidateImg);
     card.appendChild(issueImg);
     card.appendChild(info);
@@ -143,7 +148,7 @@ export function displayHand(hand, exhausted, candidate) {
 
         cardItems.push({
             name: cardName,
-            card: card,
+            card: {...card, rest: 4 - card.points},
             cardSlot: cardSlot,
             button: cardSlot.card,
             isCandidate: false
@@ -151,20 +156,29 @@ export function displayHand(hand, exhausted, candidate) {
     }
 
     if (!exhausted) {
+        const fakeCard = {
+            points: 5,
+            rest: 0,
+            text: "This card may only be played for campaign points. Once played, it is flipped to the exhausted side.",
+            state: candidate === KENNEDY ? "ma" : "ca",
+            party: candidate === KENNEDY ? PARTY.DEMOCRAT : PARTY.REPUBLICAN,
+            issue: null,
+            isCandidate: true
+        };
         const cardSlot = makeEmptyCard();
         UI.handDiv.appendChild(cardSlot.card);
 
         cardSlot.header.innerText = "Candidate Card";
-        cardSlot.body.innerText = "This card may only be played for campaign points. Once played, it is flipped to the exhausted side.";
-        cardSlot.cp.innerText = "5 CP";
-        cardSlot.rest.innerText = "0 Rest";
-        cardSlot.state.innerText = candidate === KENNEDY ? "MA" : "CA";
-        cardSlot.candidateImg.src = candidate === KENNEDY ? PARTY_URL[PARTY.DEMOCRAT] : PARTY_URL[PARTY.REPUBLICAN];
+        cardSlot.body.innerText = fakeCard.text;
+        cardSlot.cp.innerText = fakeCard.points + " CP";
+        cardSlot.rest.innerText = fakeCard.rest + " Rest";
+        cardSlot.state.innerText = fakeCard.state.toUpperCase();
+        cardSlot.candidateImg.src = PARTY_URL[fakeCard.party];
         cardSlot.issueImg.src = "";
 
         cardItems.push({
             name: "Candidate Card",
-            card: {points: 5, isCandidate: true},
+            card: fakeCard,
             cardSlot: cardSlot,
             button: cardSlot.card,
             isCandidate: true

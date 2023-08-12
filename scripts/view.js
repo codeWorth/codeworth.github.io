@@ -141,7 +141,7 @@ export function displayHand(hand, exhausted, candidate) {
         cardSlot.rest.innerText = (4 - card.points) + " Rest";
         cardSlot.state.innerText = card.state === null ? "" : card.state.toUpperCase();
         cardSlot.candidateImg.src = PARTY_URL[card.party];
-        cardSlot.issueImg.src = card.issue === null ? "" : ISSUE_URL[card.issue];
+        cardSlot.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
 
         cardItems.push({
             name: cardName,
@@ -171,7 +171,7 @@ export function displayHand(hand, exhausted, candidate) {
         cardSlot.rest.innerText = fakeCard.rest + " Rest";
         cardSlot.state.innerText = fakeCard.state.toUpperCase();
         cardSlot.candidateImg.src = PARTY_URL[fakeCard.party];
-        cardSlot.issueImg.src = "";
+        cardSlot.issueImg.src = "../images/blank_issue.png";
 
         cardItems.push({
             name: "Candidate Card",

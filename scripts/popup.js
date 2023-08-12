@@ -44,7 +44,7 @@ export function showCardPopup(cardName, card, disableEvent) {
     popupCard.rest.innerText = card.rest + " Rest";
     popupCard.state.innerText = card.state === null ? "" : card.state.toUpperCase();
     popupCard.candidateImg.src = PARTY_URL[card.party];
-    popupCard.issueImg.src = card.issue === null ? "" : ISSUE_URL[card.issue];
+    popupCard.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
     removeCSSClass(popupCard.card, "hidden");
 
     return {eventButton: event, cpButton: campaign, issueButton: issues, mediaButton: media};

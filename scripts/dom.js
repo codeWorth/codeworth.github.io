@@ -10,7 +10,8 @@ export const createGameButton = document.getElementById("createGame");
 export const gameCodeField = document.getElementById("gameCode");
 export const joinGameButton = document.getElementById("joinGame");
 export const deleteGameButton = document.getElementById("deleteGame");
-export const gameIdsField = document.getElementById("gameIds");
+export const ownedGameIdsField = document.getElementById("ownedGameIds");
+export const joinedGameIdsField = document.getElementById("joinedGameIds");
 
 export const choosePage = document.getElementById("choosePage");
 export const kennedyButton = document.getElementById("kennedy");

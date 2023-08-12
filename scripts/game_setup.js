@@ -1,6 +1,6 @@
 import { 
     onSnapshot, runTransaction,
-    doc, collection, query,
+    doc, collection, query, where,
     getDoc, setDoc, getDocs, deleteDoc, updateDoc
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 import { addCSSClass, removeCSSClass } from "./util.js";
@@ -28,6 +28,20 @@ class GameSetup {
         const gamePlayers = await getDocs(query(collection(this.db, "elec_games", gameId, "players")));
         return gamePlayers.docs.map(doc => doc.id);
     }
+
+    async showGames() {
+        const ownedGames = await getDocs(query(
+            collection(this.db, "elec_games"), 
+            where("owner", "==", this.user.uid)
+        ));
+        const ownedIds = ownedGames.docs.map(game => game.id);
+        
+        const allGameIds = await this.getGames();
+        const joinedIds = allGameIds.filter(id => !ownedIds.includes(id));
+
+        UI.ownedGameIdsField.innerText = ownedIds.join("\n");
+        UI.joinedGameIdsField.innerText = joinedIds.join("\n");
+    }
     
     async getGames() {
         const userGames = await getDocs(query(collection(this.db, "users", this.user.uid, "elec_games")));
@@ -45,7 +59,7 @@ class GameSetup {
         });
     
         await this.joinGame(gameId);
-        UI.gameIdsField.innerText = (await this.getGames()).join("\n");
+        this.showGames();
     }
     
     async joinGame(gameId) {
@@ -95,7 +109,7 @@ class GameSetup {
             transaction.delete(doc(this.db, "elec_games", gameId));
         });        
         
-        UI.gameIdsField.innerText = (await this.getGames()).join("\n");
+        this.showGames();
     }
     
     async startGame(gameId, selfPlayer, otherPlayer) {

@@ -3,9 +3,14 @@
 }
 
 #createGame {
+    margin-top: 10px;
     margin-bottom: 10px;
 }
 
 #gameIds {
     margin-bottom: 15px;
+}
+
+#joinPage h4 {
+    margin-block-end: 0.5em;
 }

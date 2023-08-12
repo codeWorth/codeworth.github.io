@@ -7,7 +7,7 @@ import * as VIEW from "./view.js";
 import * as CONSTANTS from "./constants.js";
 import { addCSSClass, getPlayerCandidate, removeCSSClass } from "./util.js";
 import { AbortError } from "./deferred.js";
-import { gameIdsField, infoDiv, userNameField } from "./dom.js";
+import { infoDiv, userNameField } from "./dom.js";
 import { setUser } from './user.js';
 
 var db = undefined;
@@ -20,7 +20,7 @@ export async function setup(user_, db_) {
     db = db_;
 
     const gameSetup = new GameSetup(user_, db, gameUpdate, enterGame);
-    gameIdsField.innerText = (await gameSetup.getGames()).join("\n");
+    gameSetup.showGames();
     userNameField.innerText = `Logged in as ${user_.displayName} (${user_.email})`;
 }
 

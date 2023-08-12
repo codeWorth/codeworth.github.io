@@ -17,7 +17,8 @@ import {
     showShouldSwap,
     showChooseEndorseRegion,
     showShouldDiscard,
-    displayHand
+    displayHand,
+    toggleShowElectors
 } from "./view.js";
 import { showCardPopup, showPopup, popupSelector } from "./popup.js";
 import * as UI from "./dom.js";
@@ -28,6 +29,11 @@ class GameLogic {
     constructor(gameData, cancelSignal) {
         this.data = gameData;
         this.cancelSignal = cancelSignal;
+
+        UI.showElectorsButton.onclick = () => toggleShowElectors(this.data);
+        document.addEventListener("keydown", e => {
+            if (e.key === "e") toggleShowElectors(this.data);
+        });
     }
 
     grabBagIsKennedy(count) {

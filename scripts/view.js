@@ -45,7 +45,7 @@ export function showElectors() {
     });
 }
 
-export function toggleShowElectors() {
+export function toggleShowElectors(gameData) {
     if (showingElectors) {
         showCubes(gameData);
         showingElectors = false;
@@ -56,10 +56,7 @@ export function toggleShowElectors() {
         UI.showElectorsButton.innerText = "Hide (E)lectors";
     }
 }
-UI.showElectorsButton.onclick = toggleShowElectors;
-document.addEventListener("keydown", e => {
-    if (e.key === "e") toggleShowElectors();
-});
+
 UI.chooseWindow.onclick = e => e.stopPropagation();
 
 export function moveIconTo(icon, state) {

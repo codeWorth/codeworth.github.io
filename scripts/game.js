@@ -49,6 +49,7 @@ export function gameUpdate(gameData) {
     VIEW.moveIcons(gameData);
     VIEW.showRound(gameData, playerCandidate);
     VIEW.showMomentum(gameData);
+    VIEW.showRest(gameData);
     VIEW.highlightSelf(playerCandidate);
     infoDiv.innerText = "";
     VIEW.showBagRoll(gameData);

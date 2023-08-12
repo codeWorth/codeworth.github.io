@@ -257,6 +257,10 @@ export function showMomentum(gameData) {
     UI.nixonMomentum.innerText = gameData.nixon.momentum;
     UI.kennedyMomentum.innerText = gameData.kennedy.momentum;
 }
+export function showRest(gameData) {
+    UI.nixonRestCount.innerText = gameData.nixon.rest;
+    UI.kennedyRestCount.innerText = gameData.kennedy.rest;
+}
 
 export function highlightSelf(playerCandidate) {
     if (playerCandidate === NIXON) {

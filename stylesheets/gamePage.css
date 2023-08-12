@@ -285,15 +285,7 @@
     width: 38rem;
 }
 
-#mmtm {
-    position: absolute;
-    font-family: Tahoma;
-    font-size: 1.6em;
-    text-align: center;
-    top: 723rem;
-    left: 755rem;
-}
-#kennedyMomentum, #nixonMomentum {
+.iconCounter {
     position: absolute;
     top: 760rem;
     width: 80rem;
@@ -307,7 +299,7 @@
     font-size: 3.7em;
     text-align: center;
 }
-#kennedyMomentum img, #nixonMomentum img {
+.iconCounter img {
     position: absolute;
     z-index: 1;
     top: 0;
@@ -315,15 +307,43 @@
     width: 100%;
     opacity: 0.7;
 }
-#kennedyCount, #nixonCount {
+.iconCounter div {
     position: relative;
     z-index: 2;
+}
+
+#mmtm {
+    position: absolute;
+    font-family: Tahoma;
+    font-size: 1.6em;
+    text-align: center;
+
+    width: 180rem;
+    top: 723rem;
+    left: 730rem;
 }
 #kennedyMomentum {
     left: 730rem;
 }
 #nixonMomentum {
     left: 830rem;
+}
+
+#rest {
+    position: absolute;
+    font-family: Tahoma;
+    font-size: 1.6em;
+    text-align: center;
+
+    width: 180rem;
+    top: 723rem;
+    left: 480rem;
+}
+#kennedyRest {
+    left: 480rem;
+}
+#nixonRest {
+    left: 580rem;
 }
 
 #turnIndicator {

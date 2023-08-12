@@ -49,8 +49,10 @@ export function gameUpdate(gameData) {
     VIEW.moveIcons(gameData);
     VIEW.showRound(gameData, playerCandidate);
     VIEW.showMomentum(gameData);
+    VIEW.highlightSelf(playerCandidate);
     infoDiv.innerText = "";
     VIEW.showBagRoll(gameData);
+    VIEW.displayCampaignDeck(gameData[playerCandidate].campaignDeck);
     addCSSClass(choosePopup, "hidden");
 
     gameAction(gameData)

@@ -1,9 +1,9 @@
 import * as UI from "./dom.js";
 import {
-    ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY
+    ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY, NIXON
 } from "./constants.js";
 import { CARDS, ISSUE_URL, PARTY, PARTY_URL } from "./cards.js";
-import { removeAllChildren, removeCSSClass } from "./util.js";
+import { addCSSClass, removeAllChildren, removeCSSClass } from "./util.js";
 
 let showingElectors = false;
 
@@ -55,6 +55,17 @@ export function toggleShowElectors(gameData) {
         showingElectors = true;
         UI.showElectorsButton.innerText = "Hide (E)lectors";
     }
+}
+
+UI.campaignModeButton.onclick = showCampaign;
+function showCampaign() {
+    removeCSSClass(UI.campaignDiv, "hidden");
+    addCSSClass(UI.handDiv, "hidden");
+}
+UI.handModeButton.onclick = showHand;
+function showHand() {
+    removeCSSClass(UI.handDiv, "hidden");
+    addCSSClass(UI.campaignDiv, "hidden");
 }
 
 UI.chooseWindow.onclick = e => e.stopPropagation();
@@ -124,24 +135,29 @@ export function makeEmptyCard() {
     };
 }
 
+function writeToCard(cardObj, cardName, card) {
+    cardObj.header.innerText = cardName;
+    cardObj.body.innerText = card.text;
+    cardObj.cp.innerText = card.points + " CP";
+    cardObj.rest.innerText = (4 - card.points) + " Rest";
+    cardObj.state.innerText = card.state === null ? "" : card.state.toUpperCase();
+    cardObj.candidateImg.src = PARTY_URL[card.party];
+    cardObj.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
+}
+
 export function displayHand(hand, exhausted, candidate) {
     const handCards = hand.map(name => CARDS[name]);
     const cardItems = [];
-    removeAllChildren(UI.handDiv);
+
+    const cardDivs = UI.handDiv.querySelectorAll(".card");
+    cardDivs.forEach(cardDiv => UI.handDiv.removeChild(cardDiv));
 
     for (let i = 0; i < handCards.length; i++) {
         const cardName = hand[i];
         const card = handCards[i];
         const cardSlot = makeEmptyCard();
         UI.handDiv.appendChild(cardSlot.card);
-
-        cardSlot.header.innerText = cardName;
-        cardSlot.body.innerText = card.text;
-        cardSlot.cp.innerText = card.points + " CP";
-        cardSlot.rest.innerText = (4 - card.points) + " Rest";
-        cardSlot.state.innerText = card.state === null ? "" : card.state.toUpperCase();
-        cardSlot.candidateImg.src = PARTY_URL[card.party];
-        cardSlot.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
+        writeToCard(cardSlot, cardName, card);
 
         cardItems.push({
             name: cardName,
@@ -185,6 +201,21 @@ export function displayHand(hand, exhausted, candidate) {
     return cardItems;
 }
 
+export function displayCampaignDeck(hand) {
+    const handCards = hand.map(name => CARDS[name]);
+
+    const cardDivs = UI.campaignDiv.querySelectorAll(".card");
+    cardDivs.forEach(cardDiv => UI.campaignDiv.removeChild(cardDiv));
+
+    for (let i = 0; i < handCards.length; i++) {
+        const cardName = hand[i];
+        const card = handCards[i];
+        const cardSlot = makeEmptyCard();
+        UI.campaignDiv.appendChild(cardSlot.card);
+        writeToCard(cardSlot, cardName, card);
+    }
+}
+
 export function showRound(gameData, playerCandidate) {
     const round = gameData.round;
 
@@ -225,4 +256,14 @@ export function showPointsOnCard(cover, points) {
 export function showMomentum(gameData) {
     UI.nixonMomentum.innerText = gameData.nixon.momentum;
     UI.kennedyMomentum.innerText = gameData.kennedy.momentum;
+}
+
+export function highlightSelf(playerCandidate) {
+    if (playerCandidate === NIXON) {
+        addCSSClass(UI.nixonIcon, "pi-self");
+        removeCSSClass(UI.kennedyIcon, "pi-self");
+    } else if (playerCandidate === KENNEDY) {
+        addCSSClass(UI.kennedyIcon, "pi-self");
+        removeCSSClass(UI.nixonIcon, "pi-self");
+    }
 }

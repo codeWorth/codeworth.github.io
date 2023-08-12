@@ -1,5 +1,4 @@
-// const TURNS_PER_ROUND = 10;
-export const TURNS_PER_ROUND = 3;
+const TURNS_PER_ROUND = 10;
 export const NIXON = "nixon";
 export const KENNEDY = "kennedy";
 export const ESCAPE_POPUP = "escape_popup"

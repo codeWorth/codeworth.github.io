@@ -39,6 +39,9 @@ export const stateButtons = Object.fromEntries([...document.getElementsByClassNa
 export const showElectorsButton = document.getElementById("showElectors");
 export const turnIndicator = document.getElementById("turnIndicator");
 export const handDiv = document.getElementById("hand");
+export const campaignDiv = document.getElementById("campaign");
+export const campaignModeButton = document.getElementById("campaignMode");
+export const handModeButton = document.getElementById("handMode");
 
 export const choosePopup = document.getElementById("choosePopup");
 export const chooseWindow = document.getElementById("chooseWindow");

@@ -110,6 +110,7 @@ class GameSetup {
         });        
         
         this.showGames();
+        UI.gameCodeField.value = "";
     }
     
     async startGame(gameId, selfPlayer, otherPlayer) {

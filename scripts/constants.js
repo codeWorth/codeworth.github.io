@@ -7,6 +7,7 @@ export const RESET_SIGNAL = new Object();
 export const PHASE = {
     CHOOSE_FIRST: "choose_first",
     PLAY_CARDS: "play_cards",
+    TRIGGER_EVENT: "trigger_event",
     DISCARD_CHOICE: "discard_choice",
     ISSUE_SWAP: "issue_swap",
     ISSUE_REWARD_CHOICE: "issue_choice",

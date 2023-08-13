@@ -2,8 +2,8 @@ import * as UI from "./dom.js";
 import {
     ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY, NIXON
 } from "./constants.js";
-import { CARDS, ISSUE_URL, PARTY, PARTY_URL } from "./cards.js";
-import { addCSSClass, removeAllChildren, removeCSSClass } from "./util.js";
+import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ISSUE_URL, PARTY_URL } from "./cards.js";
+import { addCSSClass, removeCSSClass } from "./util.js";
 
 let showingElectors = false;
 
@@ -39,19 +39,24 @@ export function updateCubes(gameData) {
     if (!showingElectors) showCubes(gameData);
 }
 
-export function showElectors() {
-    stateNames.forEach(state => {
-        UI.stateButtons[state].setText(ELECTORS[state]);
-    });
-}
-
-export function toggleShowElectors(gameData) {
+UI.showElectorsButton.onclick = () => toggleShowElectors();
+document.addEventListener("keydown", e => {
+    if (e.key === "e") toggleShowElectors();
+});
+stateNames.forEach(state => {
+    UI.stateButtons[state].hideElectors();
+});
+export function toggleShowElectors() {
     if (showingElectors) {
-        showCubes(gameData);
+        stateNames.forEach(state => {
+            UI.stateButtons[state].hideElectors();
+        });
         showingElectors = false;
         UI.showElectorsButton.innerText = "Show (E)lectors";
     } else {
-        showElectors();
+        stateNames.forEach(state => {
+            UI.stateButtons[state].showElectors(ELECTORS[state]);
+        });
         showingElectors = true;
         UI.showElectorsButton.innerText = "Hide (E)lectors";
     }
@@ -139,7 +144,7 @@ function writeToCard(cardObj, cardName, card) {
     cardObj.header.innerText = cardName;
     cardObj.body.innerText = card.text;
     cardObj.cp.innerText = card.points + " CP";
-    cardObj.rest.innerText = (4 - card.points) + " Rest";
+    cardObj.rest.innerText = card.rest + " Rest";
     cardObj.state.innerText = card.state === null ? "" : card.state.toUpperCase();
     cardObj.candidateImg.src = PARTY_URL[card.party];
     cardObj.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
@@ -161,7 +166,7 @@ export function displayHand(hand, exhausted, candidate) {
 
         cardItems.push({
             name: cardName,
-            card: {...card, rest: 4 - card.points},
+            card: card,
             cardSlot: cardSlot,
             button: cardSlot.card,
             isCandidate: false
@@ -169,19 +174,11 @@ export function displayHand(hand, exhausted, candidate) {
     }
 
     if (!exhausted) {
-        const fakeCard = {
-            points: 5,
-            rest: 0,
-            text: "This card may only be played for campaign points. Once played, it is flipped to the exhausted side.",
-            state: candidate === KENNEDY ? "ma" : "ca",
-            party: candidate === KENNEDY ? PARTY.DEMOCRAT : PARTY.REPUBLICAN,
-            issue: null,
-            isCandidate: true
-        };
+        const fakeCard = CANDIDATE_CARD(candidate);
         const cardSlot = makeEmptyCard();
         UI.handDiv.appendChild(cardSlot.card);
 
-        cardSlot.header.innerText = "Candidate Card";
+        cardSlot.header.innerText = CANDIDATE_CARD_NAME;
         cardSlot.body.innerText = fakeCard.text;
         cardSlot.cp.innerText = fakeCard.points + " CP";
         cardSlot.rest.innerText = fakeCard.rest + " Rest";
@@ -190,7 +187,7 @@ export function displayHand(hand, exhausted, candidate) {
         cardSlot.issueImg.src = "../images/blank_issue.png";
 
         cardItems.push({
-            name: "Candidate Card",
+            name: CANDIDATE_CARD_NAME,
             card: fakeCard,
             cardSlot: cardSlot,
             button: cardSlot.card,

@@ -9,8 +9,17 @@ import { ISSUE_URL, PARTY_URL } from "./cards.js";
 
 let buttons = [];
 
+export function showPopupWithCard(title, cardName, card, ...buttonNames) {
+    showCard(cardName, card);
+    return _showPopup(title, ...buttonNames);
+}
+
 export function showPopup(title, ...buttonNames) {
     addCSSClass(popupCard.card, "hidden");
+    return _showPopup(title, ...buttonNames);
+}
+
+function _showPopup(title, ...buttonNames) {
     removeAllChildren(chooseButtonsContainer);
     chooseTitle.innerText = title;
 
@@ -37,7 +46,12 @@ export function showCardPopup(cardName, card, disableEvent) {
         "Event", "Campaign", "Issues", "Media"
     );
     event.disabled = disableEvent;
+    showCard(cardName, card);
 
+    return {eventButton: event, cpButton: campaign, issueButton: issues, mediaButton: media};
+}
+
+function showCard(cardName, card) {
     popupCard.header.innerText = cardName;
     popupCard.body.innerText = card.text;
     popupCard.cp.innerText = card.points + " CP";
@@ -46,6 +60,4 @@ export function showCardPopup(cardName, card, disableEvent) {
     popupCard.candidateImg.src = PARTY_URL[card.party];
     popupCard.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
     removeCSSClass(popupCard.card, "hidden");
-
-    return {eventButton: event, cpButton: campaign, issueButton: issues, mediaButton: media};
 }

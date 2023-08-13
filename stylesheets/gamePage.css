@@ -41,6 +41,22 @@
     width: 20rem;
     text-align: center;
 }
+.sb p {
+    position: absolute;
+    font-family: Tahoma;
+
+    margin: 0;
+    margin-left: 5rem;
+    margin-top: 5rem;
+
+    top: 0;
+    left: 0;
+    width: 20rem;
+    height: 20rem;
+
+    text-align: center;
+    background-color: inherit;
+}
 
 #showElectors {
     position: absolute;

@@ -147,6 +147,8 @@ class GameSetup {
             choosingPlayer: kenWon ? KENNEDY : NIXON,
             currentPlayer: null,
             phase: PHASE.CHOOSE_FIRST,
+            preempted: false,
+            chosenCard: null,
             cubes: DEFAULT_COUNTS,
             issues: issues,
             deck: Object.keys(CARDS),

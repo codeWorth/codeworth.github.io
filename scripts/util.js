@@ -24,7 +24,11 @@ export function getPlayerCandidate(gameData) {
 }
 
 export function getOtherCandidate(gameData) {
-    return playerIsKennedy(gameData) ? CONSTANTS.NIXON :CONSTANTS.KENNEDY;
+    return playerIsKennedy(gameData) ? CONSTANTS.NIXON : CONSTANTS.KENNEDY;
+}
+
+export function oppositeCandidate(candidate) {
+    return candidate === CONSTANTS.NIXON ? CONSTANTS.KENNEDY : CONSTANTS.NIXON;
 }
 
 export function candidateDp(candidate) {

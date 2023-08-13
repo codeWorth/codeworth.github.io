@@ -76,6 +76,14 @@ async function gameAction(gameData) {
     const logic = new GameLogic(gameData, cancelUI.signal);
     const playerCandidate = getPlayerCandidate(gameData);
 
+    if (gameData.phase === CONSTANTS.PHASE.TRIGGER_EVENT && gameData.choosingPlayer === playerCandidate) {
+        await logic.triggerEvent();
+        return logic.data;
+    } else if (gameData.chosenCard !== null && gameData.currentPlayer !== playerCandidate) {
+        await logic.showChosenCard();
+        return logic.data;
+    }
+
     if (gameData.currentPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.PLAY_CARDS) {
         if (gameData[playerCandidate].hand.length === 0) {
             await logic.getHand();
@@ -89,7 +97,7 @@ async function gameAction(gameData) {
             gameData[playerCandidate].exhausted, 
             playerCandidate
         );
-    } 
+    }
 
     if (gameData.phase === CONSTANTS.PHASE.CHOOSE_FIRST && gameData.choosingPlayer === playerCandidate) {
         await logic.chooseFirst();

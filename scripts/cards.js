@@ -44,7 +44,18 @@ export const ENDORSEMENT_CARDS = [
 	ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL
 ];
 
-export const CARDS = {
+export const CANDIDATE_CARD_NAME = "Candidate Card";
+export const CANDIDATE_CARD = candidate => ({
+	points: 5,
+	rest: 0,
+	text: "This card may only be played for campaign points. Once played, it is flipped to the exhausted side.",
+	state: candidate === "kennedy" ? "ma" : "ca",
+	party: candidate === "kennedy" ? PARTY.DEMOCRAT : PARTY.REPUBLICAN,
+	issue: null,
+	isCandidate: true
+});
+
+const _CARDS = {
 	"Give 'Em Hell Harry": {
 		text: "If Kennedy is leading in multiple issues, the Kennedy player loses 1 momentum marker and must subtract a total of 2 issue support",
 		points: 3,
@@ -519,7 +530,7 @@ export const CARDS = {
 		location: LOCATION.NONE
 	},
     "Eleanor Roosevelt's Speaking Tour": {
-		text: "The Kennedy player may add a total of 5 state support in the Midwest, no more than2 per state.",
+		text: "The Kennedy player may add a total of 5 state support in the Midwest, no more than 2 per state.",
 		points: 3,
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
@@ -823,3 +834,6 @@ export const CARDS = {
 		location: LOCATION.NONE
 	}
 };
+export const CARDS = Object.fromEntries(Object.keys(_CARDS).map(name => [
+	name, {rest: 4 - _CARDS[name].points, ..._CARDS[name]}
+]));

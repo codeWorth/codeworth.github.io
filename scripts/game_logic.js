@@ -4,7 +4,8 @@ import {
     playerIsKennedy,
     getOtherCandidate,
     moveCost,
-    movementRegion
+    movementRegion,
+    oppositeCandidate
 } from './util.js';
 import { 
     awaitClick,
@@ -18,22 +19,18 @@ import {
     showChooseEndorseRegion,
     showShouldDiscard,
     displayHand,
-    toggleShowElectors
+    toggleShowElectors,
+    showMomentum
 } from "./view.js";
-import { showCardPopup, showPopup, popupSelector } from "./popup.js";
+import { showCardPopup, showPopup, popupSelector, showPopupWithCard } from "./popup.js";
 import * as UI from "./dom.js";
 import * as CONSTANTS from "./constants.js";
-import { ENDORSE_REGIONS } from './cards.js';
+import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ENDORSE_REGIONS } from './cards.js';
 
 class GameLogic {
     constructor(gameData, cancelSignal) {
         this.data = gameData;
         this.cancelSignal = cancelSignal;
-
-        UI.showElectorsButton.onclick = () => toggleShowElectors(this.data);
-        document.addEventListener("keydown", e => {
-            if (e.key === "e") toggleShowElectors(this.data);
-        });
     }
 
     grabBagIsKennedy(count) {
@@ -156,7 +153,11 @@ class GameLogic {
         }
     
         if (this.data.lastRoll === null) {
-            this.nextTurn(selectedCard.name);
+            this.data.chosenCard = selectedCard.name;
+            if (!this.data.preempted) {
+                this.data.phase = CONSTANTS.PHASE.TRIGGER_EVENT;
+                this.data.choosingPlayer = getOtherCandidate(this.data);
+            }
         }
     }
     
@@ -178,6 +179,22 @@ class GameLogic {
             .withAwaitClick(UI.choosePopup)
             .withAwaitKey(document, "Escape")
             .build();
+        
+        this.data.preempted = true;
+        if (this.data[playerCandidate].momentum >= 2 
+            && (selectedButton === cpButton
+                || selectedButton === issueButton
+                || selectedButton === mediaButton)) {
+            const [yesButton, noButton] = showPopup("Preempt this card's event?", "Yes", "No");
+            const popupButton = await popupSelector(this.cancelSignal).build();
+            
+            if (popupButton === yesButton) {
+                this.data[playerCandidate].momentum -= 2;
+                showMomentum(this.data);
+            } else if (popupButton === noButton) {
+                this.data.preempted = false;
+            }
+        }
     
         // if (selectedButton === eventButton) {}
         if (selectedButton === cpButton) {
@@ -338,10 +355,52 @@ class GameLogic {
         if (card.isCandidate) this.data[candidate].exhausted = true;
         if (!card.isCandidate) this.data[candidate].rest += 4 - card.points;
     }
+
+    async showChosenCard() {
+        const cardName = this.data.chosenCard;
+        this.data.chosenCard = null;
+
+        const card = cardName === CANDIDATE_CARD_NAME 
+            ? CANDIDATE_CARD(getOtherCandidate(this.data))
+            : CARDS[cardName];
+        showPopupWithCard(
+            "Your opponent played this card.", 
+            cardName, card,
+            "Okay",
+        );
+        await popupSelector(this.cancelSignal).build();
+
+        this.nextTurn(cardName);
+    }
+
+    async triggerEvent() {
+        const cardName = this.data.chosenCard;
+        this.data.chosenCard = null;
+        this.data.phase = CONSTANTS.PHASE.PLAY_CARDS;
+        this.data.choosingPlayer = null;
+
+        const card = cardName === CANDIDATE_CARD_NAME 
+            ? CANDIDATE_CARD(getOtherCandidate(this.data))
+            : CARDS[cardName];
+        const [triggerButton, continueButton] = showPopupWithCard(
+            "Your opponent played this card. Would you like to trigger its event?", 
+            cardName, card,
+            "Trigger", "Continue"
+        );
+        const selection = await popupSelector(this.cancelSignal).build();
+
+        if (selection === triggerButton) {
+            // run event
+            this.nextTurn(cardName);
+        } else if (selection === continueButton) {
+            this.nextTurn(cardName);
+        }
+    }
     
     nextTurn(cardName) {
         this.data.turn++;
-        this.data.currentPlayer = getOtherCandidate(this.data);
+        this.data.preempted = false;
+        this.data.currentPlayer = oppositeCandidate(this.data.currentPlayer);
         this.data.discard.push(cardName);
     
         if (this.data.turn === CONSTANTS.TURNS_PER_ROUND) {

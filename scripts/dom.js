@@ -35,7 +35,12 @@ export const stateButtons = Object.fromEntries([...document.getElementsByClassNa
             } else if (n < 0) {
                 addCSSClass(sb, "blue");
             }
-        }
+        },
+        showElectors: s => {
+            sb.children[1].innerText = s;
+            removeCSSClass(sb.children[1], "hidden")
+        },
+        hideElectors: () => addCSSClass(sb.children[1], "hidden")
     }
 ]));
 export const showElectorsButton = document.getElementById("showElectors");

@@ -62,15 +62,20 @@ export function toggleShowElectors() {
     }
 }
 
-UI.campaignModeButton.onclick = showCampaign;
-function showCampaign() {
-    removeCSSClass(UI.campaignDiv, "hidden");
-    addCSSClass(UI.handDiv, "hidden");
-}
-UI.handModeButton.onclick = showHand;
-function showHand() {
-    removeCSSClass(UI.handDiv, "hidden");
-    addCSSClass(UI.campaignDiv, "hidden");
+let showingHand = true;
+UI.handModeButton.onclick = toggleHandMode;
+function toggleHandMode() {
+    if (showingHand) {
+        showingHand = false;
+        UI.handModeButton.innerText = "Show Hand";
+        removeCSSClass(UI.campaignDiv, "hidden");
+        addCSSClass(UI.handDiv, "hidden");
+    } else {
+        showingHand = true;
+        UI.handModeButton.innerText = "Show Campaign Strategy";
+        removeCSSClass(UI.handDiv, "hidden");
+        addCSSClass(UI.campaignDiv, "hidden");
+    }
 }
 
 UI.chooseWindow.onclick = e => e.stopPropagation();
@@ -228,6 +233,10 @@ export function showBagRoll(gameData) {
     UI.infoDiv.innerText = `-${gameData.lastBagOut.name}-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
 }
 
+export function showInfo(msg) {
+    UI.infoDiv.innerText = msg;
+}
+
 export function showShouldSwap() {
     UI.infoDiv.innerText = "Select an issue\nto swap it left";
 }
@@ -267,4 +276,12 @@ export function highlightSelf(playerCandidate) {
         addCSSClass(UI.kennedyIcon, "pi-self");
         removeCSSClass(UI.nixonIcon, "pi-self");
     }
+}
+
+export function showEventCount(count) {
+    removeCSSClass(UI.eventCounter, "hidden");
+    UI.eventCounter.innerText = count;
+}
+export function hideEventCount() {
+    addCSSClass(UI.eventCounter, "hidden");
 }

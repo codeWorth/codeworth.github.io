@@ -39,11 +39,19 @@ export function movementRegion(stateName) {
     if (stateName === "hawaii" || stateName === "alaska") {
         return stateName;
     } else {
-        return CONSTANTS.stateRegion[stateName];
+        return CONSTANTS.STATE_REGION[stateName];
     }
 }
 
 export function moveCost(srcReg, dstReg) {
     if (srcReg === dstReg) return 0;
     return 1 + moveCost(CONSTANTS.movePath[srcReg][dstReg], dstReg);
+}
+
+export function moveUp(arr, item) {
+    const index = arr.indexOf(item);
+    if (index === 0) return;
+
+    arr[index] = arr[index - 1];
+    arr[index - 1] = item;
 }

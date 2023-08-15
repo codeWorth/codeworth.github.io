@@ -19,13 +19,13 @@ import {
     showChooseEndorseRegion,
     showShouldDiscard,
     displayHand,
-    toggleShowElectors,
     showMomentum
 } from "./view.js";
 import { showCardPopup, showPopup, popupSelector, showPopupWithCard } from "./popup.js";
 import * as UI from "./dom.js";
-import * as CONSTANTS from "./constants.js";
 import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ENDORSE_REGIONS } from './cards.js';
+import EventHandler from './event_handler.js';
+import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, TURNS_PER_ROUND, stateNames } from './constants.js';
 
 class GameLogic {
     constructor(gameData, cancelSignal) {
@@ -89,7 +89,7 @@ class GameLogic {
         const [first, second] = showPopup("Would you like to go first or second?", "First", "Second");
         const selection = await popupSelector(this.cancelSignal).build();
         
-        this.data.phase = CONSTANTS.PHASE.PLAY_CARDS;
+        this.data.phase = PHASE.PLAY_CARDS;
         this.data.choosingPlayer = null;
         if (selection === first) {
             this.data.currentPlayer = getPlayerCandidate(this.data);
@@ -152,12 +152,14 @@ class GameLogic {
             this.data.lastRoll = null;
         }
     
+        const player = getPlayerCandidate(this.data);
         if (this.data.lastRoll === null) {
             this.data.chosenCard = selectedCard.name;
-            if (!this.data.preempted) {
-                this.data.phase = CONSTANTS.PHASE.TRIGGER_EVENT;
-                this.data.choosingPlayer = getOtherCandidate(this.data);
-            }
+            if (this.data.preempted) return;
+            if (player === KENNEDY && !this.nixonCanMomentum()) return;
+                
+            this.data.phase = PHASE.TRIGGER_EVENT;    
+            this.data.choosingPlayer = getOtherCandidate(this.data);
         }
     }
     
@@ -167,24 +169,55 @@ class GameLogic {
         await this.useMediaPoints(points, cardSlot, cardSlot.card);
         addCSSClass(cardSlot.pointsCover, "hidden");
         const choseCard = await this.confirmCardChoices(cardName, card);
-        if (!choseCard) throw CONSTANTS.RESET_SIGNAL;
+        if (!choseCard) throw RESET_SIGNAL;
+    }
+
+    nixonCanCampaign() {
+        return this.data.flags[FLAGS.NIXON_EGGED] !== this.data.round
+    }
+
+    nixonCanMomentum() {
+        return this.data.flags[FLAGS.JOE_KENNEDY] !== this.data.round;
+    }
+
+    kennedyCanCampaign() {
+        return this.data.flags[FLAGS.LOYALISTS] !== this.data.round;
     }
     
+    canCardEvent(cardName) {
+        if (cardName === "Norman Vincent Peale" && this.data.flags[FLAGS.HOUSTON_ASSOC]) return false;
+        
+        return true;
+    }
+
     async cardChosen(cardName, card, cardSlot, isCandidate) {
         const playerCandidate = getPlayerCandidate(this.data);
         if (this.data.currentPlayer !== playerCandidate) return false;
     
-        const {eventButton, cpButton, issueButton, mediaButton} = showCardPopup(cardName, card, isCandidate);
+        // const disableEvent = isCandidate || !this.canCardEvent(cardName);
+        const disableEvent = isCandidate || !this.canCardEvent(cardName) || card.event === undefined;
+        const {eventButton, cpButton, issueButton, mediaButton} = showCardPopup(cardName, card, disableEvent);
         const selectedButton = await popupSelector(this.cancelSignal)
             .withAwaitClick(UI.choosePopup)
             .withAwaitKey(document, "Escape")
             .build();
+
+        if (
+            ((playerCandidate === NIXON && !this.nixonCanCampaign())
+                || (playerCandidate === KENNEDY && !this.kennedyCanCampaign())
+            ) && selectedButton !== eventButton
+        ) {
+            throw RESET_SIGNAL;
+        }
         
         this.data.preempted = true;
         if (this.data[playerCandidate].momentum >= 2 
             && (selectedButton === cpButton
                 || selectedButton === issueButton
-                || selectedButton === mediaButton)) {
+                || selectedButton === mediaButton)
+            && (this.nixonCanMomentum()
+                || playerCandidate !== NIXON)
+        ) {
             const [yesButton, noButton] = showPopup("Preempt this card's event?", "Yes", "No");
             const popupButton = await popupSelector(this.cancelSignal).build();
             
@@ -196,14 +229,15 @@ class GameLogic {
             }
         }
     
-        // if (selectedButton === eventButton) {}
-        if (selectedButton === cpButton) {
+        if (selectedButton === eventButton) {
+            card.event(this.data, playerCandidate);
+        } else if (selectedButton === cpButton) {
             showPointsOnCard(cardSlot.pointsCover, card.points);
     
             await this.useCampaignPoints(card.points, cardSlot, cardSlot.card);
             addCSSClass(cardSlot.pointsCover, "hidden");
             const choseCard = await this.confirmCardChoices(cardName, card);
-            if (!choseCard) throw CONSTANTS.RESET_SIGNAL;
+            if (!choseCard) throw RESET_SIGNAL;
         }
         else if (selectedButton === issueButton) {
             showPointsOnCard(cardSlot.pointsCover, card.points);
@@ -211,7 +245,7 @@ class GameLogic {
             await this.useIssuePoints(card.points, cardSlot, cardSlot.card);
             addCSSClass(cardSlot.pointsCover, "hidden");
             const choseCard = await this.confirmCardChoices(cardName, card);
-            if (!choseCard) throw CONSTANTS.RESET_SIGNAL;
+            if (!choseCard) throw RESET_SIGNAL;
         }
         else if (selectedButton === mediaButton) {
             let points = this.grabBagIsKennedy(card.points);
@@ -224,12 +258,12 @@ class GameLogic {
             };
         }
         else {
-            throw CONSTANTS.RESET_SIGNAL;
+            throw RESET_SIGNAL;
         }
     }
     
     async useCampaignPoints(points, cardSlot, doneButton) {
-        const stateItems = CONSTANTS.stateNames.map(name => ({
+        const stateItems = stateNames.map(name => ({
             name: name,
             button: UI.stateButtons[name].button
         }));
@@ -261,7 +295,7 @@ class GameLogic {
     
         points -= mc;
         this.data[playerCandidate].state = stateName;
-        moveIconTo(playerCandidate === CONSTANTS.NIXON ?  UI.nixonIcon : UI.kennedyIcon, stateName);
+        moveIconTo(playerCandidate === NIXON ?  UI.nixonIcon : UI.kennedyIcon, stateName);
         if (points <= 0) return points;
     
         points--;
@@ -310,15 +344,11 @@ class GameLogic {
 
     async useMediaPoints(points, cardSlot, doneButton) {
         const playerCandidate = getPlayerCandidate(this.data);
-        const mediaItems = Object.values(UI.mediaButtons).map(bt => ({
-            name: bt.dataKey,
-            button: bt.button
-        }));
     
         let exited = false;
         while (points > 0) {
             const buttonClicked = await Deferred(this.cancelSignal)
-                .withAwaitClickAndReturn(...mediaItems)
+                .withAwaitClickAndReturn(...UI.mediaButtons)
                 .withAwaitClick(doneButton)
                 .build();
     
@@ -326,7 +356,7 @@ class GameLogic {
                 exited = true;
                 break;
             } else {
-                this.data.media[buttonClicked.name] += candidateDp(playerCandidate);
+                this.data.media[buttonClicked.dataKey] += candidateDp(playerCandidate);
                 points--;
                 showMedia(this.data);
                 showPointsOnCard(cardSlot.pointsCover, points);
@@ -374,9 +404,13 @@ class GameLogic {
     }
 
     async triggerEvent() {
+        const player = getPlayerCandidate(this.data);
+        if (this.data[player].momentum === 0) return this.showChosenCard();
+        if (player === NIXON && !this.nixonCanMomentum()) return this.showChosenCard();
+
         const cardName = this.data.chosenCard;
         this.data.chosenCard = null;
-        this.data.phase = CONSTANTS.PHASE.PLAY_CARDS;
+        this.data.phase = PHASE.PLAY_CARDS;
         this.data.choosingPlayer = null;
 
         const card = cardName === CANDIDATE_CARD_NAME 
@@ -390,8 +424,9 @@ class GameLogic {
         const selection = await popupSelector(this.cancelSignal).build();
 
         if (selection === triggerButton) {
-            // run event
-            this.nextTurn(cardName);
+            const card = CARDS[cardName];
+            this.data[player].momentum--;
+            card.event(this.data, player);
         } else if (selection === continueButton) {
             this.nextTurn(cardName);
         }
@@ -403,7 +438,7 @@ class GameLogic {
         this.data.currentPlayer = oppositeCandidate(this.data.currentPlayer);
         this.data.discard.push(cardName);
     
-        if (this.data.turn === CONSTANTS.TURNS_PER_ROUND) {
+        if (this.data.turn === TURNS_PER_ROUND) {
             this.data.currentPlayer = null;
             this.endPlayPhase();
         }
@@ -420,11 +455,11 @@ class GameLogic {
             .reduce((a,b)=>a+b, 0);
         
         if (media > 0) {
-            this.data.choosingPlayer = CONSTANTS.NIXON;
-            this.data.phase = CONSTANTS.PHASE.ISSUE_SWAP;
+            this.data.choosingPlayer = NIXON;
+            this.data.phase = PHASE.ISSUE_SWAP;
         } else if (media < 0) {
-            this.data.choosingPlayer = CONSTANTS.KENNEDY;
-            this.data.phase = CONSTANTS.PHASE.ISSUE_SWAP;
+            this.data.choosingPlayer = KENNEDY;
+            this.data.phase = PHASE.ISSUE_SWAP;
         } else {
             this.momentumAwards();
         }
@@ -464,13 +499,13 @@ class GameLogic {
             this.data.kennedy.momentum++;
         }
     
-        this.data.phase = CONSTANTS.PHASE.ISSUE1_ENDORSE_REWARD;
+        this.data.phase = PHASE.ISSUE1_ENDORSE_REWARD;
         if (issue2Score > 0) {
-            this.data.choosingPlayer = CONSTANTS.NIXON;
-            this.data.phase = CONSTANTS.PHASE.ISSUE_REWARD_CHOICE;
+            this.data.choosingPlayer = NIXON;
+            this.data.phase = PHASE.ISSUE_REWARD_CHOICE;
         } else if (issue2Score < 0) {
-            this.data.choosingPlayer = CONSTANTS.KENNEDY;
-            this.data.phase = CONSTANTS.PHASE.ISSUE_REWARD_CHOICE;
+            this.data.choosingPlayer = KENNEDY;
+            this.data.phase = PHASE.ISSUE_REWARD_CHOICE;
         }
     
         if (issue1Score > 0) {
@@ -486,8 +521,8 @@ class GameLogic {
     
         const issue1Score = this.getIssueScore(0);
 
-        this.data.phase = CONSTANTS.PHASE.ISSUE1_ENDORSE_REWARD;
-        this.data.choosingPlayer = issue1Score > 0 ? CONSTANTS.NIXON : CONSTANTS.KENNEDY;
+        this.data.phase = PHASE.ISSUE1_ENDORSE_REWARD;
+        this.data.choosingPlayer = issue1Score > 0 ? NIXON : KENNEDY;
     
         if (choiceButton === momentumButton) {
             const candidate = getPlayerCandidate(this.data);
@@ -509,12 +544,8 @@ class GameLogic {
     
         if (endorseCard === ENDORSE_REGIONS.ALL) {
             showChooseEndorseRegion();
-            const endorseItems = Object.values(UI.endorseButtons).map(bt => ({
-                name: bt.dataKey,
-                button: bt.button
-            }));
-            const clickedEndorsement = await awaitClickAndReturn(this.cancelSignal, ...endorseItems);
-            this.data.endorsements[clickedEndorsement.name] += candidateDp(playerCandidate);
+            const clickedEndorsement = await awaitClickAndReturn(this.cancelSignal, ...UI.endorseButtons);
+            this.data.endorsements[clickedEndorsement.dataKey] += candidateDp(playerCandidate);
         } else {
             this.data.endorsements[endorseCard] += candidateDp(playerCandidate);
         }    
@@ -562,7 +593,7 @@ class GameLogic {
         })
     
         await this.playerRoundEnd();
-        this.data.phase = CONSTANTS.PHASE.STRATEGY;
+        this.data.phase = PHASE.STRATEGY;
         this.data.choosingPlayer = getOtherCandidate(this.data);
     }
     
@@ -570,16 +601,21 @@ class GameLogic {
         await this.playerRoundEnd();
     
         const check = this.initiativeCheck();
-        this.data.choosingPlayer = check.kennedy > check.nixon ? CONSTANTS.KENNEDY : CONSTANTS.NIXON;
+        this.data.choosingPlayer = check.kennedy > check.nixon ? KENNEDY : NIXON;
         this.data.lastBagOut = {
             kennedy: check.kennedy,
             nixon: check.nixon,
             name: "Initiative"
         };
     
-        this.data.phase = CONSTANTS.PHASE.CHOOSE_FIRST;
+        this.data.phase = PHASE.CHOOSE_FIRST;
         this.data.turn = 0;
         this.data.round = this.data.round + 1;    
+    }
+
+    async handleEvent() {
+        const handler = new EventHandler(this.data, this.cancelSignal);
+        await handler.handleEvent();
     }
 }
 

@@ -200,7 +200,9 @@ class GameSetup {
                 momentum: 2,
                 campaignDeck: [],
                 needDiscard: 0
-            }
+            },
+            event: null,
+            flags: {}
         });
         addCSSClass(choosePage, "hidden");
         this.enterGame(gameId);

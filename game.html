@@ -46,15 +46,16 @@
             <div id="midEndorse" data-key="mid" class="endorse"><div></div></div>
             <div id="southEndorse" data-key="south" class="endorse"><div></div></div>
 
+            <div id="eventCounter" class="hidden"></div>
+
             <div id="issue1" data-index="0" class="issue-select"><div></div></div>
             <div id="issue2" data-index="1" class="issue-select"><div></div></div>
             <div id="issue3" data-index="2" class="issue-select"><div></div></div>
 
-            <div id="hand">
-                <button id="campaignMode">Show Campaign Strategy</button>
-            </div>
-            <div id="campaign" class="hidden">
-                <button id="handMode">Show Hand</button>
+            <button id="handMode">Show Campaign Strategy</button>
+            <div id="handContainer">
+                <div id="hand"></div>
+                <div id="campaign"></div>
             </div>
 
             <div id="nixonIcon" class="pi pi-self">
@@ -168,6 +169,8 @@
         <script type="module" src="./scripts/dom.js"></script>
         <script type="module" src="./scripts/view.js"></script>
         <script type="module" src="./scripts/popup.js"></script>
+        <script type="module" src="./scripts/events.js"></script>
+        <script type="module" src="./scripts/event_handler.js"></script>
         <script type="module" src="./scripts/game_setup.js"></script>
         <script type="module" src="./scripts/game_logic.js"></script>
         <script type="module" src="./scripts/game.js"></script>

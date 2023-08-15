@@ -56,6 +56,14 @@ export function gameUpdate(gameData) {
     VIEW.displayCampaignDeck(gameData[playerCandidate].campaignDeck);
     addCSSClass(choosePopup, "hidden");
 
+    if (gameData[playerCandidate].hand.length > 0) {
+        VIEW.displayHand(
+            gameData[playerCandidate].hand, 
+            gameData[playerCandidate].exhausted, 
+            playerCandidate
+        );
+    }
+
     gameAction(gameData)
         .then(data => {
             updateDoc(doc(db, "elec_games", gameId), data);
@@ -76,6 +84,15 @@ async function gameAction(gameData) {
     const logic = new GameLogic(gameData, cancelUI.signal);
     const playerCandidate = getPlayerCandidate(gameData);
 
+    if (gameData.event !== null) {
+        if (gameData.event.target === playerCandidate) {
+            await logic.handleEvent();
+            return logic.data;
+        } else {
+            return {};  // pause until opponent handles event
+        }
+    }
+
     if (gameData.phase === CONSTANTS.PHASE.TRIGGER_EVENT && gameData.choosingPlayer === playerCandidate) {
         await logic.triggerEvent();
         return logic.data;
@@ -91,12 +108,6 @@ async function gameAction(gameData) {
             await logic.playHand();
         }
         return logic.data;
-    } else if (gameData[playerCandidate].hand.length > 0) {
-        VIEW.displayHand(
-            gameData[playerCandidate].hand, 
-            gameData[playerCandidate].exhausted, 
-            playerCandidate
-        );
     }
 
     if (gameData.phase === CONSTANTS.PHASE.CHOOSE_FIRST && gameData.choosingPlayer === playerCandidate) {

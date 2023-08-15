@@ -47,7 +47,6 @@ export const showElectorsButton = document.getElementById("showElectors");
 export const turnIndicator = document.getElementById("turnIndicator");
 export const handDiv = document.getElementById("hand");
 export const campaignDiv = document.getElementById("campaign");
-export const campaignModeButton = document.getElementById("campaignMode");
 export const handModeButton = document.getElementById("handMode");
 
 export const choosePopup = document.getElementById("choosePopup");
@@ -110,6 +109,7 @@ export const issueButtons = Object.fromEntries([...document.getElementsByClassNa
 ]));
 
 export const infoDiv = document.getElementById("info");
+export const eventCounter = document.getElementById("eventCounter");
 
 const popupCardDiv = document.getElementById("popupCard");
 export const popupCard = {

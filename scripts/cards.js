@@ -1,3 +1,6 @@
+import { FLAGS } from "./constants.js";
+import * as EVENT from "./events.js";
+
 export const PARTY = {
 	REPUBLICAN: "r",
 	DEMOCRAT: "d",
@@ -63,7 +66,7 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "ny",
 		location: LOCATION.NONE,
-		// event: hellHarry
+		event: EVENT.hellHarry
 	},
     "Fatigue Sets In": {
 		text: "If opponent's candidate card is currently available for play, flip it over to its Exhausted side",
@@ -71,7 +74,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "oh",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.fatigueIn
 	},
     "Gathering Momentum in the East": {
 		text: "Whichever player is leading more states in the East gains 1 momentum marker, plus 1 state support in each Eastern state currently having no support for either candidate.",
@@ -79,7 +83,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: null,
 		state: null,
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.mmtmEast
 	},
     "Unpledged Electors": {
 		text: "On Election Day, if Kennedy wins Alabama, Louisiana, or Mississippi with less than 4 state support, the elctoral votes for these states are not awarded to either player.",
@@ -87,7 +92,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.ECONOMY,
 		state: "ca",
-		location: LOCATION.ELECTION_DAY
+		location: LOCATION.ELECTION_DAY,
+		event: EVENT.putFlag(FLAGS.UNPLEDGED)
 	},
     "Dwight D. Eisenhower": {
 		text: "The Nixon player may add a total of 7 state support anywhere, no more than 1 per state. This event prevents the Eisenhower's Silence event.",
@@ -95,7 +101,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "pa",
-		location: LOCATION.PREVENTION
+		location: LOCATION.PREVENTION,
+		event: EVENT.dwight
 	},
     "Harvard Brain Trust": {
 		text: "In the Debates, the Kennedy player gains +1 to their Campaign Point total for each issue. This event has no effect after the Debates.",
@@ -103,7 +110,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "pa",
-		location: LOCATION.DEBATE
+		location: LOCATION.DEBATE,
+		event: EVENT.putFlag(FLAGS.BRAIN_TRUST)
 	},
     "Heartland of America": {
 		text: "The Nixon player may add a total of 7 state support in states in the West or Midwest having 10 or fewer electoral votes, no more than 1 per state.",
@@ -111,7 +119,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.DEFENSE,
 		state: "nj",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.heartland
 	},
     "Hurricane Donna": {
 		text: "Move player's candidate token to Florida without paying the normal travel costs. Player gains 1 momentum marker and 1 state support in Florida.",
@@ -119,7 +128,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "mt",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.donna
 	},
     "Cassius Clay Wins Gold": {
 		text: "The leaders in Defense and Economy lose 1 issue support in those issues. If the same player leads both, they also lose 1 momentum marker.",
@@ -127,7 +137,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "oh",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.cassius
 	},
     "The Old Nixon": {
 		text: "The Nixon player loses 1 momentum marker. The Kennedy player loses 3 momentum markers.",
@@ -135,7 +146,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.ECONOMY,
 		state: "il",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.oldNixon
 	},
     "\"Peace Without Surrender\"": {
 		text: "Defense moves up one space on the Issue Track and Nixon gains 1 issue support in Defense.",
@@ -143,15 +155,17 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.DEFENSE,
 		state: "co",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.peaceSurrender
 	},
     "Nixon Egged in Michigan": {
-		text: "Move the Nixon candidate token to Michigan without paying the normal travel costs. The Nixon player must subtract 1 state support in Michigan and may not spend CP on Campaigning actions i nthe MIdwest for the remainder of the turn.",
+		text: "Move the Nixon candidate token to Michigan without paying the normal travel costs. The Nixon player must subtract 1 state support in Michigan and may not spend CP on Campaigning actions in the Midwest for the remainder of the turn.",
 		points: 4,
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.DEFENSE,
 		state: "hi",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.nixonEgged
 	},
     "\"Give Me A Week\"": {
 		text: "The Nixon player loses 2 momentum markers and must subtract 1 issue support in each issue.",
@@ -159,7 +173,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
 		state: "oh",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.giveWeek
 	},
     "Tricky Dick": {
 		text: "The Nixon player loses 1 momentum marker and may immediately retrieve and play any card from the discard pile as an event. No rest cubes are gained for the retrieved card.",
@@ -167,7 +182,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.DEFENSE,
 		state: "il",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.tricky
 	},
     "\"A New Frontier\"": {
 		text: "The Kennedy player may discard any number of cards from their hand and draw the same number of replacements from the Campaign Deck.",
@@ -175,7 +191,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.DEFENSE,
 		state: "ri",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.newFrontier
 	},
     "Joe Kennedy": {
 		text: "The Nixon player may not expend momentum markers for the remainder of the turn.",
@@ -183,7 +200,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.DEFENSE,
 		state: "ga",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.joeKennedy
 	},
     "Herblock": {
 		text: "The Kennedy player may remove 2 Nixon media support cubes from the board.",
@@ -191,15 +209,17 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
 		state: "ms",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.herblock
 	},
     "Gaffe": {
-		text: "Oppnent loses 1 momentum marker and 3 state support in the state currently occupied by their candidate token.",
+		text: "Opponent loses 1 momentum marker and 3 state support in the state currently occupied by their candidate token.",
 		points: 4,
 		party: PARTY.BOTH,
 		issue: ISSUE.ECONOMY,
 		state: "tx",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.gaffe
 	},
     "Stevenson Loyalists": {
 		text: "The Kennedy player may not spend CP on Campaigning action in the West or Midwest for the remainder fo the turn.",
@@ -207,7 +227,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.DEFENSE,
 		state: "sd",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.loyalists
 	},
     "Greater Houston Ministerial Association": {
 		text: "Immediately move the Kennedy candidate token to Texas, without paying the normal travel costs. The Kennedy player gains 1 momentum marker and may add a total of 5 state support anywhere, no more than 1 per state. This event prevents the Baptist Ministers, Norman Vincent Peale, and Puerto Rican Bishops events.",
@@ -215,7 +236,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.DEFENSE,
 		state: "ny",
-		location: LOCATION.PREVENTION
+		location: LOCATION.PREVENTION,
+		event: EVENT.houstonAssoc
 	},
     "Quemoy and Matsu": {
 		text: "The leader in Defense gains 1 momentum marker and may add a total of 3 state support anywhere, no more than 1 per state.",
@@ -223,7 +245,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.ECONOMY,
 		state: "nc",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.quemoy
 	},
     "Norman Vincent Peale": {
 		text: "The Nixon player may subtract a total of 5 state support from Kennedy anywhere, no more than 1 per state. This event is prevented by the Greater Houston Ministerial Association event.",
@@ -231,7 +254,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.ECONOMY,
 		state: "va",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.normamVincent
 	},
     "Voter Registration Drive": {
 		text: "Player may add a total of 3 state support in states which currently contain no support for either player, no more than 1 per state.",
@@ -239,7 +263,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "wa",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.voterDrive
 	},
     "Martin Luther King Arrested": {
 		text: "Civil Rights moves up one space on the Issue Track. Player gains 3 issue support in Civil Rights.",
@@ -247,7 +272,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "ca",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.kingArrested
 	},
     "Ken-Air": {
 		text: "For the remainder of the turn, the Kennedy player is exempt from travel cost and gains +1 CP to all cards played as Campaigning actions, to a maximum value of 5 CP.",

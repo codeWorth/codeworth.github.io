@@ -1,7 +1,6 @@
 export const TURNS_PER_ROUND = 10;
 export const NIXON = "nixon";
 export const KENNEDY = "kennedy";
-export const ESCAPE_POPUP = "escape_popup"
 export const RESET_SIGNAL = new Object();
 
 export const PHASE = {
@@ -14,6 +13,27 @@ export const PHASE = {
     ISSUE1_ENDORSE_REWARD: "endorse_reward",
     STRATEGY: "strategy"
 }
+
+export const FLAGS = {
+    STOP_SILENCE: "stopSilence",
+    BRAIN_TRUST: "brainTrust",
+    HOUSTON_ASSOC: "houstonAssoc",
+    NIXON_EGGED: "nixonEgged",
+    JOE_KENNEDY: "joeKennedy",
+    LOYALISTS: "loyalists",
+    UNPLEDGED: "unpledged"
+};
+
+export const EVENT_TYPE = {
+    LOSE_ISSUE: "loseIssue",
+    ADD_PER: "addPer",
+    SUB_PER: "subPer",
+    HEARTLAND: "heartland",
+    SUB_MEDIA: "subMedia",
+    RETRIEVE: "retrieve",
+    EVENT_FROM_DISCARD: "eventFromDiscard",
+    EMPTY_PER: "emptyPer"
+};
 
 export const ISSUE_URLS = {
     DEFENSE: "../images/defense_gray.png",
@@ -187,7 +207,7 @@ export const REGION = {
     NORTHEAST: 2,
     SOUTH: 3
 };
-export const stateRegion = {
+export const STATE_REGION = {
     washington: REGION.WEST,
     oregon: REGION.WEST,
     california: REGION.WEST,

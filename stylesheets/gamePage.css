@@ -3,6 +3,7 @@
     margin: 5rem;
     margin-top: -10rem;
     font-size: 16rem;
+    width: 1702rem;
 }
 
 #mapImg {
@@ -109,6 +110,31 @@
     font-size: 1.2em;
 }
 
+#eventCounter {
+    position: absolute;
+    width: 85rem;
+    height: 85rem;
+    left: 1200rem;
+    top: 30rem;
+
+    background-size: 85rem;
+    border-radius: 4rem;
+    background-color: #5c5c5c;
+    border:1rem solid black;
+    box-shadow: 0 0 5rem rgba(33,33,33,.1); 
+
+    text-align: center;
+    color: rgb(240, 240, 240);
+    font-size: 60rem;
+    font-family: Tahoma;
+    line-height: 85rem;
+
+}
+#eventCounter:hover {
+    cursor: pointer;
+    box-shadow: 0 0 5rem rgba(33,33,33,.4); 
+}
+
 .issue-select {
     position: absolute;
     width: 85rem;
@@ -145,7 +171,7 @@
     top: 30rem;
 }
 
-#hand, #campaign {
+#handContainer {
     position: absolute;
     background-color: rgb(250, 250, 250);
     box-shadow: 0 0 5rem rgba(33,33,33,.4);
@@ -154,6 +180,12 @@
     border-radius: 4rem;
     top: 400rem;
     left: 1050rem;
+
+    overflow-x: hidden;
+    overflow-y: scroll;
+}
+#hand, #campaign {
+    width: 642rem;
 }
 
 .card {
@@ -267,10 +299,10 @@
     line-height: 5.3em;
 }
 
-#campaignMode, #handMode {
+#handMode {
     position: absolute;
-    top: -2em;
-    right: 0em;
+    top: 369rem;
+    right: 10rem;
 }
 
 .pi {
@@ -384,7 +416,7 @@
     padding: 10rem;
     padding-top: 20rem;
     padding-bottom: 0rem;
-    font-size: 2.5em;
+    font-size: 2em;
     margin-top: 0rem;
     text-align: center;
 }

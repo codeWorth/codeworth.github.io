@@ -35,10 +35,16 @@ export const EVENT_TYPE = {
     EMPTY_PER: "emptyPer"
 };
 
+export const ISSUE = {
+    DEFENSE: "DEFENSE",
+    CIVIL_RIGHTS: "CIVIL_RIGHTS",
+    ECONOMY: "ECONOMY"
+};
+
 export const ISSUE_URLS = {
-    DEFENSE: "../images/defense_gray.png",
-    CIVIL_RIGHTS: "../images/civilrights_gray.png",
-    ECONOMY: "../images/economy_gray.png"
+    [ISSUE.DEFENSE]: "../images/defense_gray.png",
+    [ISSUE.CIVIL_RIGHTS]: "../images/civilrights_gray.png",
+    [ISSUE.ECONOMY]: "../images/economy_gray.png"
 }
 
 export const DEFAULT_COUNTS = {

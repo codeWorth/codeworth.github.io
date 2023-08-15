@@ -1,5 +1,4 @@
-import { ISSUE } from "./cards.js";
-import { EVENT_TYPE, FLAGS, KENNEDY, NIXON, REGION, STATE_REGION } from "./constants.js";
+import { EVENT_TYPE, FLAGS, KENNEDY, NIXON, REGION, STATE_REGION, ISSUE } from "./constants.js";
 import { candidateDp, moveUp, oppositeCandidate } from "./util.js";
 
 function event(type, target) {

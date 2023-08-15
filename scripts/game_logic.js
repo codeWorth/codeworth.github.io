@@ -144,7 +144,6 @@ class GameLogic {
         } else {
             selectedCard = cardItems.find(item => item.name === this.data.lastRoll.cardName);
             await this.alreadyChoseMediaCard(
-                selectedCard.name, 
                 selectedCard.card, 
                 selectedCard.cardSlot, 
                 this.data.lastRoll.points
@@ -154,6 +153,7 @@ class GameLogic {
     
         const player = getPlayerCandidate(this.data);
         if (this.data.lastRoll === null) {
+            this.data[player].hand = this.data[player].hand.filter(name => name != selectedCard.name);
             this.data.chosenCard = selectedCard.name;
             if (this.data.preempted) return;
             if (player === KENNEDY && !this.nixonCanMomentum()) return;
@@ -163,12 +163,12 @@ class GameLogic {
         }
     }
     
-    async alreadyChoseMediaCard(cardName, card, cardSlot, points) {
+    async alreadyChoseMediaCard(card, cardSlot, points) {
         showPointsOnCard(cardSlot.pointsCover, points);
     
         await this.useMediaPoints(points, cardSlot, cardSlot.card);
         addCSSClass(cardSlot.pointsCover, "hidden");
-        const choseCard = await this.confirmCardChoices(cardName, card);
+        const choseCard = await this.confirmCardChoices(card);
         if (!choseCard) throw RESET_SIGNAL;
     }
 
@@ -195,7 +195,7 @@ class GameLogic {
         if (this.data.currentPlayer !== playerCandidate) return false;
     
         // const disableEvent = isCandidate || !this.canCardEvent(cardName);
-        const disableEvent = isCandidate || !this.canCardEvent(cardName) || card.event === undefined;
+        const disableEvent = isCandidate || !this.canCardEvent(cardName) || card.event === undefined; // TODO: remove after all events implemented
         const {eventButton, cpButton, issueButton, mediaButton} = showCardPopup(cardName, card, disableEvent);
         const selectedButton = await popupSelector(this.cancelSignal)
             .withAwaitClick(UI.choosePopup)
@@ -236,7 +236,7 @@ class GameLogic {
     
             await this.useCampaignPoints(card.points, cardSlot, cardSlot.card);
             addCSSClass(cardSlot.pointsCover, "hidden");
-            const choseCard = await this.confirmCardChoices(cardName, card);
+            const choseCard = await this.confirmCardChoices(card);
             if (!choseCard) throw RESET_SIGNAL;
         }
         else if (selectedButton === issueButton) {
@@ -244,7 +244,7 @@ class GameLogic {
     
             await this.useIssuePoints(card.points, cardSlot, cardSlot.card);
             addCSSClass(cardSlot.pointsCover, "hidden");
-            const choseCard = await this.confirmCardChoices(cardName, card);
+            const choseCard = await this.confirmCardChoices(card);
             if (!choseCard) throw RESET_SIGNAL;
         }
         else if (selectedButton === mediaButton) {
@@ -366,22 +366,20 @@ class GameLogic {
         if (!exited) await awaitClick(this.cancelSignal, doneButton);
     }
     
-    async confirmCardChoices(cardName, card) {
+    async confirmCardChoices(card) {
         const [finalizeButton, resetButton] = showPopup("Finalize these moves?", "Finalize", "Reset");
         const popupButton = await popupSelector(this.cancelSignal).build();
         
         if (popupButton === finalizeButton) {
-            this.usedCard(cardName, card);
+            this.usedCard(card);
             return true;
         } else if (popupButton === resetButton) {
             return false;
         }
     }
     
-    usedCard(cardName, card) {
+    usedCard(card) {
         const candidate = getPlayerCandidate(this.data);
-    
-        this.data[candidate].hand = this.data[candidate].hand.filter(name => name != cardName);
         if (card.isCandidate) this.data[candidate].exhausted = true;
         if (!card.isCandidate) this.data[candidate].rest += 4 - card.points;
     }
@@ -425,6 +423,8 @@ class GameLogic {
 
         if (selection === triggerButton) {
             const card = CARDS[cardName];
+            if (card.event === undefined) throw RESET_SIGNAL; // TODO: remove after all events implemented
+
             this.data[player].momentum--;
             card.event(this.data, player);
         } else if (selection === continueButton) {

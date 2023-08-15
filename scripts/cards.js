@@ -425,7 +425,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.DEFENSE,
 		state: "in",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.industrialMidwest
 	},
     "Bobby Kennedy": {
 		text: "The Kennedy player gains +1 CP to all cards player for the remainder of the turn, to a maximum value of 5 CP.",

@@ -207,3 +207,11 @@ export function kingArrested(gameData, player) {
     moveUp(gameData.issues, ISSUE.CIVIL_RIGHTS);
     gameData.issueScores[ISSUE.CIVIL_RIGHTS] += candidateDp(player) * 3;
 }
+
+export function industrialMidwest(gameData, player) {
+    gameData.event = {...changePer(
+        EVENT_TYPE.ADD_STATES, NIXON,
+        5, 2, [REGION.MIDWEST]),
+        states: ["illinois", "indiana", "michigan", "minnesota", "ohio", "wisconsin"]
+    };
+}

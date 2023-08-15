@@ -27,6 +27,7 @@ export const FLAGS = {
 export const EVENT_TYPE = {
     LOSE_ISSUE: "loseIssue",
     ADD_PER: "addPer",
+    ADD_STATES: "addStates",
     SUB_PER: "subPer",
     HEARTLAND: "heartland",
     SUB_MEDIA: "subMedia",
@@ -212,6 +213,12 @@ export const REGION = {
     MIDWEST: 1,
     NORTHEAST: 2,
     SOUTH: 3
+};
+export const REGION_NAME = {
+    [REGION.WEST]: "west",
+    [REGION.MIDWEST]: "midwest",
+    [REGION.SOUTH]: "south",
+    [REGION.NORTHEAST]: "east"
 };
 export const STATE_REGION = {
     washington: REGION.WEST,

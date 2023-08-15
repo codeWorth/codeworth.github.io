@@ -1,4 +1,4 @@
-import { ELECTORS, RESET_SIGNAL, STATE_REGION } from "./constants.js";
+import { ELECTORS, REGION_NAME, RESET_SIGNAL, STATE_REGION, stateNames } from "./constants.js";
 import { Deferred, awaitClick, awaitClickAndReturn } from "./deferred.js";
 import * as UI from "./dom.js";
 import { popupSelector, showPopup, showPopupWithCard } from "./popup.js";
@@ -6,8 +6,9 @@ import { addCSSClass, candidateDp, getPlayerCandidate, removeCSSClass } from "./
 import {
     displayHand,
     hideEventCount,
+    showCubes,
     showEventCount,
-    showInfo, showIssues
+    showInfo, showIssues, showMedia
 } from "./view.js";
 
 class EventHandler {
@@ -20,7 +21,7 @@ class EventHandler {
         const type = this.data.event.type;
         if (this[type] === undefined) {
             console.error(`Unknown event '${type}'`);
-            throw CONSTANTS.RESET_SIGNAL;
+            throw RESET_SIGNAL;
         }
 
         await this[type]();
@@ -28,6 +29,13 @@ class EventHandler {
             this.data.event = null;
             hideEventCount();
         }
+    }
+
+    async confirmChoice(message) {
+        const [finalizeButton, resetButton] = showPopup(message, "Finalize", "Reset");
+        const popupButton = await popupSelector(this.cancelSignal).build();
+        
+        return popupButton === finalizeButton;
     }
 
     async loseIssue() {
@@ -42,6 +50,7 @@ class EventHandler {
         showInfo(`Subtract ${count} issue support.`);
 
         while (count > 0) {
+            showEventCount(count);
             const buttonClicked = await Deferred(this.cancelSignal)
                 .withAwaitClickAndReturn(...issueItems)
                 .build();
@@ -53,6 +62,7 @@ class EventHandler {
             showIssues(this.data);
             count--;
         }
+        showEventCount(count);
         
         const confirmed = await this.confirmChoice("Finalize these choices?");
         if (!confirmed) throw RESET_SIGNAL;
@@ -62,18 +72,18 @@ class EventHandler {
         let count = this.data.event.count;
         const per = this.data.event.per;
         const regions = this.data.event.regions;
-        const stateItems = CONSTANTS.stateNames.map(name => ({
+        const stateItems = stateNames.map(name => ({
             name: name,
             button: UI.stateButtons[name].button
         }));
 
         const name = isAdd ? "Add" : "Remove";
         if (regions.length === 1) {
-            showInfo(`${name} ${count} state support in the ${regions[0].toLowerCase()}, max ${per} per state.`);
+            showInfo(`${name} ${count} state support in the ${REGION_NAME[regions[0]]}, max ${per} per state.`);
         } else if (regions.length === 2) {
-            showInfo(`${name} ${count} state support in the ${regions[0].toLowerCase()} or ${regions[1].toLowerCase()}, max ${per} per state.`);
+            showInfo(`${name} ${count} state support in the ${REGION_NAME[regions[0]]} or ${REGION_NAME[regions[1]]}, max ${per} per state.`);
         } else if (regions.length === 3) {
-            showInfo(`${name} ${count} state support in the ${regions[0].toLowerCase()}, ${regions[1].toLowerCase()} or ${regions[2].toLowerCase()}, max ${per} per state.`);
+            showInfo(`${name} ${count} state support in the ${REGION_NAME[regions[0]]}, ${REGION_NAME[regions[1]]} or ${REGION_NAME[regions[2]]}, max ${per} per state.`);
         } else {
             showInfo(`${name} ${count} state support, max ${per} per state.`);
         } 
@@ -100,10 +110,12 @@ class EventHandler {
             if (!condition(state)) continue;
 
             this.data.cubes[state] += isAdd ? dp : -dp;
+            showCubes(this.data);
             if (additions[state] === undefined) additions[state] = 0;
             additions[state]++;
             count--;
         }
+        showEventCount(count);
 
         if (!exited) await awaitClick(this.cancelSignal, UI.eventCounter);
         const confirmed = await this.confirmChoice("Finalize these choices?");
@@ -114,15 +126,13 @@ class EventHandler {
         await this._changePer(true, state => true);
     }
 
-    async heartland() {
-        await this._changePer(true, state => ELECTORS[state] <= 10);
+    async addStates() {
+        const states = this.data.event.states;
+        await this._changePer(true, state => states.includes(state));
     }
 
-    async confirmChoice(message) {
-        const [finalizeButton, resetButton] = showPopup(message, "Finalize", "Reset");
-        const popupButton = await popupSelector(this.cancelSignal).build();
-        
-        return popupButton === finalizeButton;
+    async heartland() {
+        await this._changePer(true, state => ELECTORS[state] <= 10);
     }
 
     async subPer() {
@@ -150,8 +160,10 @@ class EventHandler {
             const region = buttonClicked.dataKey;
             if (Math.sign(this.data.media[region]) !== oppDp) continue;
             this.data.media[region] -= oppDp;
+            showMedia(this.data);
             count--;
         }
+        showEventCount(count);
 
         if (!exited) await awaitClick(this.cancelSignal, UI.eventCounter);
         const confirmed = await this.confirmChoice("Finalize these choices?");

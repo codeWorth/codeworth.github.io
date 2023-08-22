@@ -87,7 +87,7 @@ async function gameAction(gameData) {
     if (gameData.event !== null) {
         if (gameData.event.target === playerCandidate) {
             await logic.handleEvent();
-            return logic.data;
+            return logic.getData();
         } else {
             return {};  // pause until opponent handles event
         }
@@ -95,10 +95,10 @@ async function gameAction(gameData) {
 
     if (gameData.phase === CONSTANTS.PHASE.TRIGGER_EVENT && gameData.choosingPlayer === playerCandidate) {
         await logic.triggerEvent();
-        return logic.data;
+        return logic.getData();
     } else if (gameData.chosenCard !== null && gameData.currentPlayer !== playerCandidate) {
         await logic.showChosenCard();
-        return logic.data;
+        return logic.getData();
     }
 
     if (gameData.currentPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.PLAY_CARDS) {
@@ -107,32 +107,32 @@ async function gameAction(gameData) {
         } else {
             await logic.playHand();
         }
-        return logic.data;
+        return logic.getData();
     }
 
     if (gameData.phase === CONSTANTS.PHASE.CHOOSE_FIRST && gameData.choosingPlayer === playerCandidate) {
         await logic.chooseFirst();
-        return logic.data;
+        return logic.getData();
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.ISSUE_SWAP) {
         await logic.issueSwap();
-        return logic.data;
+        return logic.getData();
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.ISSUE_REWARD_CHOICE) {
         await logic.chooseIssueReward();
-        return logic.data;
+        return logic.getData();
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.ISSUE1_ENDORSE_REWARD) {
         await logic.firstStrategy();
-        return logic.data;
+        return logic.getData();
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.STRATEGY) {
         await logic.secondStrategy();
-        return logic.data;
+        return logic.getData();
     }
 
     return {};

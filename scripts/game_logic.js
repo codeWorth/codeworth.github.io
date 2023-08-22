@@ -5,7 +5,9 @@ import {
     getOtherCandidate,
     moveCost,
     movementRegion,
-    oppositeCandidate
+    oppositeCandidate,
+    flagActive,
+    chooseFromBags
 } from './util.js';
 import { 
     awaitClick,
@@ -19,42 +21,28 @@ import {
     showChooseEndorseRegion,
     showShouldDiscard,
     displayHand,
-    showMomentum
+    showMomentum,
+    showBagRoll
 } from "./view.js";
 import { showCardPopup, showPopup, popupSelector, showPopupWithCard } from "./popup.js";
 import * as UI from "./dom.js";
 import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ENDORSE_REGIONS } from './cards.js';
 import EventHandler from './event_handler.js';
-import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, TURNS_PER_ROUND, stateNames } from './constants.js';
+import { FLAGS, KENNEDY, NIXON, PHASE, REGION_NAME, RESET_SIGNAL, STATE_REGION, TURNS_PER_ROUND, stateNames } from './constants.js';
+import GameData from './gameData.js';
 
 class GameLogic {
     constructor(gameData, cancelSignal) {
-        this.data = gameData;
+        this.data = new GameData(gameData);
         this.cancelSignal = cancelSignal;
     }
 
+    getData() {
+        return this.data.toDict();
+    }
+
     grabBagIsKennedy(count) {
-        let kenCount = 0;
-    
-        for (let i = 0; i < count; i++) {
-            if (this.data.kennedy.bag == 0) {
-                this.data.kennedy.bag = 12;
-            }
-            if (this.data.nixon.bag == 0) {
-                this.data.nixon.bag = 12;
-            }
-    
-            const bagItem = Math.floor(Math.random() * (this.data.kennedy.bag + this.data.nixon.bag));
-            const isKennedy = bagItem < this.data.kennedy.bag;
-            if (isKennedy) {
-                this.data.kennedy.bag--;
-                kenCount++;
-            } else {
-                this.data.nixon.bag--;
-            }
-        }
-    
-        return kenCount;
+        return chooseFromBags(this.data.kennedy, this.data.nixon, count, 12);
     }
 
     initiativeCheck() {
@@ -155,9 +143,8 @@ class GameLogic {
         if (this.data.lastRoll === null) {
             this.data[player].hand = this.data[player].hand.filter(name => name != selectedCard.name);
             this.data.chosenCard = selectedCard.name;
-            if (this.data.preempted) return;
-            if (player === KENNEDY && !this.nixonCanMomentum()) return;
-                
+            
+            if (this.data.preempted) return;     
             this.data.phase = PHASE.TRIGGER_EVENT;    
             this.data.choosingPlayer = getOtherCandidate(this.data);
         }
@@ -172,27 +159,63 @@ class GameLogic {
         if (!choseCard) throw RESET_SIGNAL;
     }
 
-    nixonCanCampaign() {
-        return this.data.flags[FLAGS.NIXON_EGGED] !== this.data.round
+    nixonCanCampaign(state) {
+        if (flagActive(this.data, FLAGS.NIXON_EGGED)) return false;
+
+        if (flagActive(this.data, FLAGS.SILENCE) && state !== null) {
+            const kenDp = candidateDp(KENNEDY);
+            return Math.sign(this.data.cubes[state]) !== kenDp;
+        }
+
+        return true;
     }
 
-    nixonCanMomentum() {
-        return this.data.flags[FLAGS.JOE_KENNEDY] !== this.data.round;
+    preemptNeedsMmtm(player) {
+        if (player === KENNEDY && this.data.flags[KENNEDY_CORPS] === this.data.round) return false;
+        return true;
     }
 
-    kennedyCanCampaign() {
-        return this.data.flags[FLAGS.LOYALISTS] !== this.data.round;
+    kennedyCanCampaign(state) {
+        if (this.data.flags[FLAGS.KEN_NO_CP] === undefined) return true;
+        
+        const region = state === null ? null : STATE_REGION[state];
+        const matches = this.data.flags[FLAGS.KEN_NO_CP].filter(rule => 
+            rule.region === region && rule.round === this.data.round
+        );
+        return matches.length === 0;
     }
     
     canCardEvent(cardName) {
         if (cardName === "Norman Vincent Peale" && this.data.flags[FLAGS.HOUSTON_ASSOC]) return false;
-        
+        if (cardName === "Eisenhower's Silence" && this.data.flags[FLAGS.SILENCE]) return false;
+        if (cardName === "Baptist Ministers" && this.data.flags[FLAGS.HOUSTON_ASSOC]) return false;
+
         return true;
+    }
+
+    updateCardPoints(card, player) {
+        const flag = player === KENNEDY ? FLAGS.CPD_KENNEDY : FLAGS.CPD_NIXON;
+        if (this.data.flags[flag] && this.data.flags[flag].round === this.data.round) {
+            const mod = this.data.flags[mod];
+            card.points += boost.boost;
+            if (mod.min) card.points = Math.max(mod.min, card.points);
+            if (mod.max) card.points = Math.min(mod.max, card.points);
+        }
+    }
+
+    playerFreeMove() {
+        if (player === KENNEDY && flagActive(this.data, FLAGS.KEN_AIR)) return true;
+        if (this.data.flags[FLAGS.ADVANCE_MEN]) {
+            const flag = this.data.flags[FLAGS.ADVANCE_MEN];
+            if (flag.player === getPlayerCandidate(this.data) && flag.round === this.data.round) return true;
+        }
+        return false;
     }
 
     async cardChosen(cardName, card, cardSlot, isCandidate) {
         const playerCandidate = getPlayerCandidate(this.data);
         if (this.data.currentPlayer !== playerCandidate) return false;
+        this.updateCardPoints(card, playerCandidate);
     
         // const disableEvent = isCandidate || !this.canCardEvent(cardName);
         const disableEvent = isCandidate || !this.canCardEvent(cardName) || card.event === undefined; // TODO: remove after all events implemented
@@ -201,23 +224,14 @@ class GameLogic {
             .withAwaitClick(UI.choosePopup)
             .withAwaitKey(document, "Escape")
             .build();
-
-        if (
-            ((playerCandidate === NIXON && !this.nixonCanCampaign())
-                || (playerCandidate === KENNEDY && !this.kennedyCanCampaign())
-            ) && selectedButton !== eventButton
-        ) {
-            throw RESET_SIGNAL;
-        }
         
         this.data.preempted = true;
-        if (this.data[playerCandidate].momentum >= 2 
-            && (selectedButton === cpButton
-                || selectedButton === issueButton
-                || selectedButton === mediaButton)
-            && (this.nixonCanMomentum()
-                || playerCandidate !== NIXON)
-        ) {
+        const usedCampaign = (selectedButton === cpButton
+            || selectedButton === issueButton
+            || selectedButton === mediaButton);
+        const hasMomentum = this.data[playerCandidate].momentum >= 2 
+            && this.data[playerCandidate].canMomentum();
+        if (usedCampaign && (hasMomentum || !this.preemptNeedsMmtm(playerCandidate))) {
             const [yesButton, noButton] = showPopup("Preempt this card's event?", "Yes", "No");
             const popupButton = await popupSelector(this.cancelSignal).build();
             
@@ -230,7 +244,10 @@ class GameLogic {
         }
     
         if (selectedButton === eventButton) {
-            card.event(this.data, playerCandidate);
+            if (playerCandidate === NIXON && flagActive(this.data, FLAGS.NIXON_PLEDGE)) {
+                this.data.kennedy.momentum++;
+            }
+            this.activateEvent(card, playerCandidate);
         } else if (selectedButton === cpButton) {
             showPointsOnCard(cardSlot.pointsCover, card.points);
     
@@ -261,8 +278,23 @@ class GameLogic {
             throw RESET_SIGNAL;
         }
     }
+
+    activateEvent(card, player) {
+        if (flagActive(this.data, FLAGS.JACKIE_KENNEDY)) {
+            if (this.data[player].momentum === 0) throw RESET_SIGNAL;
+            this.data[player].momentum--;
+        }
+
+        card.event(this.data, player);
+    }
     
     async useCampaignPoints(points, cardSlot, doneButton) {
+        const player = getPlayerCandidate(this.data);
+        if (flagActive(this.data, FLAGS.NIXONS_KNEE)) {
+            if (this.data[player].momentum === 0) throw RESET_SIGNAL;
+            this.data[player].momentum--;
+        }
+
         const stateItems = stateNames.map(name => ({
             name: name,
             button: UI.stateButtons[name].button
@@ -278,10 +310,14 @@ class GameLogic {
             if (buttonClicked === doneButton) {
                 exited = true;
                 break;
-            } else {
-                points = this.spendState(buttonClicked.name, points);
-                showPointsOnCard(cardSlot.pointsCover, points);
             }
+
+            const stateName = buttonClicked.name;
+            if (player === NIXON && !this.nixonCanCampaign(stateName)) continue;
+            if (player === KENNEDY && !this.kennedyCanCampaign(stateName)) continue;
+
+            points = this.spendState(stateName, points);
+            showPointsOnCard(cardSlot.pointsCover, points);
         }
     
         if (!exited) await awaitClick(this.cancelSignal, doneButton);
@@ -290,7 +326,9 @@ class GameLogic {
         const playerCandidate = getPlayerCandidate(this.data);
         const playerLocation = this.data[playerCandidate].state;
     
-        const mc = moveCost(movementRegion(playerLocation), movementRegion(stateName));
+        const mc = this.playerFreeMove()
+            ? 0
+            : moveCost(movementRegion(playerLocation), movementRegion(stateName));
         if (mc > points) return points;
     
         points -= mc;
@@ -305,26 +343,31 @@ class GameLogic {
     }
     
     async useIssuePoints(points, cardSlot, doneButton) {
+        const player = getPlayerCandidate(this.data);
+        if (flagActive(this.data, FLAGS.NIXONS_KNEE)) {
+            if (this.data[player].momentum === 0) throw RESET_SIGNAL;
+            this.data[player].momentum--;
+        }
+
         const issuesBought = [];
-        const issueItems = Object.keys(UI.issueButtons).map(index => ({
-            name: this.data.issues[index],
-            button: UI.issueButtons[index].button
-        }));
-    
         let exited = false;
         while (points > 0) {
             const buttonClicked = await Deferred(this.cancelSignal)
-                .withAwaitClickAndReturn(...issueItems)
+                .withAwaitClickAndReturn(...UI.issueButtons)
                 .withAwaitClick(doneButton)
                 .build();
     
             if (buttonClicked === doneButton) {
                 exited = true;
                 break;
-            } else {
-                points = this.spendIssue(buttonClicked.name, points, issuesBought);
-                showPointsOnCard(cardSlot.pointsCover, points);
             }
+
+            if (player === NIXON && !this.nixonCanCampaign(null)) continue;
+            if (player === KENNEDY && !this.kennedyCanCampaign(null)) continue;
+
+            const issueClicked = this.data.issues[buttonClicked.dataIndex];
+            points = this.spendIssue(issueClicked, points, issuesBought);
+            showPointsOnCard(cardSlot.pointsCover, points);
         }
     
         if (!exited) await awaitClick(this.cancelSignal, doneButton);
@@ -344,6 +387,10 @@ class GameLogic {
 
     async useMediaPoints(points, cardSlot, doneButton) {
         const playerCandidate = getPlayerCandidate(this.data);
+        if (flagActive(this.data, FLAGS.NIXONS_KNEE)) {
+            if (this.data[playerCandidate].momentum === 0) throw RESET_SIGNAL;
+            this.data[playerCandidate].momentum--;
+        }
     
         let exited = false;
         while (points > 0) {
@@ -355,12 +402,15 @@ class GameLogic {
             if (buttonClicked === doneButton) {
                 exited = true;
                 break;
-            } else {
-                this.data.media[buttonClicked.dataKey] += candidateDp(playerCandidate);
-                points--;
-                showMedia(this.data);
-                showPointsOnCard(cardSlot.pointsCover, points);
             }
+
+            if (player === NIXON && !this.nixonCanCampaign(null)) continue;
+            if (player === KENNEDY && !this.kennedyCanCampaign(null)) continue;
+
+            this.data.media[buttonClicked.dataKey] += candidateDp(playerCandidate);
+            points--;
+            showMedia(this.data);
+            showPointsOnCard(cardSlot.pointsCover, points);
         }
     
         if (!exited) await awaitClick(this.cancelSignal, doneButton);
@@ -381,7 +431,7 @@ class GameLogic {
     usedCard(card) {
         const candidate = getPlayerCandidate(this.data);
         if (card.isCandidate) this.data[candidate].exhausted = true;
-        if (!card.isCandidate) this.data[candidate].rest += 4 - card.points;
+        if (!card.isCandidate) this.data[candidate].rest += card.rest;
     }
 
     async showChosenCard() {
@@ -404,7 +454,7 @@ class GameLogic {
     async triggerEvent() {
         const player = getPlayerCandidate(this.data);
         if (this.data[player].momentum === 0) return this.showChosenCard();
-        if (player === NIXON && !this.nixonCanMomentum()) return this.showChosenCard();
+        if (this.data[player].canMomentum()) return this.showChosenCard();
 
         const cardName = this.data.chosenCard;
         this.data.chosenCard = null;
@@ -426,7 +476,7 @@ class GameLogic {
             if (card.event === undefined) throw RESET_SIGNAL; // TODO: remove after all events implemented
 
             this.data[player].momentum--;
-            card.event(this.data, player);
+            this.activateEvent(card, player);
         } else if (selection === continueButton) {
             this.nextTurn(cardName);
         }
@@ -447,8 +497,8 @@ class GameLogic {
     endPlayPhase() {
         this.data.choosingPlayer = getPlayerCandidate(this.data);
         this.data.turns = 0;
-        this.data.kennedy.momentum = Math.ceil(this.data.kennedy.momentum / 2);
-        this.data.nixon.momentum = Math.ceil(this.data.nixon.momentum / 2);
+        this.data.kennedy.momentumDecay();
+        this.data.nixon.momentumDecay();
     
         const media = Object.values(ENDORSE_REGIONS)
             .map(region => this.data.media[region] ? this.data.media[region] : 0)
@@ -467,14 +517,8 @@ class GameLogic {
     
     async issueSwap() {
         showShouldSwap();
-        const issueItems = Object.keys(UI.issueButtons).map(index => ({
-            index: index,
-            button: UI.issueButtons[index].button
-        }));
-    
-        const issueClicked = await awaitClickAndReturn(this.cancelSignal, ...issueItems);
-    
-        const i = issueClicked.index;
+        const issueClicked = await awaitClickAndReturn(this.cancelSignal, ...UI.issueButtons);    
+        const i = issueClicked.dataIndex;
         if (i === 0) return;
     
         const issue = this.data.issues[i];
@@ -610,7 +654,7 @@ class GameLogic {
     
         this.data.phase = PHASE.CHOOSE_FIRST;
         this.data.turn = 0;
-        this.data.round = this.data.round + 1;    
+        this.data.round++;   
     }
 
     async handleEvent() {

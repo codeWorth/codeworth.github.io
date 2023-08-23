@@ -201,6 +201,7 @@ class GameSetup {
                 campaignDeck: [],
                 needDiscard: 0
             },
+            cpMods: [],
             event: null,
             flags: {}
         });

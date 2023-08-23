@@ -153,14 +153,22 @@ class GameLogic {
     async alreadyChoseMediaCard(card, cardSlot, points) {
         showPointsOnCard(cardSlot.pointsCover, points);
     
-        await this.useMediaPoints(points, cardSlot, cardSlot.card);
+        await this.useMediaPoints(points, cardSlot.card, p => showPointsOnCard(cardSlot.pointsCover, p));
         addCSSClass(cardSlot.pointsCover, "hidden");
         const choseCard = await this.confirmCardChoices(card);
         if (!choseCard) throw RESET_SIGNAL;
     }
 
+    preemptNeedsMmtm(player) {
+        if (player === KENNEDY && this.data.flags[KENNEDY_CORPS] === this.data.round) return false;
+        return true;
+    }
+
     nixonCanCampaign(state) {
         if (flagActive(this.data, FLAGS.NIXON_EGGED)) return false;
+
+        const oldSouth = this.data.flags[FLAGS.OLD_SOUTH];
+        if (oldSouth.player === NIXON && oldSouth.round === this.data.round) return false;
 
         if (flagActive(this.data, FLAGS.SILENCE) && state !== null) {
             const kenDp = candidateDp(KENNEDY);
@@ -170,14 +178,12 @@ class GameLogic {
         return true;
     }
 
-    preemptNeedsMmtm(player) {
-        if (player === KENNEDY && this.data.flags[KENNEDY_CORPS] === this.data.round) return false;
-        return true;
-    }
-
     kennedyCanCampaign(state) {
         if (this.data.flags[FLAGS.KEN_NO_CP] === undefined) return true;
         
+        const oldSouth = this.data.flags[FLAGS.OLD_SOUTH];
+        if (oldSouth.player === KENNEDY && oldSouth.round === this.data.round) return false;
+
         const region = state === null ? null : STATE_REGION[state];
         const matches = this.data.flags[FLAGS.KEN_NO_CP].filter(rule => 
             rule.region === region && rule.round === this.data.round
@@ -193,14 +199,16 @@ class GameLogic {
         return true;
     }
 
-    updateCardPoints(card, player) {
-        const flag = player === KENNEDY ? FLAGS.CPD_KENNEDY : FLAGS.CPD_NIXON;
-        if (this.data.flags[flag] && this.data.flags[flag].round === this.data.round) {
-            const mod = this.data.flags[mod];
-            card.points += boost.boost;
-            if (mod.min) card.points = Math.max(mod.min, card.points);
-            if (mod.max) card.points = Math.min(mod.max, card.points);
-        }
+    modCardPoints(points, player) {
+        this.data.cpMods
+            .filter(mod => mod.player === player)
+            .filter(mod => mod.round === this.data.round)
+            .forEach(mod => {
+                points += mod.boost;
+                if (mod.min) points = Math.max(mod.min, points);
+                if (mod.max) points = Math.min(mod.max, points);
+            });
+        return points;
     }
 
     playerFreeMove() {
@@ -215,7 +223,6 @@ class GameLogic {
     async cardChosen(cardName, card, cardSlot, isCandidate) {
         const playerCandidate = getPlayerCandidate(this.data);
         if (this.data.currentPlayer !== playerCandidate) return false;
-        this.updateCardPoints(card, playerCandidate);
     
         // const disableEvent = isCandidate || !this.canCardEvent(cardName);
         const disableEvent = isCandidate || !this.canCardEvent(cardName) || card.event === undefined; // TODO: remove after all events implemented
@@ -249,9 +256,10 @@ class GameLogic {
             }
             this.activateEvent(card, playerCandidate);
         } else if (selectedButton === cpButton) {
-            showPointsOnCard(cardSlot.pointsCover, card.points);
+            const modPoints = this.modCardPoints(card.points, playerCandidate);
+            showPointsOnCard(cardSlot.pointsCover, modPoints);
     
-            await this.useCampaignPoints(card.points, cardSlot, cardSlot.card);
+            await this.useCampaignPoints(modPoints, cardSlot, cardSlot.card);
             addCSSClass(cardSlot.pointsCover, "hidden");
             const choseCard = await this.confirmCardChoices(card);
             if (!choseCard) throw RESET_SIGNAL;
@@ -259,15 +267,33 @@ class GameLogic {
         else if (selectedButton === issueButton) {
             showPointsOnCard(cardSlot.pointsCover, card.points);
     
-            await this.useIssuePoints(card.points, cardSlot, cardSlot.card);
+            await this.useIssuePoints(card.points, cardSlot.card, p => showPointsOnCard(cardSlot.pointsCover, p));
             addCSSClass(cardSlot.pointsCover, "hidden");
             const choseCard = await this.confirmCardChoices(card);
             if (!choseCard) throw RESET_SIGNAL;
         }
         else if (selectedButton === mediaButton) {
-            let points = this.grabBagIsKennedy(card.points);
+            const modPoints = this.modCardPoints(card.points, playerCandidate);
+            let points = 0;
+
+            if (playerCandidate === KENNEDY && flagActive(this.data, FLAGS.PROFILES_COURAGE)) {
+                for (let c = 0; c < modPoints; c++) {
+                    let won = this.grabBagIsKennedy(1) === 1;
+                    if (!won) {
+                        const [yesButton, noButton] = showPopup("You lost this support check. Redraw it?", "Yes", "No");
+                        const popupButton = await popupSelector(this.cancelSignal).build();
+                        if (popupButton === yesButton) {
+                            won = this.grabBagIsKennedy(1) === 1;
+                        }
+                    }
+                    points += won ? 1 : 0;
+                }
+            } else {
+                points = this.grabBagIsKennedy(modPoints);
+            }
+
             if (!playerIsKennedy(this.data)) {
-                points = card.points - points;
+                points = modPoints - points;
             }
             this.data.lastRoll = {
                 points: points,
@@ -342,7 +368,7 @@ class GameLogic {
         return points;
     }
     
-    async useIssuePoints(points, cardSlot, doneButton) {
+    async useIssuePoints(points, doneButton, showPoints) {
         const player = getPlayerCandidate(this.data);
         if (flagActive(this.data, FLAGS.NIXONS_KNEE)) {
             if (this.data[player].momentum === 0) throw RESET_SIGNAL;
@@ -367,7 +393,7 @@ class GameLogic {
 
             const issueClicked = this.data.issues[buttonClicked.dataIndex];
             points = this.spendIssue(issueClicked, points, issuesBought);
-            showPointsOnCard(cardSlot.pointsCover, points);
+            showPoints(points);
         }
     
         if (!exited) await awaitClick(this.cancelSignal, doneButton);
@@ -385,7 +411,7 @@ class GameLogic {
         return points;
     }
 
-    async useMediaPoints(points, cardSlot, doneButton) {
+    async useMediaPoints(points, doneButton, showPoints) {
         const playerCandidate = getPlayerCandidate(this.data);
         if (flagActive(this.data, FLAGS.NIXONS_KNEE)) {
             if (this.data[playerCandidate].momentum === 0) throw RESET_SIGNAL;
@@ -410,7 +436,7 @@ class GameLogic {
             this.data.media[buttonClicked.dataKey] += candidateDp(playerCandidate);
             points--;
             showMedia(this.data);
-            showPointsOnCard(cardSlot.pointsCover, points);
+            showPoints(points);
         }
     
         if (!exited) await awaitClick(this.cancelSignal, doneButton);
@@ -658,7 +684,7 @@ class GameLogic {
     }
 
     async handleEvent() {
-        const handler = new EventHandler(this.data, this.cancelSignal);
+        const handler = new EventHandler(this.data, this.cancelSignal, this);
         await handler.handleEvent();
     }
 }

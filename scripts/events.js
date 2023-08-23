@@ -1,4 +1,4 @@
-import { EVENT_TYPE, FLAGS, KENNEDY, NIXON, REGION, STATE_REGION, ISSUE, stateCodes } from "./constants.js";
+import { EVENT_TYPE, FLAGS, KENNEDY, NIXON, REGION, STATE_REGION, ISSUE, stateCodes, REGION_NAME, CP_MOD_TYPE } from "./constants.js";
 import { candidateDp, candidateForDp, moveUp, oppositeCandidate } from "./util.js";
 
 export const ALL_REGIONS = Object.values(REGION);
@@ -18,7 +18,7 @@ function changePer(type, target, count, per, forced, regions) {
     };
 }
 
-function addPer(type, target, count, per, regions) {
+export function addPer(type, target, count, per, regions) {
     return changePer(type, target, count, per, false, regions);
 }
 
@@ -335,34 +335,27 @@ export function sealBug(gameData, player) {
     }
 }
 
-function cardCpMod(gameData, flag, diff, limit) {
-    if (!gameData.flags[flag] 
-        || gameData.flags[flag].round !== gameData.round) {
-        gameData.flags[flag] = {
-            round: gameData.round,
-            boost: 0
-        };
-    }
-
-    gameData.flags[flag].diff += diff;
-    if (diff < 0) {
-        gameData.flags[flag].min = limit;
-    } else {
-        gameData.flags[flag].max = limit;
-    }
+function cardCpMod(gameData, player, diff, limit, type) {
+    gameData.cpMods.push({
+        player: player, 
+        round: gameData.round,
+        boost: diff, 
+        [diff < 0 ? 'min' : 'max']: limit,
+        type: type || CP_MOD_TYPE.ALL
+    });
 }
 
 export function kenAir(gameData, player) {
     roundFlag(FLAGS.KEN_AIR)(gameData, player);
-    cardCpMod(gameData, FLAGS.CPD_KENNEDY, 1, 5);
+    cardCpMod(gameData, KENNEDY, 1, 5, CP_MOD_TYPE.CAMPAIGNING);
 }
 
 export function bobKen(gameData, player) {
-    cardCpMod(gameData, FLAGS.CPD_KENNEDY, 1, 5);
+    cardCpMod(gameData, KENNEDY, 1, 5);
 }
 
 export function citizensNixon(gameData, player) {
-    cardCpMod(gameData, FLAGS.CPD_NIXON, 1, 5);
+    cardCpMod(gameData, NIXON, 1, 5);
 }
 
 export function lunchCounter(gameData, player) {
@@ -378,7 +371,7 @@ export function lunchCounter(gameData, player) {
 }
 
 export function structureGap(gameData, player) {
-    cardCpMod(gameData, FLAGS.CPD_KENNEDY, -2, 1);
+    cardCpMod(gameData, KENNEDY, -2, 1, CP_MOD_TYPE.POSITIONING);
 }
 
 export function nixonKnee(gameData, player) {
@@ -488,7 +481,10 @@ export function newEngland(gameData, player) {
 }
 
 export function pierre(gameData, player) {
-    gameData.event = event(EVENT_TYPE.PIERRE, KENNEDY);
+    gameData.event = {
+        ...event(EVENT_TYPE.ADD_ISSUE, KENNEDY),
+        choseOne: true, count: 3
+    };
 }
 
 export function nelsonRock(gameData, player) {
@@ -517,4 +513,185 @@ export function advanceMen(gameData, player) {
         round: gameData.round,
         player: player
     };
+}
+
+export function herbKlein(gameData, player) {
+    gameData.event = {
+        ...event(EVENT_TYPE.ADD_ISSUE, NIXON),
+        choseOne: false, count: 3
+    };
+}
+
+export function ptTv(gameData, player) {
+    gameData.event = addPer(
+        EVENT_TYPE.PTTV, player,
+        5, 2, ALL_REGIONS
+    );
+}
+
+export function eastHarlem(gameData, player) {
+    const nixonDp = candidateDp(NIXON);
+    if (Math.sign(gameData.issueScores[ISSUE.CIVIL_RIGHTS]) === nixonDp) {
+        gameData.issueScores[ISSUE.CIVIL_RIGHTS] -= nixonDp;
+    }
+
+    gameData.event = removePer(
+        EVENT_TYPE.CHANGE_PER, KENNEDY,
+        5, 2, false, [REGION.SOUTH]
+    );
+}
+
+export function garyPowers(gameData, player) {
+    moveUp(gameData.issues, ISSUE.DEFENSE);
+    moveUp(gameData.issues, ISSUE.DEFENSE);
+
+    const defenseScore = Math.sign(gameData.issueScores[ISSUE.DEFENSE]);
+    if (defenseScore === 0) return;
+    gameData[candidateForDp(defenseScore)].momentum++;
+}
+
+export function suburban(gameData, player) {
+    gameData.event = addPer(
+        EVENT_TYPE.SUBURBAN, KENNEDY,
+        5, 2, ALL_REGIONS
+    );
+}
+
+export function oldSouth(gameData, player) {
+    const civilScore = Math.sign(gameData.issueScores[ISSUE.CIVIL_RIGHTS]);
+    if (civilScore === 0) return;
+
+    gameData.event = removePer(
+        EVENT_TYPE.CHANGE_PER, candidateForDp(civilScore),
+        5, 2, true, [REGION.SOUTH]
+    );
+    gameData.flags[FLAGS.OLD_SOUTH] = {
+        player: candidateForDp(civilScore),
+        round: gameData.round
+    };
+}
+
+export function catholic(gameData, player) {
+    gameData.event = addPer(
+        EVENT_TYPE.CHANGE_PER, KENNEDY,
+        7, 2, ALL_REGIONS
+    );
+}
+
+export function volunteers(gameData, player) {
+    gameData[player].momentum++;
+}
+
+export function sputnik(gameData, player) {
+    moveUp(gameData.issues, ISSUE.DEFENSE);
+    const defScore = Math.sign(gameData.issueScores[ISSUE.DEFENSE]);
+    if (defScore === 0) return;
+
+    gameData.event = addPer(
+        EVENT_TYPE.CHANGE_PER, candidateForDp(defScore),
+        3, 1, ALL_REGIONS
+    );
+}
+
+export function fifthAvenue(gameData, player) {
+    gameData.nixon.state = stateCodes.ny;
+    const nixonDp = candidateDp(NIXON);
+    gameData.issueScores[ISSUE.CIVIL_RIGHTS] += nixonDp;
+    gameData.cubes[stateCodes.ny] += nixonDp * 2;
+    gameData.media[REGION_NAME[REGION.NORTHEAST]] += nixonDp;
+}
+
+export function gallup(gameData, player) {
+    gameData.event = event(EVENT_TYPE.SET_ISSUE_ORDER, player);
+}
+
+export function whistlestop(gameData, player) {
+    gameData.event = addPer(
+        EVENT_TYPE.CHOOSE_CP_USE, player,
+        7, 1, ALL_REGIONS
+    );
+}
+
+export function coldWar(gameData, player) {
+    const defScore = Math.sign(gameData.issueScores[ISSUE.DEFENSE]);
+    if (defScore === 0) return;
+
+    gameData.event = addPer(
+        EVENT_TYPE.CHANGE_PER, candidateForDp(defScore),
+        5, 1, ALL_REGIONS
+    );
+}
+
+export function northBlacks(gameData, player) {
+    const civilScore = Math.sign(gameData.issueScores[ISSUE.CIVIL_RIGHTS]);
+    if (civilScore === 0) return;
+
+    gameData.event = {...addPer(
+        EVENT_TYPE.ADD_STATES, candidateDp(civilScore),
+        5, 2, ALL_REGIONS),
+        states: [stateCodes.il, stateCodes.mi, stateCodes.ny]
+    };
+}
+
+export function lowBlow(gameData, player) {
+    const nixonDp = candidateDp(NIXON);
+    const nixonWinningCount = Object.values(ISSUE)
+        .map(issue => gameData.issueScores[issue])
+        .map(Math.sign)
+        .filter(score => score === nixonDp)
+        .length;
+    if (nixonWinningCount < 2) return;
+
+    gameData.kennedy.momentum++;
+    gameData.event = event(EVENT_TYPE.DISCARD, KENNEDY);
+}
+
+export function southernRevolt(gameData, player) {
+    const civilScore = Math.sign(gameData.issueScores[ISSUE.CIVIL_RIGHTS]);
+    if (civilScore !== candidateDp(KENNEDY)) return;
+
+    gameData.event = addPer(
+        EVENT_TYPE.CHANGE_PER, NIXON,
+        5, 2, [REGION.SOUTH]
+    );
+}
+
+export function summerSession(gameData, player) {
+    cardCpMod(gameData, KENNEDY, -2, 1);
+    gameData.event = {
+        ...event(EVENT_TYPE.MOVE, KENNEDY),
+        states: [stateCodes.md, stateCodes.va]
+    };
+}
+
+export function opposition(gameData, player) {
+    gameData.event = event(EVENT_TYPE.OPPOSITION, NIXON);
+}
+
+export function midAtlantic(gameData, player) {
+    gameData.event = {
+        ...addPer(
+            EVENT_TYPE.ADD_STATES, KENNEDY,
+            5, 2, ALL_REGIONS
+        ),
+        states: [stateCodes.de, stateCodes.md, stateCodes.nj, stateCodes.ny, stateCodes.pa]
+    };
+}
+
+export function missileGap(gameData, player) {
+    gameData.issueScores[ISSUE.DEFENSE] += candidateDp(KENNEDY) * 3;
+}
+
+export function stumpSpeech(gameData, player) {
+    const maxMmtm = Math.max(gameData.kennedy.momentum, gameData.nixon.momentum);
+    gameData.kennedy.momentum = maxMmtm;
+    gameData.nixon.momentum = maxMmtm;
+}
+
+export function henryLuce(gameData, player) {
+    gameData.event = event(EVENT_TYPE.HENRY_LUCE, KENNEDY);
+}
+
+export function swingState(gameData, player) {
+    gameData.event = event(EVENT_TYPE.SWING_STATE, player);
 }

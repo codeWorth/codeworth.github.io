@@ -3,6 +3,12 @@ export const NIXON = "nixon";
 export const KENNEDY = "kennedy";
 export const RESET_SIGNAL = new Object();
 
+export const CP_MOD_TYPE = {
+    ALL: "all",
+    POSITIONING: "pos",
+    CAMPAIGNING: "cam"
+}
+
 export const PHASE = {
     CHOOSE_FIRST: "choose_first",
     PLAY_CARDS: "play_cards",
@@ -25,12 +31,13 @@ export const FLAGS = {
     KEN_AIR: "kenAir",
     KEN_NO_CP: "kenNoCp",
     JACKIE_KENNEDY: "jackieKennedy",
-    CPD_KENNEDY: "modCpKennedy",
-    CPD_NIXON: "modCpNixon",
     NIXONS_KNEE: "nixonsKnee",
     PUERTO_RICAN: "puertoRicanBishops",
     KENNEDY_CORPS: "kennedyCorps",
-    ADVANCE_MEN: "advanceMen"
+    ADVANCE_MEN: "advanceMen",
+    OLD_SOUTH: "oldSouth",
+    PROFILES_COURAGE: "profilesCourage",
+    HOSTILE_PRESS: "hostilePress"
 };
 
 export const EVENT_TYPE = {
@@ -48,7 +55,15 @@ export const EVENT_TYPE = {
     BYRD: "byrd",
     HIGH_HOPES: "highHopes",
     DRAW_CARDS: "drawCards",
-    PIERRE: "pierre"
+    ADD_ISSUE: "addIssue",
+    PTTV: "pttv",
+    SUBURBAN: "suburban",
+    SET_ISSUE_ORDER: "setIssueOrder",
+    CHOOSE_CP_USE: "chooseCpUse",
+    MOVE: "move",
+    OPPOSITION: "opposition",
+    HENRY_LUCE: "henryLuce",
+    SWING_STATE: "swingState"
 };
 
 export const ISSUE = {

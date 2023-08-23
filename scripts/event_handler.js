@@ -1,11 +1,12 @@
 import { CARDS, PARTY } from "./cards.js";
-import { ELECTORS, PRETTY_STATES, REGION_NAME, RESET_SIGNAL, STATE_REGION, stateNames } from "./constants.js";
+import { ELECTORS, EVENT_TYPE, KENNEDY, PRETTY_STATES, REGION_NAME, RESET_SIGNAL, STATE_REGION, stateNames } from "./constants.js";
 import { Deferred, awaitClick, awaitClickAndReturn } from "./deferred.js";
 import * as UI from "./dom.js";
-import { ALL_REGIONS } from "./events.js";
+import { ALL_REGIONS, addPer } from "./events.js";
 import GameData from "./gameData.js";
+import GameLogic from "./game_logic.js";
 import { popupSelector, showPopup, showPopupWithCard } from "./popup.js";
-import { addCSSClass, candidateDp, getPlayerCandidate, listAndCapitalize, popRandom, removeCSSClass } from "./util.js";
+import { addCSSClass, candidateDp, chooseFromBags, flagActive, getPlayerCandidate, listAndCapitalize, playerIsKennedy, popRandom, removeCSSClass } from "./util.js";
 import {
     displayHand,
     hideEventCount,
@@ -18,10 +19,12 @@ class EventHandler {
     /**
      * @param {GameData} gameData 
      * @param {AbortSignal} cancelSignal 
+     * @param {GameLogic} gameLogic
      */
-    constructor(gameData, cancelSignal) {
+    constructor(gameData, cancelSignal, gameLogic) {
         this.data = gameData;
         this.cancelSignal = cancelSignal;
+        this.gameLogic = gameLogic;
     }
 
     async handleEvent() {
@@ -366,12 +369,198 @@ class EventHandler {
         return true;
     }
 
-    async pierre() {
-        showInfo("Chose an issue to at 3 support.");
+    async addIssue() {
+        let count = this.data.event.count;
+        const choseOne = this.data.event.choseOne;
+        const dp = candidateDp(this.data.event.target);
 
-        const buttonClicked = await awaitClickAndReturn(...UI.issueButtons);
-        const issueClicked = this.data.issues[buttonClicked.dataIndex];
-        this.data.issueScores[issueClicked] += candidateDp(this.event.data.target) * 3;  
+        if (choseOne) {
+            showInfo(`Chose an issue to add ${count} support.`);
+        } else {
+            showInfo(`Add up to issue ${count} support.`);
+        }
+
+        let exited = false;
+        while (count > 0) {
+            showEventCount(count);
+            const buttonClicked = await Deferred(this.cancelSignal)
+                .withAwaitClickAndReturn(...UI.issueButtons)
+                .withAwaitClick(UI.eventCounter)
+                .build();
+
+            if (buttonClicked === UI.eventCounter) {
+                exited = true;
+                break;
+            }
+
+            const issueClicked = this.data.issues[buttonClicked.dataIndex];
+            this.data.issueScores[issueClicked] += choseOne ? (dp * count) : count;
+            showIssues(this.data);
+            count = choseOne ? 0 : (count - 1);
+        }
+        showEventCount(count);
+
+        if (!exited && !choseOne) await awaitClick(this.cancelSignal, UI.eventCounter);
+        const confirmed = await this.confirmChoice("Finalize these choices?");
+        if (!confirmed) throw RESET_SIGNAL;
+    }
+
+    async pttv() {
+        const dp = candidateDp(this.data.event.target);
+        await this._changePer(true, state => Math.sign(this.data.media[STATE_REGION[state]]) === dp);
+    }
+
+    async suburban() {
+        await this._changePer(true, state => ELECTORS[state] >= 20);
+    }
+
+    async setIssueOrder() {
+        showInfo("Select an issue to swap it left. You may do this as many times as you like.");
+        showEventCount("✓");
+
+        while (true) {
+            const issueClicked = await Deferred(this.cancelSignal)
+                .withAwaitClickAndReturn(...UI.issueButtons)
+                .withAwaitClick(UI.eventCounter)
+                .build();
+                
+            if (issueClicked === UI.eventCounter) break;
+                
+            const i = issueClicked.dataIndex;
+            if (i === 0) return;
+            
+            const issue = this.data.issues[i];
+            const swapIssue = this.data.issues[i - 1];
+            this.data.issues[i] = swapIssue;
+            this.data.issues[i - 1] = issue;
+            showIssues(this.data);
+        }
+
+        const confirmed = await this.confirmChoice("Finalize this order?");
+        if (!confirmed) throw RESET_SIGNAL;
+    }
+
+    async chooseCpUse() {
+        if (this.data.event.lastRoll) {
+            const count = this.data.event.lastRoll;
+            showInfo(`Spend up to ${count} points on media support.`);
+            showEventCount(count);
+
+            await this.gameLogic.useMediaPoints(count, UI.eventCounter, p => showEventCount(p));
+            const confirmed = await this.confirmChoice("Finalize these choices?");
+            if (!confirmed) throw RESET_SIGNAL;
+
+            return;
+        }
+
+        const count = this.data.event.count;
+        const {cpButton, issueButton, mediaButton} = showPopup(`How would you like to spend ${count} CP?`);
+        const selectedButton = await popupSelector(this.cancelSignal).build();
+    
+        if (selectedButton === cpButton) {
+            await this.changePer();
+            return;
+        }
+        
+        if (selectedButton === issueButton) {
+            showInfo(`Spend up to ${count} points on issues.`);
+            showEventCount(count);
+            await this.gameLogic.useIssuePoints(count, UI.eventCounter, p => showEventCount(p));
+            const confirmed = await this.confirmChoice("Finalize these choices?");
+            if (!confirmed) throw RESET_SIGNAL;
+            return;
+        }
+        
+        if (selectedButton === mediaButton) {
+            const player = this.data.event.player;
+            let points = 0;
+
+            if (player === KENNEDY && flagActive(this.data, FLAGS.PROFILES_COURAGE)) {
+                for (let c = 0; c < count; c++) {
+                    let won = chooseFromBags(this.data.kennedy, this.data.nixon, 1, 12) === 1;
+                    if (!won) {
+                        const [yesButton, noButton] = showPopup("You lost this support check. Redraw it?", "Yes", "No");
+                        const popupButton = await popupSelector(this.cancelSignal).build();
+                        if (popupButton === yesButton) {
+                            won = chooseFromBags(this.data.kennedy, this.data.nixon, 1, 12) === 1;
+                        }
+                    }
+                    points += won ? 1 : 0;
+                }
+            } else {
+                points = chooseFromBags(this.data.kennedy, this.data.nixon, count, 12);
+            }
+
+            if (!playerIsKennedy(this.data)) {
+                points = count - points;
+            }
+            this.data.event.lastRoll = points;
+        }
+    }
+
+    async move() {
+        const player = this.data.event.target;
+        const states = this.data.event.states;
+        const prettyStates = states.map(r => PRETTY_STATES[r]);
+        const stateItems = stateNames.map(name => ({
+            name: name,
+            button: UI.stateButtons[name].button
+        }));
+
+        showInfo(`Move to ${listAndCapitalize(prettyStates, "or")}.`);
+
+        while (true) {
+            const state = await awaitClickAndReturn(this.cancelSignal, ...stateItems);
+            const stateName = state.name;
+
+            if (states.includes(stateName)) {
+                gameData[player].state = stateName;
+            }
+        }
+    }
+
+    async opposition() {
+        showInfo("Click the ✓ when you're done looking at your opponent's hand.")
+        showEventCount("✓");
+        displayHand(this.data.kennedy.hand, this.data.kennedy.exhausted, KENNEDY);
+        await awaitClick(UI.eventCounter);
+
+        this.data.event = addPer(
+            EVENT_TYPE.CHOOSE_CP_USE, NIXON,
+            3, 3, ALL_REGIONS
+        );
+        this.chooseCpUse();
+    }
+
+    async henryLuce() {
+        showInfo("Add 1 endorsement marker in any region.");
+
+        const selected = await awaitClickAndReturn(this.cancelSignal, ...UI.endorseButtons);
+        const region = selected.dataKey;
+        this.data.endorsements[region] += candidateDp(this.date.event.target);
+
+        const confirmed = await this.confirmChoice("Finalize this choice?");
+        if (!confirmed) throw RESET_SIGNAL;
+    }
+
+    async swingState() {
+        showInfo("Choose a state to add 5 state support.");
+        const dp = candidateDp(this.data.event.target);
+
+        const stateItems = stateNames.map(name => ({
+            name: name,
+            button: UI.stateButtons[name].button
+        }));
+
+        while (true) {
+            const selected = await awaitClickAndReturn(this.cancelSignal, ...stateItems);
+            const score = this.data.cubes[selected.name];
+            if (Math.sign(score) === -dp && Math.abs(score) < 4) {
+                this.data.cubes[selected.name] += dp * 5;
+                this.data[this.data.event.target].state = selected.name;
+                return;
+            }
+        }
     }
 }
 

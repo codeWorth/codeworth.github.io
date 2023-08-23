@@ -1,5 +1,5 @@
 import { FLAGS, KENNEDY, NIXON, RESET_SIGNAL, STATE_REGION, stateCodes } from "./constants";
-import { candidateDp, chooseFromBags, getOtherCandidate, getPlayerCandidate } from "./util";
+import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate } from "./util";
 
 class FieldsObj {
     constructor(fields) {
@@ -114,6 +114,7 @@ class Cubes extends FieldsObj {
         const flag = this._parent.flags[FLAGS.ADVANCE_MEN];
         if (flag && flag.player === player && flag.round === this._parent.round) return false;
 
+        if (player === NIXON && flagActive(this._parent, FLAGS.HOSTILE_PRESS)) return true;
         const stateScore = this._parent.cubes[stateName];
         if (Math.sign(stateScore) === -dp && Math.abs(stateScore) >= 4) return true;
         if (this._parent[opponent].state === stateName) return true;

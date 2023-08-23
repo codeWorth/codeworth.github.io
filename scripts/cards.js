@@ -685,7 +685,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "ia",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.herbKlein
 	},
     "Prime-Time Television": {
 		text: "Player may add a total of 5 state support in any one region where that player has media support cubes, no more than 2 per state.",
@@ -693,7 +694,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "al",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.ptTv
 	},
     "East Harlem Pledge": {
 		text: "Nixon loses 1 issue support in Civil Rights. The Kennedy player may subtract a total of 5 support from Nixon in the South, no more than 2 per state.",
@@ -701,7 +703,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
 		state: "mi",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.eastHarlem
 	},
     "Trial of Gary Powers": {
 		text: "Defense moves up two spaces on the Issue Track. The leader in Defense gains 1 momentum marker.",
@@ -709,10 +712,11 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.ECONOMY,
 		state: "wi",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.garyPowers
 	},
     "Late Returns from Cook County": {
-		text: "On Election Dat, the Kennedy player gains 5 support checks in Illinois.",
+		text: "On Election Day, the Kennedy player gains 5 support checks in Illinois.",
 		points: 2,
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
@@ -725,7 +729,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
 		state: "mn",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.suburban
 	},
     "Old South": {
 		text: "The leader in Civil Rights must subtract 5 state support in the South and may not spend CP on Campaigning actions in the South for the remainder of their turn.",
@@ -733,7 +738,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.DEFENSE,
 		state: "ny",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.oldSouth
 	},
     "Catholic Support": {
 		text: "The Kennedy player may add a total of 7 state support anywhere, no more than 2 per state.",
@@ -741,7 +747,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
 		state: "ny",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.catholic
 	},
     "Early Returns From Connecticut": {
 		text: "On Election Day, the player leading Connecticut gains 5 support checks in California.",
@@ -757,7 +764,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.DEFENSE,
 		state: "or",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.volunteers
 	},
     "Sputnik V": {
 		text: "Defense moves up one space on the Issue Track. The leader in Defense may add a total of 3 state support anywhere, no more than 1 per state.",
@@ -765,7 +773,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "ma",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.sputnik
 	},
     "Compact of Fifth Avenue": {
 		text: "Immediately move the Nixon candidate token to New York, without paying the normal travel costs. Nixon gains 1 issue support in Civil Rights, 2 state support in New York, and 1 media support cube in the East.",
@@ -773,7 +782,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.ECONOMY,
 		state: "mi",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.fifthAvenue
 	},
     "Gallup Poll": {
 		text: "Player may alter the order of the Issues on the Issue Track as desired.",
@@ -781,15 +791,17 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "mo",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.gallup
 	},
     "Whistlestop": {
-		text: "Player may spend 7 CP on a Campaigning action, expending no more that 1 CP per state.",
+		text: "Player may spend 7 CP on a Campaigning action, expending no more than 1 CP per state.",
 		points: 4,
 		party: PARTY.BOTH,
 		issue: ISSUE.DEFENSE,
 		state: "tx",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.whistlestop
 	},
     "The Cold War": {
 		text: "The leader in Defense may add a total of 5 state support anywhere, no more than 1 per state.",
@@ -797,7 +809,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.DEFENSE,
 		state: "mi",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.coldWar
 	},
     "Northern Blacks": {
 		text: "The leader in Civil Rights may add a total of 5 state support in Illinois, Michigan, and New York, no more than 2 per state.",
@@ -805,7 +818,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.DEFENSE,
 		state: "mn",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.northBlacks
 	},
     "Recount": {
 		text: "On Election Day, the Nixon player gains 3 support checks in any one state.",
@@ -821,7 +835,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
 		state: "il",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.lowBlow
 	},
     "Southern Revolt": {
 		text: "If Kennedy is leading in Civil Rights, the Nixon player may add a total of 5 state support in the South, no more than 2 per state.",
@@ -829,7 +844,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.ECONOMY,
 		state: "in",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.southernRevolt
 	},
     "Congressional Summer Session": {
 		text: "The Kennedy player suffers -2 CP to all cards played for the remainder of the turn, to a minimum value of 1 CP. The Kennedy player must immediately (but without paying the normal travel costs) move their candidate token to either Maryland or Virginia.",
@@ -837,7 +853,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.DEFENSE,
 		state: "pa",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.summerSession
 	},
     "Profiles in Courage": {
 		text: "For the remainder of the turn, the Kennedy player may redraw any failed support check. Each failed check may only be redrawn once.",
@@ -845,7 +862,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "de",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.roundFlag(FLAGS.PROFILES_COURAGE)
 	},
     "Opposition Research": {
 		text: "The Kennedy player reveals all cards in their hand. The Nixon player may then spend 3 CP.",
@@ -853,7 +871,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.DEFENSE,
 		state: "oh",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.opposition
 	},
     "Mid-Atlantic": {
 		text: "The Kennedy player may add a total of 5 state support in Delaware, Maryland, New Jersey, New York, and Pennsylvania, no more than 2 per state.",
@@ -861,7 +880,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "tn",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.midAtlantic
 	},
     "Missile Gap": {
 		text: "Kennedy gains 3 issue support in Defense.",
@@ -869,7 +889,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
 		state: "ga",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.missileGap
 	},
     "Stump Speech": {
 		text: "If opponent has more momentum markers, player gains enough to have the same number.",
@@ -877,7 +898,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.ECONOMY,
 		state: "oh",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.stumpSpeech
 	},
     "Henry Luce": {
 		text: "The Kennedy player may place 1 endorsement marker in any single region.",
@@ -885,7 +907,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.DEFENSE,
 		state: "wv",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.henryLuce
 	},
     "Hostile Press Corps": {
 		text: "The Nixon player is required to make support checks for Campaigning actions in all states for the remainder of the turn as if they were being carried by Kennedy.",
@@ -893,7 +916,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.DEFENSE,
 		state: "pa",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.roundFlag(FLAGS.HOSTILE_PRESS)
 	},
     "Swing State": {
 		text: "Player may add 5 state support to a single state which is currently being led, but not carried, by the opposing player. Immediately move player's candidate token to that state, without paying the normal travel costs.",
@@ -901,7 +925,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "va",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.swingState
 	}
 };
 export const CARDS = Object.fromEntries(Object.keys(_CARDS).map(name => [

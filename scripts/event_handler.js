@@ -56,6 +56,16 @@ class EventHandler {
             .build();
     }
 
+    supportCheck(count) {
+        const kenCount = chooseFromBags(this.data.kennedy, this.data.nixon, count, 12);
+        this.data.lastBagOut = {
+            kennedy: kenCount,
+            nixon: count - kenCount,
+            name: "Support Check"
+        };
+        return kenCount;
+    }
+
     async loseIssue() {
         let count = this.data.event.count;
         const player = getPlayerCandidate(this.data);
@@ -65,7 +75,7 @@ class EventHandler {
 
         while (count > 0) {
             showEventCount(count);
-            const buttonClicked = await awaitClickAndReturn(...UI.issueButtons);
+            const buttonClicked = await awaitClickAndReturn(...Object.values(UI.issueButtons));
             const issueClicked = this.data.issues[buttonClicked.dataIndex];
 
             if (Math.sign(this.data.issueScores[issueClicked]) !== dp) continue;
@@ -91,14 +101,15 @@ class EventHandler {
         }));
 
         const name = isAdd ? "Add" : "Remove";
-        const targetOpp = (!isAdd && !forced) ? " from your opponent" : ""
+        const targetOpp = (!isAdd && !forced) ? " from your opponent" : "";
+        const maxClause = per >= count ? "" : `, max ${per} per state`;
         if (this.data.event.states) {
             const prettyStates = this.data.event.states.map(r => PRETTY_STATES[r]);
-            showInfo(`${name} ${count} state support${targetOpp} in ${listAndCapitalize(prettyStates, "or")}, max ${per} per state.`);
+            showInfo(`${name} ${count} state support${targetOpp} in ${listAndCapitalize(prettyStates, "or")}${maxClause}.`);
         } else if (regions.length === ALL_REGIONS.length) {
-            showInfo(`${name} ${count} state support${targetOpp}, max ${per} per state.`);
+            showInfo(`${name} ${count} state support${targetOpp}${maxClause}.`);
         } else {
-            showInfo(`${name} ${count} state support${targetOpp} in the ${listAndCapitalize(regions.map(r => REGION_NAME[r]), "or")}, max ${per} per state.`);
+            showInfo(`${name} ${count} state support${targetOpp} in the ${listAndCapitalize(regions.map(r => REGION_NAME[r]), "or")}${maxClause}.`);
         } 
 
         // adding to myself or removing from my opponent are my dp
@@ -144,9 +155,9 @@ class EventHandler {
         await this._changePer(this.data.event.count > 0, state => true);
     }
 
-    async addStates() {
+    async changeStates() {
         const states = this.data.event.states;
-        await this._changePer(true, state => states.includes(state));
+        await this._changePer(this.data.event.count > 0, state => states.includes(state));
     }
 
     async heartland() {
@@ -172,7 +183,7 @@ class EventHandler {
         while (count > 0) {
             showEventCount(count);
             const buttonClicked = await Deferred(this.cancelSignal)
-                .withAwaitClickAndReturn(...UI.mediaButtons)
+                .withAwaitClickAndReturn(...Object.values(UI.mediaButtons))
                 .withAwaitClick(UI.eventCounter)
                 .build();
 
@@ -384,7 +395,7 @@ class EventHandler {
         while (count > 0) {
             showEventCount(count);
             const buttonClicked = await Deferred(this.cancelSignal)
-                .withAwaitClickAndReturn(...UI.issueButtons)
+                .withAwaitClickAndReturn(...Object.values(UI.issueButtons))
                 .withAwaitClick(UI.eventCounter)
                 .build();
 
@@ -420,7 +431,7 @@ class EventHandler {
 
         while (true) {
             const issueClicked = await Deferred(this.cancelSignal)
-                .withAwaitClickAndReturn(...UI.issueButtons)
+                .withAwaitClickAndReturn(Object.values(issueButtons))
                 .withAwaitClick(UI.eventCounter)
                 .build();
                 
@@ -477,18 +488,18 @@ class EventHandler {
 
             if (player === KENNEDY && flagActive(this.data, FLAGS.PROFILES_COURAGE)) {
                 for (let c = 0; c < count; c++) {
-                    let won = chooseFromBags(this.data.kennedy, this.data.nixon, 1, 12) === 1;
+                    let won = this.supportCheck(1) === 1;
                     if (!won) {
                         const [yesButton, noButton] = showPopup("You lost this support check. Redraw it?", "Yes", "No");
                         const popupButton = await popupSelector(this.cancelSignal).build();
                         if (popupButton === yesButton) {
-                            won = chooseFromBags(this.data.kennedy, this.data.nixon, 1, 12) === 1;
+                            won = this.supportCheck(1) === 1;
                         }
                     }
                     points += won ? 1 : 0;
                 }
             } else {
-                points = chooseFromBags(this.data.kennedy, this.data.nixon, count, 12);
+                points = this.supportCheck(count);
             }
 
             if (!playerIsKennedy(this.data)) {
@@ -535,9 +546,9 @@ class EventHandler {
     async henryLuce() {
         showInfo("Add 1 endorsement marker in any region.");
 
-        const selected = await awaitClickAndReturn(this.cancelSignal, ...UI.endorseButtons);
+        const selected = await awaitClickAndReturn(this.cancelSignal, ...Object.values(UI.endorseButtons));
         const region = selected.dataKey;
-        this.data.endorsements[region] += candidateDp(this.date.event.target);
+        this.data.endorsements[region] += candidateDp(this.data.event.target);
 
         const confirmed = await this.confirmChoice("Finalize this choice?");
         if (!confirmed) throw RESET_SIGNAL;

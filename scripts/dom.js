@@ -123,3 +123,16 @@ export const popupCard = {
     state: popupCardDiv.getElementsByClassName("state")[0], 
     rest: popupCardDiv.getElementsByClassName("rest")[0]
 };
+
+export const debateWindow = document.getElementById("debate");
+export const debateRows = Object.fromEntries(Array.from(document.getElementsByClassName("debate-row"))
+    .map(row => [
+        row.dataset.index,
+        {
+            index: row.dataset.index,
+            issue: row.getElementsByClassName("issue-select-debate")[0],
+            button: row.getElementsByClassName("issue-select-debate")[0],
+            left: row.getElementsByClassName("handLeft")[0],
+            right: row.getElementsByClassName("handRight")[0]
+        }
+    ]));

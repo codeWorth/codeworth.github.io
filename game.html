@@ -8,6 +8,7 @@
         <link rel="stylesheet" type="text/css" href="./stylesheets/choosePage.css">
         <link rel="stylesheet" type="text/css" href="./stylesheets/gamePage.css">
         <link rel="stylesheet" type="text/css" href="./stylesheets/popup.css">
+        <link rel="stylesheet" type="text/css" href="./stylesheets/debate.css">
     </head>
     <body>
         <div id="header">
@@ -88,11 +89,6 @@
                 <div id="kennedyRestCount"></div>
             </div>
 
-            <div id="debate">
-                <img id="debateKen"></img>
-                <img id="debateNix"></img>
-            </div>
-
             <div id="washington" class="sb"><div></div><p></p></div>
             <div id="oregon" class="sb"><div></div><p></p></div>
             <div id="california" class="sb"><div></div><p></p></div>
@@ -143,6 +139,31 @@
             <div id="delaware" class="sb"><div></div><p></p></div>
             <div id="maryland" class="sb"><div></div><p></p></div>
             <div id="hawaii" class="sb"><div></div><p></p></div>
+
+            <div id="debate">
+                <div id="debateHeader">
+                    <h3 id="debateTitle">Debates</h3>        
+                    <img id="debateNix" src="/images/nixon.png"></img>
+                    <img id="debateKen" src="/images/kennedy.png"></img>
+                </div>
+                <div id="debateContent">
+                    <div data-index="0" class="debate-row" id="debateIssue1">
+                        <div class="handLeft"></div>
+                        <div class="issue-select-debate"></div>
+                        <div class="handRight"></div>
+                    </div>
+                    <div data-index="1" class="debate-row" id="debateIssue2">
+                        <div class="handLeft"></div>
+                        <div class="issue-select-debate"></div>
+                        <div class="handRight"></div>
+                    </div>
+                    <div data-index="2" class="debate-row" id="debateIssue3">
+                        <div class="handLeft"></div>
+                        <div class="issue-select-debate"></div>
+                        <div class="handRight"></div>
+                    </div>
+                </div>
+            </div>
         
             <div id="choosePopup" class="hidden">
                 <div id="popupCard" class="card hidden">

@@ -158,6 +158,7 @@ class GameSetup {
             deck: Object.keys(CARDS),
             endorsementsDeck: ENDORSEMENT_CARDS,
             discard: [],
+            debate: null,
             turn: 0,
             round: 1,
             lastBagOut: {

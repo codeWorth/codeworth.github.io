@@ -64,6 +64,18 @@ export function gameUpdate(gameData) {
     VIEW.displayCampaignDeck(gameData[playerCandidate].campaignDeck);
     addCSSClass(choosePopup, "hidden");
 
+    if ((gameData.phase === CONSTANTS.PHASE.DEBATE
+        || gameData.phase === CONSTANTS.PHASE.DEBATE_INITIATIVE
+        || gameData.phase === CONSTANTS.PHASE.DEBATE_PARTY
+        || gameData.phase === CONSTANTS.PHASE.DEBATE_RESOLVE)
+        && gameData.event === null
+    ) {
+        VIEW.showCampaignDeck();
+        VIEW.showDebateWindow(gameData);
+    } else {
+        VIEW.hideDebateWindow();
+    }
+
     if (gameData[playerCandidate].hand.length > 0) {
         VIEW.displayHand(
             gameData[playerCandidate].hand, 
@@ -112,6 +124,7 @@ async function gameAction(gameData) {
     if (gameData.currentPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.PLAY_CARDS) {
         if (gameData[playerCandidate].hand.length === 0) {
             await logic.getHand();
+            VIEW.showHand();
         } else {
             await logic.playHand();
         }
@@ -143,7 +156,25 @@ async function gameAction(gameData) {
         return logic.getData();
     }
 
-    // if (gameData)
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.DEBATE) {
+        await logic.debate();
+        return logic.getData();
+    }
 
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.DEBATE_INITIATIVE) {
+        await logic.debateChooseFirst();
+        return logic.getData();
+    }
+
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.DEBATE_PARTY) {
+        await logic.debateChooseParty();
+        return logic.getData();
+    }
+
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.DEBATE_RESOLVE) {
+        await logic.debateResolve();
+        return logic.getData();
+    }
+    
     return {};
 }

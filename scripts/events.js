@@ -29,9 +29,8 @@ function removePer(type, target, count, per, forced, regions) {
 export function hellHarry(gameData, player) {
     const kdp = candidateDp(KENNEDY);
     const winningIssues = Object.values(gameData.issueScores)
-        .filter(s => Math.sign(s) === kdp)
-        .length;
-    if (winningIssues > 1) {
+        .filter(s => Math.sign(s) === kdp);
+    if (winningIssues.length > 1) {
         gameData.kennedy.momentum--;
         gameData.event = {
             ...event(EVENT_TYPE.LOSE_ISSUE, oppositeCandidate(player)),
@@ -232,7 +231,7 @@ export function kingArrested(gameData, player) {
 
 export function industrialMidwest(gameData, player) {
     gameData.event = {...addPer(
-        EVENT_TYPE.ADD_STATES, NIXON,
+        EVENT_TYPE.CHANGE_STATES, NIXON,
         5, 2, [REGION.MIDWEST]),
         states: [stateCodes.il, stateCodes.in, stateCodes.mi, stateCodes.mn, stateCodes.oh, stateCodes.wi]
     };
@@ -411,8 +410,8 @@ export function medal(gameData, player) {
 
 export function harryByrd(gameData, player) {
     gameData.event = {...removePer(
-        EVENT_TYPE.ADD_STATES, NIXON,
-        5, 2, false, [REGION.SOUTH]),
+        EVENT_TYPE.CHANGE_STATES, NIXON,
+        3, 3, false, [REGION.SOUTH]),
         states: [stateCodes.ok, stateCodes.ms, stateCodes.al]
     };
 }
@@ -474,7 +473,7 @@ export function polCapital(gameData, player) {
 
 export function newEngland(gameData, player) {
     gameData.event = {
-        ...addPer(EVENT_TYPE.ADD_STATES, KENNEDY,
+        ...addPer(EVENT_TYPE.CHANGE_STATES, KENNEDY,
             5, 2, [REGION.NORTHEAST]),
         states: [stateCodes.ct, stateCodes.ma, stateCodes.me, stateCodes.ny, stateCodes.ri, stateCodes.vt]
     };
@@ -561,10 +560,21 @@ export function oldSouth(gameData, player) {
     const civilScore = Math.sign(gameData.issueScores[ISSUE.CIVIL_RIGHTS]);
     if (civilScore === 0) return;
 
-    gameData.event = removePer(
-        EVENT_TYPE.CHANGE_PER, candidateForDp(civilScore),
-        5, 2, true, [REGION.SOUTH]
-    );
+    let curSouthScore = 0;
+    for (const state in STATE_REGION) {
+        if (STATE_REGION[state] !== REGION.SOUTH) continue;
+        if (Math.sign(gameData.cubes[state]) !== civilScore) continue;
+
+        curSouthScore += gameData.cubes[state];
+    }
+
+    const count = Math.min(5, curSouthScore);
+    if (count > 0) {
+        gameData.event = removePer(
+            EVENT_TYPE.CHANGE_PER, candidateForDp(civilScore),
+            count, count, true, [REGION.SOUTH]
+        );
+    }
     gameData.flags[FLAGS.OLD_SOUTH] = {
         player: candidateForDp(civilScore),
         round: gameData.round
@@ -627,7 +637,7 @@ export function northBlacks(gameData, player) {
     if (civilScore === 0) return;
 
     gameData.event = {...addPer(
-        EVENT_TYPE.ADD_STATES, candidateDp(civilScore),
+        EVENT_TYPE.CHANGE_STATES, candidateDp(civilScore),
         5, 2, ALL_REGIONS),
         states: [stateCodes.il, stateCodes.mi, stateCodes.ny]
     };
@@ -671,7 +681,7 @@ export function opposition(gameData, player) {
 export function midAtlantic(gameData, player) {
     gameData.event = {
         ...addPer(
-            EVENT_TYPE.ADD_STATES, KENNEDY,
+            EVENT_TYPE.CHANGE_STATES, KENNEDY,
             5, 2, ALL_REGIONS
         ),
         states: [stateCodes.de, stateCodes.md, stateCodes.nj, stateCodes.ny, stateCodes.pa]

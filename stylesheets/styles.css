@@ -36,3 +36,16 @@ body {
     font-size: 1.2em;
     text-decoration: none;
 }
+
+#debate {
+    display: flex;
+    flex-direction: column;
+    position: absolute;
+    top: 0rem;
+    left: 12rem;
+    width: 1015rem;
+    height: 715rem;
+    background-color: rgb(250, 250, 250);
+    box-shadow: 0 0 5rem rgba(33,33,33,.4);
+    border-radius: 4rem;
+}

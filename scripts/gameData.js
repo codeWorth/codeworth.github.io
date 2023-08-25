@@ -1,4 +1,4 @@
-import { FLAGS, KENNEDY, NIXON, RESET_SIGNAL, STATE_REGION, stateCodes } from "./constants.js";
+import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, stateCodes } from "./constants.js";
 import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate } from "./util.js";
 
 class FieldsObj {
@@ -111,6 +111,7 @@ class Cubes extends FieldsObj {
         const opponent = getOtherCandidate(this._parent);
         const dp = candidateDp(player);
 
+        if (this._parent.phase === PHASE.DEBATE_RESOLVE) return false;
         if (Math.sign(this._parent.media[STATE_REGION[stateName]]) === dp) return false;
         const flag = this._parent.flags[FLAGS.ADVANCE_MEN];
         if (flag && flag.player === player && flag.round === this._parent.round) return false;
@@ -129,6 +130,11 @@ class Cubes extends FieldsObj {
 
         if (this.needSupportCheck(stateName)) {
             let supportCount = chooseFromBags(this._parent.kennedy, this._parent.nixon, absDelta, 12);
+            this._parent.lastBagOut = {
+                kennedy: supportCount,
+                nixon: absDelta - supportCount,
+                name: "Support Check"
+            };
             if (player === NIXON) {
                 supportCount = absDelta - supportCount;
             }

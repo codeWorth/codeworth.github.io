@@ -25,8 +25,13 @@ export function showIssues(gameData) {
     for (const index in UI.issueButtons) {
         const val = UI.issueButtons[index];
         const issueName = gameData.issues[index];
-        val.setCount(gameData.issueScores[issueName]);
-        val.button.style.backgroundImage = `url(${ISSUE_URLS[issueName]})`;
+        if (issueName === null) {
+            val.setCount(0);
+            val.button.style.backgroundImage = "url(../images/blank_issue.png)";
+        } else {
+            val.setCount(gameData.issueScores[issueName]);
+            val.button.style.backgroundImage = `url(${ISSUE_URLS[issueName]})`;
+        }
     }
 }
 
@@ -76,6 +81,12 @@ function toggleHandMode() {
         removeCSSClass(UI.handDiv, "hidden");
         addCSSClass(UI.campaignDiv, "hidden");
     }
+}
+export function showHand() {
+    if (!showingHand) toggleHandMode();
+}
+export function showCampaignDeck() {
+    if (showingHand) toggleHandMode();
 }
 
 UI.chooseWindow.onclick = e => e.stopPropagation();
@@ -155,18 +166,19 @@ function writeToCard(cardObj, cardName, card) {
     cardObj.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
 }
 
-export function displayHand(hand, exhausted, candidate) {
+export function displayHand(hand, exhausted, candidate, handDiv) {
+    if (!handDiv) handDiv = UI.handDiv;
     const handCards = hand.map(name => CARDS[name]);
     const cardItems = [];
 
-    const cardDivs = UI.handDiv.querySelectorAll(".card");
-    cardDivs.forEach(cardDiv => UI.handDiv.removeChild(cardDiv));
+    const cardDivs = handDiv.querySelectorAll(".card");
+    cardDivs.forEach(cardDiv => handDiv.removeChild(cardDiv));
 
     for (let i = 0; i < handCards.length; i++) {
         const cardName = hand[i];
         const card = handCards[i];
         const cardSlot = makeEmptyCard();
-        UI.handDiv.appendChild(cardSlot.card);
+        handDiv.appendChild(cardSlot.card);
         writeToCard(cardSlot, cardName, card);
 
         cardItems.push({
@@ -181,7 +193,7 @@ export function displayHand(hand, exhausted, candidate) {
     if (!exhausted) {
         const fakeCard = CANDIDATE_CARD(candidate);
         const cardSlot = makeEmptyCard();
-        UI.handDiv.appendChild(cardSlot.card);
+        handDiv.appendChild(cardSlot.card);
 
         cardSlot.header.innerText = CANDIDATE_CARD_NAME;
         cardSlot.body.innerText = fakeCard.text;
@@ -205,6 +217,7 @@ export function displayHand(hand, exhausted, candidate) {
 
 export function displayCampaignDeck(hand) {
     const handCards = hand.map(name => CARDS[name]);
+    const cardItems = [];
 
     const cardDivs = UI.campaignDiv.querySelectorAll(".card");
     cardDivs.forEach(cardDiv => UI.campaignDiv.removeChild(cardDiv));
@@ -215,7 +228,16 @@ export function displayCampaignDeck(hand) {
         const cardSlot = makeEmptyCard();
         UI.campaignDiv.appendChild(cardSlot.card);
         writeToCard(cardSlot, cardName, card);
+
+        cardItems.push({
+            name: cardName,
+            card: card,
+            cardSlot: cardSlot,
+            button: cardSlot.card
+        });
     }
+
+    return cardItems;
 }
 
 export function showRound(gameData, playerCandidate) {
@@ -238,18 +260,18 @@ export function showInfo(msg) {
 }
 
 export function showShouldSwap() {
-    UI.infoDiv.innerText = "Select an issue\nto swap it left";
+    UI.infoDiv.innerText = "Select an issue to swap it left.";
 }
 
 export function showChooseEndorseRegion() {
-    UI.infoDiv.innerText = "Choose a region\nto endorse";
+    UI.infoDiv.innerText = "Choose a region to endorse.";
 }
 
 export function showShouldDiscard(count) {
     if (count === 1) {
-        UI.infoDiv.innerText = `Select ${count} card\nto discard`;
+        UI.infoDiv.innerText = `Select ${count} card to add to your campaign deck.`;
     } else {
-        UI.infoDiv.innerText = `Select ${count} cards\nto discard`;
+        UI.infoDiv.innerText = `Select ${count} cards to add to your campaign deck.`;
     }
 }
 
@@ -284,4 +306,26 @@ export function showEventCount(count) {
 }
 export function hideEventCount() {
     addCSSClass(UI.eventCounter, "hidden");
+}
+
+export function showDebateWindow(gameData) {
+    const hands = gameData.debate.hands;
+    const issues = gameData.debate.issues;
+    for (let i = 0; i < issues.length; i++) {
+        const issue = issues[i];
+        if (hands[issue]) {
+            UI.debateRows[i].issue.style.backgroundImage = `url(${ISSUE_URLS[issue]})`;
+            displayHand(hands[issue].nixon, true, NIXON, UI.debateRows[i].left);
+            displayHand(hands[issue].kennedy, true, KENNEDY, UI.debateRows[i].right);
+        } else {
+            UI.debateRows[i].issue.style.backgroundImage = "none";
+            displayHand([], true, NIXON, UI.debateRows[i].left);
+            displayHand([], true, KENNEDY, UI.debateRows[i].right);
+        }
+    }
+
+    removeCSSClass(UI.debateWindow, "hidden");
+}
+export function hideDebateWindow() {
+    addCSSClass(UI.debateWindow, "hidden");
 }

@@ -1,4 +1,5 @@
 export const TURNS_PER_ROUND = 10;
+export const DEBATE_ROUND = 2; // TODO set to 6
 export const NIXON = "nixon";
 export const KENNEDY = "kennedy";
 export const RESET_SIGNAL = new Object();
@@ -18,7 +19,10 @@ export const PHASE = {
     ISSUE_REWARD_CHOICE: "issue_choice",
     ISSUE1_ENDORSE_REWARD: "endorse_reward",
     STRATEGY: "strategy",
-    DEBATE: "debate"
+    DEBATE: "debate",
+    DEBATE_INITIATIVE: "debateInitiative",
+    DEBATE_PARTY: "debateParty",
+    DEBATE_RESOLVE: "debateResolve"
 }
 
 export const DEBATE_FLAGS = {
@@ -54,7 +58,7 @@ export const FLAGS = {
 export const EVENT_TYPE = {
     LOSE_ISSUE: "loseIssue",
     CHANGE_PER: "changePer",
-    ADD_STATES: "addStates",
+    CHANGE_STATES: "changeStates",
     CHANGE_MEDIA: "changeMedia",
     RETRIEVE: "retrieve",
     DISCARD: "discard",
@@ -87,7 +91,7 @@ export const ISSUE_URLS = {
     [ISSUE.DEFENSE]: "../images/defense_gray.png",
     [ISSUE.CIVIL_RIGHTS]: "../images/civilrights_gray.png",
     [ISSUE.ECONOMY]: "../images/economy_gray.png"
-}
+};
 
 export const DEFAULT_COUNTS = {
     washington: 0,

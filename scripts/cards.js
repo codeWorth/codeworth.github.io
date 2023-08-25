@@ -1,4 +1,4 @@
-import { DEBATE_FLAGS, ELECTION_FLAGS, FLAGS } from "./constants.js";
+import * as CONSTANTS from "./constants.js";
 import * as EVENT from "./events.js";
 
 export const PARTY = {
@@ -12,6 +12,11 @@ export const ISSUE = {
 	CIVIL_RIGHTS: "c",
 	DEFENSE: "d"
 };
+export const ISSUE_NAME = {
+	[ISSUE.ECONOMY]: [CONSTANTS.ISSUE.ECONOMY],
+	[ISSUE.DEFENSE]: [CONSTANTS.ISSUE.DEFENSE],
+	[ISSUE.CIVIL_RIGHTS]: [CONSTANTS.ISSUE.CIVIL_RIGHTS],
+}
 
 export const LOCATION = {
 	NONE: "n",
@@ -93,7 +98,7 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "ca",
 		location: LOCATION.ELECTION_DAY,
-		event: EVENT.putFlag(ELECTION_FLAGS.UNPLEDGED)
+		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.UNPLEDGED)
 	},
     "Dwight D. Eisenhower": {
 		text: "The Nixon player may add a total of 7 state support anywhere, no more than 1 per state. This event prevents the Eisenhower's Silence event.",
@@ -111,7 +116,7 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "pa",
 		location: LOCATION.DEBATE,
-		event: EVENT.putFlag(DEBATE_FLAGS.BRAIN_TRUST)
+		event: EVENT.putFlag(CONSTANTS.DEBATE_FLAGS.BRAIN_TRUST)
 	},
     "Heartland of America": {
 		text: "The Nixon player may add a total of 7 state support in states in the West or Midwest having 10 or fewer electoral votes, no more than 1 per state.",
@@ -201,7 +206,7 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "ga",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(FLAGS.JOE_KENNEDY)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.JOE_KENNEDY)
 	},
     "Herblock": {
 		text: "The Kennedy player may remove 2 Nixon media support cubes from the board.",
@@ -336,7 +341,7 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "il",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(FLAGS.SILENCE)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.SILENCE)
 	},
     "1960 Civil Rights Act": {
 		text: "Civil Rights moves up one space on the Issue Track and Nixon gains 1 issue support in Civil Rights.",
@@ -417,7 +422,7 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "nj",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(FLAGS.JACKIE_KENNEDY)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.JACKIE_KENNEDY)
 	},
     "The Great Seal Bug": {
 		text: "Nixon gains 1 issue support in Defense and may retrieve the Henry Cabot Lodge card from the discard pile if it is there.",
@@ -435,7 +440,7 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "il",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(FLAGS.NIXON_PLEDGE)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.NIXON_PLEDGE)
 	},
     "Industrial Midwest": {
 		text: "The Nixon player may add a total of 5 state support in Illinois, Indiana, Michigan, Minnesota, Ohio, and Wisconsin, no more than 2 per state.",
@@ -471,7 +476,7 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "nc",
 		location: LOCATION.DEBATE,
-		event: EVENT.putFlag(DEBATE_FLAGS.LAZY_SHAVE)
+		event: EVENT.putFlag(CONSTANTS.DEBATE_FLAGS.LAZY_SHAVE)
 	},
     "Puerto Rican Bishops": {
 		text: "The Kennedy player may not expend momentum markers for the remainder of the turn. This event is prevented by the Greater Houston Ministerial Association event.",
@@ -480,7 +485,7 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "ne",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(FLAGS.PUERTO_RICAN)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.PUERTO_RICAN)
 	},
     "\"High Hopes\"": {
 		text: "Reveal the top two cards from the Campaign Deck, one at a time. Events on cards featuring the Kennedy icon take effect in the order revealed as if played by the Kennedy player.",
@@ -561,7 +566,7 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "la",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(FLAGS.KENNEDY_CORPS)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.KENNEDY_CORPS)
 	},
     "Nelson Rockefeller": {
 		text: "The Nixon player gains 1 state support in New York and may retrieve any card from the discard pile.",
@@ -723,7 +728,7 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "sc",
 		location: LOCATION.NONE,
-		event: EVENT.putFlag(ELECTION_FLAGS.COOK_COUNTY)
+		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.COOK_COUNTY)
 	},
     "Suburban Voters": {
 		text: "The Kennedy player may add a total of 5 state support in states having 20 or more electoral votes, no more than 2 per state.",
@@ -759,7 +764,7 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "wy",
 		location: LOCATION.ELECTION_DAY,
-		event: EVENT.putFlag(ELECTION_FLAGS.EARLY_RETURNS)
+		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.EARLY_RETURNS)
 	},
     "Volunteers": {
 		text: "Player gains 1 momentum marker.",
@@ -831,7 +836,7 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "tx",
 		location: LOCATION.ELECTION_DAY,
-		event: EVENT.putFlag(ELECTION_FLAGS.RECOUNT)
+		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.RECOUNT)
 	},
     "A Low Blow": {
 		text: "If Nixon is leading in multiple issues, the Kennedy player gains 1 momentum marker and may discard any number of cards from their hand, drawing the same number of replacements from the Campaign Deck.",
@@ -867,7 +872,7 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "de",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(FLAGS.PROFILES_COURAGE)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.PROFILES_COURAGE)
 	},
     "Opposition Research": {
 		text: "The Kennedy player reveals all cards in their hand. The Nixon player may then spend 3 CP.",
@@ -921,7 +926,7 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "pa",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(FLAGS.HOSTILE_PRESS)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.HOSTILE_PRESS)
 	},
     "Swing State": {
 		text: "Player may add 5 state support to a single state which is currently being led, but not carried, by the opposing player. Immediately move player's candidate token to that state, without paying the normal travel costs.",

@@ -72,6 +72,7 @@
     border-radius: 20rem;
     background-color: rgb(240, 240, 240);
     border:1rem solid black;
+    transition: box-shadow .2s;
     box-shadow: 0 0 5rem rgba(33,33,33,.1); 
 }
 .media:hover {
@@ -94,6 +95,7 @@
     border-radius: 4rem;
     background-color: rgb(240, 240, 240);
     border:1rem solid black;
+    transition: box-shadow .2s;
     box-shadow: 0 0 5rem rgba(33,33,33,.1); 
 
 }
@@ -121,6 +123,7 @@
     border-radius: 4rem;
     background-color: #5c5c5c;
     border:1rem solid black;
+    transition: box-shadow .2s;
     box-shadow: 0 0 5rem rgba(33,33,33,.1); 
 
     text-align: center;
@@ -143,6 +146,7 @@
     border-radius: 4rem;
     background-color: rgb(240, 240, 240);
     border:1rem solid black;
+    transition: box-shadow .2s;
     box-shadow: 0 0 5rem rgba(33,33,33,.1); 
 
 }
@@ -174,7 +178,7 @@
 #handContainer {
     position: absolute;
     background-color: rgb(250, 250, 250);
-    box-shadow: 0 0 5rem rgba(33,33,33,.4);
+    box-shadow: 0 0 5rem rgba(33,33,33,.2);
     height: 444rem;
     width: 642rem;
     border-radius: 4rem;

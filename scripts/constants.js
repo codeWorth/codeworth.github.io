@@ -17,17 +17,28 @@ export const PHASE = {
     ISSUE_SWAP: "issue_swap",
     ISSUE_REWARD_CHOICE: "issue_choice",
     ISSUE1_ENDORSE_REWARD: "endorse_reward",
-    STRATEGY: "strategy"
+    STRATEGY: "strategy",
+    DEBATE: "debate"
+}
+
+export const DEBATE_FLAGS = {
+    BRAIN_TRUST: "brainTrust",
+    LAZY_SHAVE: "lazyShave"
+}
+
+export const ELECTION_FLAGS = {
+    UNPLEDGED: "unpledged",
+    COOK_COUNTY: "cookCountry",
+    EARLY_RETURNS: "earlyReturns",
+    RECOUNT: "recount"
 }
 
 export const FLAGS = {
     STOP_SILENCE: "stopSilence",
-    BRAIN_TRUST: "brainTrust",
     HOUSTON_ASSOC: "houstonAssoc",
     NIXON_EGGED: "nixonEgged",
     SILENCE: "silence",
     JOE_KENNEDY: "joeKennedy",
-    UNPLEDGED: "unpledged",
     KEN_AIR: "kenAir",
     KEN_NO_CP: "kenNoCp",
     JACKIE_KENNEDY: "jackieKennedy",

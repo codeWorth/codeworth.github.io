@@ -100,7 +100,7 @@ export function putFlag(flag) {
 
 export function roundFlag(flag) {
     return (gameData, player) => {
-        gameData.flag[flag] = gameData.round;
+        gameData.flags[flag] = gameData.round;
     }
 }
 

@@ -224,8 +224,7 @@ class GameLogic {
         const playerCandidate = getPlayerCandidate(this.data);
         if (this.data.currentPlayer !== playerCandidate) return false;
     
-        // const disableEvent = isCandidate || !this.canCardEvent(cardName);
-        const disableEvent = isCandidate || !this.canCardEvent(cardName) || card.event === undefined; // TODO: remove after all events implemented
+        const disableEvent = isCandidate || !this.canCardEvent(cardName);
         const {eventButton, cpButton, issueButton, mediaButton} = showCardPopup(cardName, card, disableEvent);
         const selectedButton = await popupSelector(this.cancelSignal)
             .withAwaitClick(UI.choosePopup)
@@ -499,8 +498,6 @@ class GameLogic {
 
         if (selection === triggerButton) {
             const card = CARDS[cardName];
-            if (card.event === undefined) throw RESET_SIGNAL; // TODO: remove after all events implemented
-
             this.data[player].momentum--;
             this.activateEvent(card, player);
         } else if (selection === continueButton) {
@@ -670,17 +667,23 @@ class GameLogic {
     async secondStrategy() {
         await this.playerRoundEnd();
     
+        this.data.turn = 0;
+        this.data.round++;
+
         const check = this.initiativeCheck();
-        this.data.choosingPlayer = check.kennedy > check.nixon ? KENNEDY : NIXON;
         this.data.lastBagOut = {
             kennedy: check.kennedy,
             nixon: check.nixon,
             name: "Initiative"
         };
-    
-        this.data.phase = PHASE.CHOOSE_FIRST;
-        this.data.turn = 0;
-        this.data.round++;   
+
+        if (this.data.round === 6) {
+            this.data.choosingPlayer = null;
+            this.data.phase = PHASE.DEBATE;
+        } else {
+            this.data.choosingPlayer = check.kennedy > check.nixon ? KENNEDY : NIXON;
+            this.data.phase = PHASE.CHOOSE_FIRST;
+        }
     }
 
     async handleEvent() {

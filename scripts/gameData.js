@@ -1,5 +1,5 @@
-import { FLAGS, KENNEDY, NIXON, RESET_SIGNAL, STATE_REGION, stateCodes } from "./constants";
-import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate } from "./util";
+import { FLAGS, KENNEDY, NIXON, RESET_SIGNAL, STATE_REGION, stateCodes } from "./constants.js";
+import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate } from "./util.js";
 
 class FieldsObj {
     constructor(fields) {
@@ -9,10 +9,10 @@ class FieldsObj {
     toDict() {
         return Object.fromEntries(this._fieldNames.map(field => {
             const val = this[field];
-            if (!(val instanceof Object) || val.constructor === Object) {
-                return [field, val];
-            } else {
+            if (val instanceof FieldsObj) {
                 return [field, val.toDict()];
+            } else {
+                return [field, val];
             }
         }));
     }
@@ -37,6 +37,7 @@ class GameData extends FieldsObj {
                         } else {
                             target[prop] = newValue;
                         }
+                        return true;
                     }
                 });
             } else {
@@ -63,7 +64,7 @@ class GameData extends FieldsObj {
      * X -> Y -> D -> B
      */
     set event(newEvent) {
-        if (this.event !== null && this.event.after) {
+        if (this.event && this.event.after) {
             let lastEvent = newEvent;
             while (lastEvent.after) lastEvent = lastEvent.after;
             lastEvent.after = this.event.after;

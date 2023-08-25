@@ -63,6 +63,10 @@ class GameSetup {
     }
     
     async joinGame(gameId) {
+        const url = new URL(window.location.href);
+        url.searchParams.set("id", gameId);
+        window.history.pushState({}, "", url.href);
+
         const userInRef = doc(this.db, "users", this.user.uid, "elec_games", gameId);
         await setDoc(userInRef, {});
 

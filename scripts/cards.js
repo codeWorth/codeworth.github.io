@@ -1,4 +1,4 @@
-import { FLAGS } from "./constants.js";
+import { DEBATE_FLAGS, ELECTION_FLAGS, FLAGS } from "./constants.js";
 import * as EVENT from "./events.js";
 
 export const PARTY = {
@@ -93,7 +93,7 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "ca",
 		location: LOCATION.ELECTION_DAY,
-		event: EVENT.putFlag(FLAGS.UNPLEDGED)
+		event: EVENT.putFlag(ELECTION_FLAGS.UNPLEDGED)
 	},
     "Dwight D. Eisenhower": {
 		text: "The Nixon player may add a total of 7 state support anywhere, no more than 1 per state. This event prevents the Eisenhower's Silence event.",
@@ -111,7 +111,7 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "pa",
 		location: LOCATION.DEBATE,
-		event: EVENT.putFlag(FLAGS.BRAIN_TRUST)
+		event: EVENT.putFlag(DEBATE_FLAGS.BRAIN_TRUST)
 	},
     "Heartland of America": {
 		text: "The Nixon player may add a total of 7 state support in states in the West or Midwest having 10 or fewer electoral votes, no more than 1 per state.",
@@ -470,7 +470,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
 		state: "nc",
-		location: LOCATION.DEBATE
+		location: LOCATION.DEBATE,
+		event: EVENT.putFlag(DEBATE_FLAGS.LAZY_SHAVE)
 	},
     "Puerto Rican Bishops": {
 		text: "The Kennedy player may not expend momentum markers for the remainder of the turn. This event is prevented by the Greater Houston Ministerial Association event.",
@@ -721,7 +722,8 @@ const _CARDS = {
 		party: PARTY.DEMOCRAT,
 		issue: ISSUE.ECONOMY,
 		state: "sc",
-		location: LOCATION.NONE
+		location: LOCATION.NONE,
+		event: EVENT.putFlag(ELECTION_FLAGS.COOK_COUNTY)
 	},
     "Suburban Voters": {
 		text: "The Kennedy player may add a total of 5 state support in states having 20 or more electoral votes, no more than 2 per state.",
@@ -756,7 +758,8 @@ const _CARDS = {
 		party: PARTY.BOTH,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "wy",
-		location: LOCATION.ELECTION_DAY
+		location: LOCATION.ELECTION_DAY,
+		event: EVENT.putFlag(ELECTION_FLAGS.EARLY_RETURNS)
 	},
     "Volunteers": {
 		text: "Player gains 1 momentum marker.",
@@ -827,7 +830,8 @@ const _CARDS = {
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "tx",
-		location: LOCATION.ELECTION_DAY
+		location: LOCATION.ELECTION_DAY,
+		event: EVENT.putFlag(ELECTION_FLAGS.RECOUNT)
 	},
     "A Low Blow": {
 		text: "If Nixon is leading in multiple issues, the Kennedy player gains 1 momentum marker and may discard any number of cards from their hand, drawing the same number of replacements from the Campaign Deck.",

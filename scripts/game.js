@@ -19,9 +19,17 @@ export async function setup(user_, db_) {
     setUser(user_);
     db = db_;
 
+    const url = new URL(window.location.href);
+    const gameId = url.searchParams.get("id");
     const gameSetup = new GameSetup(user_, db, gameUpdate, enterGame);
-    gameSetup.showGames();
+    const userGames = await gameSetup.getGames();
+
     userNameField.innerText = `Logged in as ${user_.displayName} (${user_.email})`;
+    if (gameId === null || !userGames.includes(gameId)) {
+        gameSetup.showGames();
+    } else {
+        gameSetup.joinGame(gameId);
+    }
 }
 
 async function enterGame(gameId_) {
@@ -134,6 +142,8 @@ async function gameAction(gameData) {
         await logic.secondStrategy();
         return logic.getData();
     }
+
+    // if (gameData)
 
     return {};
 }

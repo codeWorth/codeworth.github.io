@@ -492,7 +492,7 @@ class GameLogic {
         const cardName = this.data.chosenCard;
 
         if (this.data[player].momentum === 0) return this.showChosenCard();
-        if (this.data[player].canMomentum()) return this.showChosenCard();
+        if (!this.data[player].canMomentum()) return this.showChosenCard();
 
         const card = cardName === CANDIDATE_CARD_NAME 
             ? CANDIDATE_CARD(getOtherCandidate(this.data))

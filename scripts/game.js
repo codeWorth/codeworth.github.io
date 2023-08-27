@@ -96,7 +96,8 @@ export function gameUpdate(gameData) {
 
     gameAction(gameData)
         .then(data => {
-            if ((Object.keys(data).length) === 0) {
+            if (data.prev === null) data.prev = {};
+            if ((Object.keys(data).length) > 0) {
                 CONSTANTS.SAVED_FIELDS.forEach(field => 
                     data.prev[field] = gameData[field]
                 );

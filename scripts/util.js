@@ -1,44 +1,83 @@
 import * as CONSTANTS from "./constants.js";
 import { getUser } from "./user.js";
 
+/**
+ * @param {Element} elem 
+ * @param {string} className 
+ */
 export function removeCSSClass(elem, className) {
     const classes = elem.className.split(" ");
     elem.className = classes.filter(name => name != className).join(" ");
 }
 
+/**
+ * @param {Element} elem 
+ * @param {string} className 
+ */
 export function addCSSClass(elem, className) {
     removeCSSClass(elem, className);
     elem.className = elem.className + " " + className;
 }
 
+/**
+ * @param {Element} elem 
+ */
 export function removeAllChildren(elem) {
     while (elem.firstChild) elem.removeChild(elem.lastChild);
 }
 
+/**
+ * @param {GameData} gameData 
+ * @returns {boolean}
+ */
 export function playerIsKennedy(gameData) {
     return gameData.kennedy.uid === getUser().uid;
 }
 
+/**
+ * @param {GameData} gameData 
+ * @returns {CONSTANTS.CANDIDATE}
+ */
 export function getPlayerCandidate(gameData) {
     return playerIsKennedy(gameData) ? CONSTANTS.KENNEDY : CONSTANTS.NIXON;
 }
 
+/**
+ * @param {GameData} gameData 
+ * @returns {CONSTANTS.CANDIDATE}
+ */
 export function getOtherCandidate(gameData) {
     return playerIsKennedy(gameData) ? CONSTANTS.NIXON : CONSTANTS.KENNEDY;
 }
 
+/**
+ * @param {CONSTANTS.CANDIDATE} candidate
+ * @returns {CONSTANTS.CANDIDATE}
+ */
 export function oppositeCandidate(candidate) {
     return candidate === CONSTANTS.NIXON ? CONSTANTS.KENNEDY : CONSTANTS.NIXON;
 }
 
+/**
+ * @param {CONSTANTS.CANDIDATE} candidate 
+ * @returns {1|-1}
+ */
 export function candidateDp(candidate) {
     return candidate === CONSTANTS.NIXON ? 1 : -1;
 }
 
+/**
+ * @param {1|-1} dp 
+ * @returns {CONSTANTS.CANDIDATE}
+ */
 export function candidateForDp(dp) {
     return dp === candidateDp(CONSTANTS.NIXON) ? CONSTANTS.NIXON : CONSTANTS.KENNEDY;
 }
 
+/**
+ * @param {CONSTANTS.STATE_CODES} stateName 
+ * @returns {CONSTANTS.STATE_CODES|number}
+ */
 export function movementRegion(stateName) {
     if (stateName === "hawaii" || stateName === "alaska") {
         return stateName;
@@ -47,11 +86,21 @@ export function movementRegion(stateName) {
     }
 }
 
+/**
+ * @param {CONSTANTS.STATE_CODES|number} srcReg 
+ * @param {CONSTANTS.STATE_CODES|number} dstReg 
+ * @returns {number}
+ */
 export function moveCost(srcReg, dstReg) {
     if (srcReg === dstReg) return 0;
     return 1 + moveCost(CONSTANTS.movePath[srcReg][dstReg], dstReg);
 }
 
+/**
+ * @template T
+ * @param {T[]} arr 
+ * @param {T} item 
+ */
 export function moveUp(arr, item) {
     const index = arr.indexOf(item);
     if (index === 0) return;
@@ -60,10 +109,20 @@ export function moveUp(arr, item) {
     arr[index - 1] = item;
 }
 
+/**
+ * @param {GameData} data 
+ * @param {string} flag 
+ * @returns {boolean}
+ */
 export function flagActive(data, flag) {
     return data.flags[flag] === data.round;
 }
 
+/**
+ * @param {string[]} names 
+ * @param {string} seperator 
+ * @returns {string[]}
+ */
 export function listAndCapitalize(names, seperator) {
     const capNames = names
         .map(name => name.toLowerCase())
@@ -95,6 +154,13 @@ export function popRandom(array, count) {
     return removed;
 }
 
+/**
+ * @param {{bag: number}} holder1 
+ * @param {{bag: number}} holder2 
+ * @param {number} count 
+ * @param {number} max 
+ * @returns {{count1: number, count2: number}}
+ */
 export function chooseFromBags(holder1, holder2, count, max) {
     let holder1Count = 0;
     let holder2Count = 0;
@@ -125,6 +191,11 @@ export function chooseFromBags(holder1, holder2, count, max) {
     };
 }
 
+/**
+ * @param {number} a 
+ * @param {number} b 
+ * @returns {number}
+ */
 export function sum(a, b) {
     return a+b;
 }

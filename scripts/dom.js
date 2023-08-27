@@ -125,7 +125,17 @@ export const popupCard = {
 };
 
 export const debateWindow = document.getElementById("debate");
-export const debateRows = Object.fromEntries(Array.from(document.getElementsByClassName("debate-row"))
+
+/**
+ * @typedef {Object} DebateRow
+ * @property {number} index
+ * @property {HTMLElement} issue
+ * @property {HTMLElement} button
+ * @property {HTMLElement} left
+ * @property {HTMLElement} right
+ */
+/** @type {Object<number, DebateRow} */
+export const debateRows = Object.fromEntries([...document.getElementsByClassName("debate-row")]
     .map(row => [
         row.dataset.index,
         {

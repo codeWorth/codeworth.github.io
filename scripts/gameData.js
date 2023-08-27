@@ -1,4 +1,4 @@
-import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, stateCodes } from "./constants.js";
+import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, STATE_CODES } from "./constants.js";
 import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate } from "./util.js";
 
 class FieldsObj {
@@ -32,7 +32,7 @@ class GameData extends FieldsObj {
                         return target[prop];
                     },
                     set(target, prop, newValue) {
-                        if (Object.values(stateCodes).includes(prop)) {
+                        if (Object.values(STATE_CODES).includes(prop)) {
                             target.setState(prop, newValue);
                         } else {
                             target[prop] = newValue;

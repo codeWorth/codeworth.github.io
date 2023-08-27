@@ -321,7 +321,7 @@ class EventHandler {
         while (count > 0) {
             showEventCount(count);
             const clicked = await Deferred(this.cancelSignal)
-                .withAwaitClickAndReturn(UI.stateButtons.texas)
+                .withAwaitClickAndReturn(UI.stateButtons[STATE_CODES.tx])
                 .withAwaitClick(UI.eventCounter)
                 .build();
 
@@ -330,7 +330,7 @@ class EventHandler {
                 break;
             }
 
-            this.data.cubes.texas += dp;
+            this.data.cubes[STATE_CODES.tx] += dp;
             count--;
             showCubes(this.data);
         }

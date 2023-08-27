@@ -1,12 +1,18 @@
 import * as CONSTANTS from "./constants.js";
 import * as EVENT from "./events.js";
 
+/**
+ * @enum {string}
+ */
 export const PARTY = {
 	REPUBLICAN: "r",
 	DEMOCRAT: "d",
 	BOTH: "b"
 };
 
+/**
+ * @enum {string}
+ */
 export const ISSUE = {
 	ECONOMY: "e",
 	CIVIL_RIGHTS: "c",
@@ -18,6 +24,9 @@ export const ISSUE_NAME = {
 	[ISSUE.CIVIL_RIGHTS]: [CONSTANTS.ISSUE.CIVIL_RIGHTS],
 }
 
+/**
+ * @enum {string}
+ */
 export const LOCATION = {
 	NONE: "n",
 	DEBATE: "d",
@@ -58,7 +67,23 @@ export const ENDORSEMENT_CARDS = [
 	ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL
 ];
 
+/**
+ * @typedef {Object} Card
+ * @property {number} points
+ * @property {number} rest
+ * @property {string} text
+ * @property {CONSTANTS.STATE_CODES} state
+ * @property {PARTY} party
+ * @property {ISSUE} issue
+ * @property {boolean} isCandidate
+ */
+
 export const CANDIDATE_CARD_NAME = "Candidate Card";
+/**
+ * Returns the candidate card for the given candidate.
+ * @param {CONSTANTS.CANDIDATE} candidate 
+ * @returns {Card}
+ */
 export const CANDIDATE_CARD = candidate => ({
 	points: 5,
 	rest: 0,
@@ -944,6 +969,9 @@ const _CARDS = {
 		event: EVENT.swingState
 	}
 };
+/**
+ * @type {Object<string, Card>}
+ */
 export const CARDS = Object.fromEntries(Object.keys(_CARDS).map(name => [
 	name, {rest: 4 - _CARDS[name].points, ..._CARDS[name]}
 ]));

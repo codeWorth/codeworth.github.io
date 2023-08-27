@@ -5,20 +5,34 @@ import {
 } from "./util.js";
 import { chooseButtonsContainer, chooseTitle, choosePopup, popupCard } from "./dom.js";
 import { Deferred } from "./deferred.js";
-import { ISSUE_URL, PARTY_URL } from "./cards.js";
+import { ISSUE_URL, PARTY_URL, Card } from "./cards.js";
 
 let buttons = [];
 
+/**
+ * @param {string} title 
+ * @param {string} cardName 
+ * @param {Card} card 
+ * @param  {...string} buttonNames 
+ */
 export function showPopupWithCard(title, cardName, card, ...buttonNames) {
     showCard(cardName, card);
     return _showPopup(title, ...buttonNames);
 }
 
+/**
+ * @param {string} title 
+ * @param  {...string} buttonNames 
+ */
 export function showPopup(title, ...buttonNames) {
     addCSSClass(popupCard.card, "hidden");
     return _showPopup(title, ...buttonNames);
 }
 
+/**
+ * @param {string} title 
+ * @param  {...string} buttonNames 
+ */
 function _showPopup(title, ...buttonNames) {
     removeAllChildren(chooseButtonsContainer);
     chooseTitle.innerText = title;
@@ -34,12 +48,18 @@ function _showPopup(title, ...buttonNames) {
     return buttons;
 }
 
+/** @param {AbortSignal} cancelSignal */
 export function popupSelector(cancelSignal) {
     return Deferred(cancelSignal)
         .withAwaitClick(...buttons)
         .withOnFinish(() => addCSSClass(choosePopup, "hidden"));
 }
 
+/**
+ * @param {string} cardName 
+ * @param {Card} card 
+ * @param {boolean} disableEvent 
+ */
 export function showCardPopup(cardName, card, disableEvent) {
     const [event, campaign, issues, media] = showPopup(
         `What would you like to use '${cardName}' for?`, 
@@ -51,6 +71,10 @@ export function showCardPopup(cardName, card, disableEvent) {
     return {eventButton: event, cpButton: campaign, issueButton: issues, mediaButton: media};
 }
 
+/**
+ * @param {string} cardName 
+ * @param {Card} card 
+ */
 function showCard(cardName, card) {
     popupCard.header.innerText = cardName;
     popupCard.body.innerText = card.text;

@@ -1,12 +1,13 @@
 import * as UI from "./dom.js";
 import {
-    ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY, NIXON
+    ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY, NIXON, STATE_CODES, CANDIDATE
 } from "./constants.js";
-import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ISSUE_URL, PARTY_URL } from "./cards.js";
+import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ISSUE_URL, PARTY_URL, Card } from "./cards.js";
 import { addCSSClass, removeCSSClass } from "./util.js";
 
 let showingElectors = false;
 
+/** @param {GameData} gameData */
 export function showEndorsements(gameData) {
     for (const id in UI.endorseButtons) {
         const val = UI.endorseButtons[id];
@@ -14,6 +15,7 @@ export function showEndorsements(gameData) {
     }
 }
 
+/** @param {GameData} gameData */
 export function showMedia(gameData) {
     for (const id in UI.mediaButtons) {
         const val = UI.mediaButtons[id];
@@ -21,6 +23,7 @@ export function showMedia(gameData) {
     }
 }
 
+/** @param {GameData} gameData */
 export function showIssues(gameData) {
     for (const index in UI.issueButtons) {
         const val = UI.issueButtons[index];
@@ -35,11 +38,13 @@ export function showIssues(gameData) {
     }
 }
 
+/** @param {GameData} gameData */
 export function showCubes(gameData) {
     stateNames.forEach(state => {
         UI.stateButtons[state].setCount(gameData.cubes[state]);
     });
 }
+/** @param {GameData} gameData */
 export function updateCubes(gameData) {
     if (!showingElectors) showCubes(gameData);
 }
@@ -91,11 +96,16 @@ export function showCampaignDeck() {
 
 UI.chooseWindow.onclick = e => e.stopPropagation();
 
+/**
+ * @param {HTMLElement} icon 
+ * @param {STATE_CODES} state 
+ */
 export function moveIconTo(icon, state) {
     const locStyle = window.getComputedStyle(UI.stateButtons[state].button);
     icon.style.left = locStyle.getPropertyValue("left");
     icon.style.top = locStyle.getPropertyValue("top");
 }
+/** @param {GameData} gameData */
 export function moveIcons(gameData) {
     moveIconTo(UI.kennedyIcon, gameData.kennedy.state);
     moveIconTo(UI.nixonIcon, gameData.nixon.state);
@@ -156,6 +166,11 @@ export function makeEmptyCard() {
     };
 }
 
+/**
+ * @param {HTMLElement} cardObj 
+ * @param {string} cardName 
+ * @param {Card} card 
+ */
 function writeToCard(cardObj, cardName, card) {
     cardObj.header.innerText = cardName;
     cardObj.body.innerText = card.text;
@@ -166,6 +181,12 @@ function writeToCard(cardObj, cardName, card) {
     cardObj.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
 }
 
+/**
+ * @param {string[]} hand 
+ * @param {boolean} exhausted 
+ * @param {CANDIDATE} candidate 
+ * @param {HTMLElement|undefined} handDiv 
+ */
 export function displayHand(hand, exhausted, candidate, handDiv) {
     if (!handDiv) handDiv = UI.handDiv;
     const handCards = hand.map(name => CARDS[name]);
@@ -215,6 +236,9 @@ export function displayHand(hand, exhausted, candidate, handDiv) {
     return cardItems;
 }
 
+/**
+ * @param {string[]} hand 
+ */
 export function displayCampaignDeck(hand) {
     const handCards = hand.map(name => CARDS[name]);
     const cardItems = [];
@@ -240,6 +264,10 @@ export function displayCampaignDeck(hand) {
     return cardItems;
 }
 
+/**
+ * @param {GameData} gameData 
+ * @param {CANDIDATE} playerCandidate 
+ */
 export function showRound(gameData, playerCandidate) {
     const round = gameData.round;
 
@@ -250,6 +278,7 @@ export function showRound(gameData, playerCandidate) {
     }
 }
 
+/** @param {GameData} gameData */
 export function showBagRoll(gameData) {
     if (gameData.lastBagOut === null) return;
     UI.infoDiv.innerText = `-${gameData.lastBagOut.name}-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
@@ -275,16 +304,22 @@ export function showShouldDiscard(count) {
     }
 }
 
+/**
+ * @param {HTMLElement} cover 
+ * @param {number} points 
+ */
 export function showPointsOnCard(cover, points) {
     cover.innerText = points;
     if (points === 0) cover.innerText = "Done?";
     removeCSSClass(cover, "hidden");
 }
 
+/** @param {GameData} gameData */
 export function showMomentum(gameData) {
     UI.nixonMomentum.innerText = gameData.nixon.momentum;
     UI.kennedyMomentum.innerText = gameData.kennedy.momentum;
 }
+/** @param {GameData} gameData */
 export function showRest(gameData) {
     UI.nixonRestCount.innerText = gameData.nixon.rest;
     UI.kennedyRestCount.innerText = gameData.kennedy.rest;
@@ -308,6 +343,7 @@ export function hideEventCount() {
     addCSSClass(UI.eventCounter, "hidden");
 }
 
+/** @param {GameData} gameData */
 export function showDebateWindow(gameData) {
     const hands = gameData.debate.hands;
     const issues = gameData.debate.issues;

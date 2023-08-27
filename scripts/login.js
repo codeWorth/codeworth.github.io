@@ -3,7 +3,7 @@ import {
     getAuth, 
     signInWithPopup, 
     GoogleAuthProvider, 
-    signOut  
+    signOut
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
 import { getFirestore} from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 import { setup } from "./game.js";

@@ -1,4 +1,4 @@
-import { EVENT_TYPE, FLAGS, KENNEDY, NIXON, REGION, STATE_REGION, ISSUE, stateCodes, REGION_NAME, CP_MOD_TYPE } from "./constants.js";
+import { EVENT_TYPE, FLAGS, KENNEDY, NIXON, REGION, STATE_REGION, ISSUE, STATE_CODES, REGION_NAME, CP_MOD_TYPE } from "./constants.js";
 import { candidateDp, candidateForDp, moveUp, oppositeCandidate, sum } from "./util.js";
 
 export const ALL_REGIONS = Object.values(REGION);
@@ -113,7 +113,7 @@ export function heartland(gameData, player) {
 export function donna(gameData, player) {
     gameData[player].state = "florida";
     gameData[player].momentum++;
-    gameData.cubes.florida += candidateDp(player);
+    gameData.cubes[STATE_CODES.fl] += candidateDp(player);
 }
 
 export function cassius(gameData, player) {
@@ -142,9 +142,9 @@ export function peaceSurrender(gameData, player) {
 export function nixonEgged(gameData, player) {
     const dp = candidateDp(NIXON);
 
-    gameData.nixon.state = stateCodes.mi;
-    if (Math.sign(gameData.cubes.michigan) === dp) {
-        gameData.cubes.michigan -= dp;
+    gameData.nixon.state = STATE_CODES.mi;
+    if (Math.sign(gameData.cubes[STATE_CODES.mi]) === dp) {
+        gameData.cubes[STATE_CODES.mi] -= dp;
     }
     gameData.flags[FLAGS.NIXON_EGGED] = gameData.round;
 }
@@ -173,7 +173,7 @@ export function gaffe(gameData, player) {
 }
 
 export function houstonAssoc(gameData, player) {
-    gameData.kennedy.state = stateCodes.tx;
+    gameData.kennedy.state = STATE_CODES.tx;
     gameData.kennedy.momentum++;
     gameData.flags[FLAGS.HOUSTON_ASSOC] = true;
     gameData.event = addPer(
@@ -233,13 +233,13 @@ export function industrialMidwest(gameData, player) {
     gameData.event = {...addPer(
         EVENT_TYPE.CHANGE_STATES, NIXON,
         5, 2, [REGION.MIDWEST]),
-        states: [stateCodes.il, stateCodes.in, stateCodes.mi, stateCodes.mn, stateCodes.oh, stateCodes.wi]
+        states: [STATE_CODES.il, STATE_CODES.in, STATE_CODES.mi, STATE_CODES.mn, STATE_CODES.oh, STATE_CODES.wi]
     };
 }
 
 export function johnsonJeered(gameData, player) {
     const kenDp = candidateDp(KENNEDY);
-    if (Math.sign(gameData.cubes.texas) === kenDp) gameData.cubes.texas -= kenDp;
+    if (Math.sign(gameData.cubes[STATE_CODES.tx]) === kenDp) gameData.cubes[STATE_CODES.tx] -= kenDp;
     
     if (gameData.flags[FLAGS.KEN_NO_CP] === undefined) {
         gameData.flags[FLAGS.KEN_NO_CP] = [];
@@ -277,11 +277,11 @@ export function stockMarket(gameData, player) {
     moveUp(gameData.issues, ISSUE.ECONOMY);
 
     const leader = Math.sign(gameData.issueScores[ISSUE.ECONOMY]);
-    gameData.cubes[stateCodes.ny] += leader * 2;
+    gameData.cubes[STATE_CODES.ny] += leader * 2;
 }
 
 export function adlai(gameData, player) {
-    gameData.cubes[stateCodes.il] += candidateDp(KENNEDY);
+    gameData.cubes[STATE_CODES.il] += candidateDp(KENNEDY);
     gameData.event = event(EVENT_TYPE.RETRIEVE, KENNEDY);
 }
 
@@ -319,7 +319,7 @@ export function greatnessTime(gameData, player) {
 }
 
 export function henryCabot(gameData, player) {
-    gameData.cubes[stateCodes.ma] += candidateDp(NIXON) * 2;
+    gameData.cubes[STATE_CODES.ma] += candidateDp(NIXON) * 2;
     gameData.issueScores[ISSUE.DEFENSE] += candidateDp(NIXON) * 2;
     gameData.event = event(EVENT_TYPE.MAY_UNEXHAUST, NIXON);
 }
@@ -374,12 +374,12 @@ export function structureGap(gameData, player) {
 }
 
 export function nixonKnee(gameData, player) {
-    gameData.nixon.state = stateCodes.md;
+    gameData.nixon.state = STATE_CODES.md;
     roundFlag(FLAGS.NIXONS_KNEE)(gameData, player);
 }
 
 export function fiftyStars(gameData, player) {
-    const support = Math.sign(gameData.cubes.hawaii + gameData.cubes.alaska);
+    const support = Math.sign(gameData.cubes[STATE_CODES.hi] + gameData.cubes[STATE_CODES.ak]);
     if (support === 0) return;
     const winner = support === candidateForDp(support);
     gameData.event = addPer(
@@ -393,7 +393,7 @@ export function fidel(gameData, player) {
     if (defense === 0) return;
     const winner = support === candidateForDp(defense);
     gameData[winner].momentum++;
-    gameData.cubes.florida += defense;
+    gameData.cubes[STATE_CODES.fl] += defense;
 }
 
 export function medal(gameData, player) {
@@ -412,7 +412,7 @@ export function harryByrd(gameData, player) {
     gameData.event = {...removePer(
         EVENT_TYPE.CHANGE_STATES, NIXON,
         3, 3, false, [REGION.SOUTH]),
-        states: [stateCodes.ok, stateCodes.ms, stateCodes.al]
+        states: [STATE_CODES.ok, STATE_CODES.ms, STATE_CODES.al]
     };
 }
 
@@ -437,7 +437,7 @@ export function experience(gameData, player) {
 }
 
 export function repubTv(gameData, player) {
-    gameData.nixon.state = stateCodes.ny;
+    gameData.nixon.state = STATE_CODES.ny;
     gameData.event = {
         ...event(EVENT_TYPE.CHANGE_MEDIA, KENNEDY),
         count: 3
@@ -475,7 +475,7 @@ export function newEngland(gameData, player) {
     gameData.event = {
         ...addPer(EVENT_TYPE.CHANGE_STATES, KENNEDY,
             5, 2, [REGION.NORTHEAST]),
-        states: [stateCodes.ct, stateCodes.ma, stateCodes.me, stateCodes.ny, stateCodes.ri, stateCodes.vt]
+        states: [STATE_CODES.ct, STATE_CODES.ma, STATE_CODES.me, STATE_CODES.ny, STATE_CODES.ri, STATE_CODES.vt]
     };
 }
 
@@ -487,7 +487,7 @@ export function pierre(gameData, player) {
 }
 
 export function nelsonRock(gameData, player) {
-    gameData.cubes.newyork += candidateDp(NIXON);
+    gameData.cubes[STATE_CODES.ny] += candidateDp(NIXON);
     gameData.event = event(EVENT_TYPE.RETRIEVE, NIXON);
 }
 
@@ -497,7 +497,7 @@ export function campaignHead(gameData, player) {
 
 export function sovietGrowth(gameData, player) {
     moveUp(gameData.issues, ISSUE.ECONOMY);
-    gameData.cubes.newyork += Math.sign(gameData.issueScores[ISSUE.ECONOMY]);
+    gameData.cubes[STATE_CODES.ny] += Math.sign(gameData.issueScores[ISSUE.ECONOMY]);
 }
 
 export function eleanorTour(gameData, player) {
@@ -604,10 +604,10 @@ export function sputnik(gameData, player) {
 }
 
 export function fifthAvenue(gameData, player) {
-    gameData.nixon.state = stateCodes.ny;
+    gameData.nixon.state = STATE_CODES.ny;
     const nixonDp = candidateDp(NIXON);
     gameData.issueScores[ISSUE.CIVIL_RIGHTS] += nixonDp;
-    gameData.cubes[stateCodes.ny] += nixonDp * 2;
+    gameData.cubes[STATE_CODES.ny] += nixonDp * 2;
     gameData.media[REGION_NAME[REGION.NORTHEAST]] += nixonDp;
 }
 
@@ -639,7 +639,7 @@ export function northBlacks(gameData, player) {
     gameData.event = {...addPer(
         EVENT_TYPE.CHANGE_STATES, candidateDp(civilScore),
         5, 2, ALL_REGIONS),
-        states: [stateCodes.il, stateCodes.mi, stateCodes.ny]
+        states: [STATE_CODES.il, STATE_CODES.mi, STATE_CODES.ny]
     };
 }
 
@@ -670,7 +670,7 @@ export function summerSession(gameData, player) {
     cardCpMod(gameData, KENNEDY, -2, 1);
     gameData.event = {
         ...event(EVENT_TYPE.MOVE, KENNEDY),
-        states: [stateCodes.md, stateCodes.va]
+        states: [STATE_CODES.md, STATE_CODES.va]
     };
 }
 
@@ -684,7 +684,7 @@ export function midAtlantic(gameData, player) {
             EVENT_TYPE.CHANGE_STATES, KENNEDY,
             5, 2, ALL_REGIONS
         ),
-        states: [stateCodes.de, stateCodes.md, stateCodes.nj, stateCodes.ny, stateCodes.pa]
+        states: [STATE_CODES.de, STATE_CODES.md, STATE_CODES.nj, STATE_CODES.ny, STATE_CODES.pa]
     };
 }
 

@@ -31,7 +31,7 @@ import { showCardPopup, showPopup, popupSelector, showPopupWithCard } from "./po
 import * as UI from "./dom.js";
 import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ENDORSE_REGIONS, ISSUE_NAME, PARTY } from './cards.js';
 import EventHandler from './event_handler.js';
-import { DEBATE_FLAGS, DEBATE_ROUND, ELECTION_FLAGS, ELECTORS, END_GAME_ROUND, EVENT_TYPE, FLAGS, KENNEDY, NIXON, PHASE, REGION_NAME, RESET_SIGNAL, STATE_REGION, TURNS_PER_ROUND, stateCodes, stateLeanNixon, stateNames } from './constants.js';
+import { DEBATE_FLAGS, DEBATE_ROUND, ELECTION_FLAGS, ELECTORS, END_GAME_ROUND, EVENT_TYPE, FLAGS, KENNEDY, NIXON, PHASE, REGION_NAME, RESET_SIGNAL, STATE_REGION, TURNS_PER_ROUND, STATE_CODES, stateLeanNixon, stateNames } from './constants.js';
 import GameData from './gameData.js';
 import { ALL_REGIONS, addPer } from './events.js';
 
@@ -970,7 +970,7 @@ class GameLogic {
 
         for (let c = 0; c < 2; c++) {
             this.data[resolve].campaignDeck.forEach(cardName => {
-                const state = stateCodes[CARDS[cardName].state];
+                const state = STATE_CODES[CARDS[cardName].state];
                 const supCheck = chooseFromBags(this.data[resolve], this.data[oppositeCandidate(resolve)], 3, 0).count1;
                 this.data.cubes[state] += candidateDp(resolve) * supCheck;
                 sup[resolve] += supCheck;
@@ -1003,13 +1003,13 @@ class GameLogic {
     async electionDayEvents() {
         if (this.data.flags[ELECTION_FLAGS.COOK_COUNTY]) {
             const supCheck = chooseFromBags(this.data.kennedy, this.data.nixon, 5, 0).count1;
-            this.data.cubes.illinois += candidateDp(KENNEDY) * supCheck;
+            this.data.cubes[STATE_CODES.il] += candidateDp(KENNEDY) * supCheck;
         }
-        const ctScore = Math.sign(this.data.cubes.connecticut);
+        const ctScore = Math.sign(this.data.cubes[STATE_CODES.ct]);
         if (this.data.flags[ELECTION_FLAGS.EARLY_RETURNS] && ctScore !== 0) {
             const winner = candidateForDp(ctScore);
             const supCheck = chooseFromBags(this.data[winner], this.data[oppositeCandidate(winner)], 5, 0).count1;
-            this.data.cubes.connecticut += ctScore * supCheck;
+            this.data.cubes[STATE_CODES.ct] += ctScore * supCheck;
         }
 
         if (this.data.flag[ELECTION_FLAGS.RECOUNT]) {

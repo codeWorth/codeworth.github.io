@@ -4,37 +4,65 @@ export class AbortError extends Error {
     }
 }
 
+/** @typedef {addEventListener: Function} Listener */
+
 class DeferredBuilder {
+    /**
+     * @param {AbortSignal} abortSignal 
+     */
     constructor(abortSignal) {
         this.def = new _deferred(abortSignal);
     }
 
+    /**
+     * @param {...Listener} clickables 
+     * @returns {DeferredBuilder}
+     */
     withAwaitClick(...clickables) {
         this.def.awaitClick(...clickables);
         return this;
     }
 
+    /**
+     * @param {...{button: Listener}} items 
+     * @returns {DeferredBuilder}
+     */
     withAwaitClickAndReturn(...items) {
         this.def.awaitClickAndReturn(...items);
         return this;
     }
 
+    /**
+     * @param {Listener} target 
+     * @param {string} key 
+     * @returns {DeferredBuilder}
+     */
     withAwaitKey(target, key) {
         this.def.awaitKey(target, key);
         return this;
     }
 
+    /**
+     * @param {Function} task 
+     * @returns {DeferredBuilder}
+     */
     withOnFinish(task) {
         this.def.onFinish(task);
         return this;
     }
 
+    /**
+     * @returns {Promise<void>}
+     */
     build() {
         return this.def.promise;
     }
 }
 
 class _deferred {
+    /**
+     * @param {AbortSignal} externalAbortSignal 
+     */
     constructor(externalAbortSignal) {
         this.aborter = new AbortController();
         this.promise = new Promise((resolve, reject) => {
@@ -90,14 +118,28 @@ class _deferred {
     }
 }
 
+/**
+ * @param {AbortSignal} abortSignal 
+ * @returns {DeferredBuilder}
+ */
 export function Deferred(abortSignal) {
     return new DeferredBuilder(abortSignal);
 }
 
+/**
+ * @param {AbortSignal} abortSignal
+ * @param {...Listener} clickables
+ * @returns {Promise<void>}
+ */
 export function awaitClick(abortSignal, ...clickables) {
     return Deferred(abortSignal).withAwaitClick(...clickables).build();
 }
 
+/**
+ * @param {AbortSignal} abortSignal
+ * @param {...{button: Listener}} items
+ * @returns {Promise<void>}
+ */
 export function awaitClickAndReturn(abortSignal, ...items) {
     return Deferred(abortSignal).withAwaitClickAndReturn(...items).build();
 }

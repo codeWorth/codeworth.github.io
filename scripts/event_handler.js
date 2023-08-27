@@ -57,13 +57,13 @@ class EventHandler {
     }
 
     supportCheck(count) {
-        const kenCount = chooseFromBags(this.data.kennedy, this.data.nixon, count, 12);
+        const counts = chooseFromBags(this.data.kennedy, this.data.nixon, count, 12);
         this.data.lastBagOut = {
-            kennedy: kenCount,
-            nixon: count - kenCount,
+            kennedy: counts.count1,
+            nixon: counts.count2,
             name: "Support Check"
         };
-        return kenCount;
+        return counts.count1;
     }
 
     async loseIssue() {
@@ -555,7 +555,8 @@ class EventHandler {
     }
 
     async swingState() {
-        showInfo("Choose a state to add 5 state support.");
+        const count = this.data.event.count;
+        showInfo(`Choose a state to add ${count} state support.`);
         const dp = candidateDp(this.data.event.target);
 
         const stateItems = stateNames.map(name => ({

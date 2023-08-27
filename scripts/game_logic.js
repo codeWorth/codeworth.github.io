@@ -7,7 +7,9 @@ import {
     movementRegion,
     oppositeCandidate,
     flagActive,
-    chooseFromBags
+    chooseFromBags,
+    candidateForDp,
+    sum
 } from './util.js';
 import { 
     awaitClick,
@@ -29,7 +31,7 @@ import { showCardPopup, showPopup, popupSelector, showPopupWithCard } from "./po
 import * as UI from "./dom.js";
 import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ENDORSE_REGIONS, ISSUE_NAME, PARTY } from './cards.js';
 import EventHandler from './event_handler.js';
-import { DEBATE_ROUND, EVENT_TYPE, FLAGS, KENNEDY, NIXON, PHASE, REGION_NAME, RESET_SIGNAL, STATE_REGION, TURNS_PER_ROUND, stateNames } from './constants.js';
+import { DEBATE_FLAGS, DEBATE_ROUND, ELECTION_FLAGS, ELECTORS, END_GAME_ROUND, EVENT_TYPE, FLAGS, KENNEDY, NIXON, PHASE, REGION_NAME, RESET_SIGNAL, STATE_REGION, TURNS_PER_ROUND, stateCodes, stateLeanNixon, stateNames } from './constants.js';
 import GameData from './gameData.js';
 import { ALL_REGIONS, addPer } from './events.js';
 
@@ -44,13 +46,13 @@ class GameLogic {
     }
 
     grabBagIsKennedy(count) {
-        const kenCount = chooseFromBags(this.data.kennedy, this.data.nixon, count, 12);
+        const counts = chooseFromBags(this.data.kennedy, this.data.nixon, count, 12);
         this.data.lastBagOut = {
-            kennedy: kenCount,
-            nixon: count - kenCount,
+            kennedy: counts.count1,
+            nixon: counts.count2,
             name: "Support Check"
         };
-        return kenCount;
+        return counts.count1;
     }
 
     initiativeCheck() {
@@ -509,7 +511,7 @@ class GameLogic {
         if (selection === triggerButton) {
             const card = CARDS[cardName];
             this.data[player].momentum--;
-            this.activateEvent(card, player);
+            this.activateEvent(card, player); // TODO Resolve after
         } else if (selection === continueButton) {
             this.nextTurn(cardName);
         }
@@ -535,7 +537,7 @@ class GameLogic {
     
         const media = Object.values(ENDORSE_REGIONS)
             .map(region => this.data.media[region] ? this.data.media[region] : 0)
-            .reduce((a,b)=>a+b, 0);
+            .reduce(sum, 0);
         
         if (media > 0) {
             this.data.choosingPlayer = NIXON;
@@ -702,8 +704,12 @@ class GameLogic {
                 resolveIndex: this.data.issues.length - 1
             };
             this.data.issues = this.data.issues.map(s => null);
-            this.data.choosingPlayer = getPlayerCandidate(this.data);
+            this.data.choosingPlayer = this.data.flags[DEBATE_FLAGS.LAZY_SHAVE]
+                ? NIXON
+                : getPlayerCandidate(this.data);
             this.data.phase = PHASE.DEBATE;
+        } else if (this.data.round === END_GAME_ROUND) {
+            this.endGame();
         } else {
             this.data.choosingPlayer = check.kennedy > check.nixon ? KENNEDY : NIXON;
             this.data.phase = PHASE.CHOOSE_FIRST;
@@ -742,9 +748,32 @@ class GameLogic {
         if (popupButton === noButton) throw RESET_SIGNAL;
 
         const myCardName = selected.name;
+        const myCard = selected.card;
         this.data.debate.cards[player] = myCardName;
         this.data[player].campaignDeck = this.data[player].campaignDeck
                 .filter(name => name !== myCardName);
+
+
+        if (this.data.flags[DEBATE_FLAGS.LAZY_SHAVE] && player === NIXON) {
+            if (myCard.party === PARTY.BOTH) {
+                await this.debateChooseParty();
+                this.data.phase = PHASE.DEBATE;
+            } else {
+                this.placeDebateCard(myCard, myCardName);
+            }
+            this.data.choosingPlayer = getOtherCandidate(this.data);
+            return;
+        }
+
+        if (this.data.flags[DEBATE_FLAGS.LAZY_SHAVE] && player === KENNEDY) {
+            if (myCard.party === PARTY.BOTH) {
+                await this.debateChooseParty();
+            } else {
+                this.placeDebateCard(myCard, myCardName);
+            }
+            this.data.phase = PHASE.DEBATE_RESOLVE;
+            return;
+        }
 
         if (this.data.debate.cards.nixon === null || this.data.debate.cards.kennedy === null) {
             this.data.choosingPlayer = getOtherCandidate(this.data);
@@ -753,7 +782,6 @@ class GameLogic {
 
         const oppCardName = this.data.debate.cards[getOtherCandidate(this.data)];
         const oppCard = CARDS[oppCardName];
-        const myCard = selected.card;
 
         if (myCard.party !== PARTY.BOTH) this.placeDebateCard(myCard, myCardName);
         if (oppCard.party !== PARTY.BOTH) this.placeDebateCard(oppCard, oppCardName);
@@ -854,10 +882,11 @@ class GameLogic {
     resolveDebateIssue(hands, issue) {
         const nixonTotal = hands[issue].nixon
             .map(name => CARDS[name].points)
-            .reduce((a,b)=>a+b, 0);
-        const kennedyTotal = hands[issue].kennedy
+            .reduce(sum, 0);
+        let kennedyTotal = hands[issue].kennedy
             .map(name => CARDS[name].points)
-            .reduce((a,b)=>a+b, 0);
+            .reduce(sum, 0);
+        if (this.data.flags[DEBATE_FLAGS.BRAIN_TRUST]) kennedyTotal++;
 
         let winner = null;
         if (nixonTotal === kennedyTotal) {
@@ -897,6 +926,187 @@ class GameLogic {
         };
         this.data.choosingPlayer = check.kennedy > check.nixon ? KENNEDY : NIXON;
         this.data.phase = PHASE.CHOOSE_FIRST;
+    }
+
+    endGame() {
+        const nixMedia = Object.values(this.data.media)
+            .filter(score => Math.sign(score) === candidateDp(NIXON))
+            .reduce(sum, 0);
+        const kenMedia = Object.values(this.data.media)
+            .filter(score => Math.sign(score) === candidateDp(KENNEDY))
+            .reduce(sum, 0);
+        const nixIssue = Object.values(this.data.issueScores)
+            .filter(score => Math.sign(score) === candidateDp(NIXON))
+            .reduce(sum, 0);
+        const kenIssue = Object.values(this.data.issueScores)
+            .filter(score => Math.sign(score) === candidateDp(KENNEDY))
+            .reduce(sum, 0);
+
+        this.data.nixon.bag += nixMedia*2 + nixIssue;
+        this.data.kennedy.bag += kenMedia*2 + kenIssue;
+        this.data.media = {
+            [ENDORSE_REGIONS.WEST]: 0,
+            [ENDORSE_REGIONS.EAST]: 0,
+            [ENDORSE_REGIONS.MID]: 0,
+            [ENDORSE_REGIONS.SOUTH]: 0
+        };
+        this.data.issueScores = {
+            [Object.keys(ISSUE_URLS)[0]]: 0,
+            [Object.keys(ISSUE_URLS)[1]]: 0,
+            [Object.keys(ISSUE_URLS)[2]]: 0
+        };
+
+        this.data.nixon.bag += this.data.nixon.momentum*2;
+        this.data.nixon.momentum = 0;
+        this.data.kennedy.bag += this.data.kennedy.momentum*2;
+        this.data.kennedy.momentum = 0;
+
+        const check = this.initiativeCheck();
+        let resolve = check.kennedy > check.nixon ? KENNEDY : NIXON;
+        let sup = {
+            nixon: 0,
+            kennedy: 0
+        };
+
+        for (let c = 0; c < 2; c++) {
+            this.data[resolve].campaignDeck.forEach(cardName => {
+                const state = stateCodes[CARDS[cardName].state];
+                const supCheck = chooseFromBags(this.data[resolve], this.data[oppositeCandidate(resolve)], 3, 0).count1;
+                this.data.cubes[state] += candidateDp(resolve) * supCheck;
+                sup[resolve] += supCheck;
+            });
+            resolve = oppositeCandidate(resolve);
+        }
+
+        this.data.lastBagOut = {
+            kennedy: sup.kennedy,
+            nixon: sup.nixon,
+            name: "Support Checks"
+        };
+
+        this.data.choosingPlayer = check.kennedy > check.nixon ? KENNEDY : NIXON;
+        this.data.phase = PHASE.CHOOSE_FIRST_END;
+    }
+
+    async chooseFirstEnd() {
+        const [first, second] = showPopup("Would you like to resolve your election day events first or second?", "First", "Second");
+        const selection = await popupSelector(this.cancelSignal).build();
+
+        if (selection === first) {
+            this.data.choosingPlayer = getPlayerCandidate(this.data);
+        } else {
+            this.data.choosingPlayer = getOtherCandidate(this.data);
+        }
+        this.data.phase = PHASE.ELECTION_DAY_EVENTS;
+    }
+
+    async electionDayEvents() {
+        if (this.data.flags[ELECTION_FLAGS.COOK_COUNTY]) {
+            const supCheck = chooseFromBags(this.data.kennedy, this.data.nixon, 5, 0).count1;
+            this.data.cubes.illinois += candidateDp(KENNEDY) * supCheck;
+        }
+        const ctScore = Math.sign(this.data.cubes.connecticut);
+        if (this.data.flags[ELECTION_FLAGS.EARLY_RETURNS] && ctScore !== 0) {
+            const winner = candidateForDp(ctScore);
+            const supCheck = chooseFromBags(this.data[winner], this.data[oppositeCandidate(winner)], 5, 0).count1;
+            this.data.cubes.connecticut += ctScore * supCheck;
+        }
+
+        if (this.data.flag[ELECTION_FLAGS.RECOUNT]) {
+            this.data.event = {
+                type: EVENT_TYPE.SWING_STATE,
+                target: NIXON,
+                count: 3
+            };
+        }
+        this.data.phase = PHASE.RESOLVE_GAME;
+    }
+
+    async resolveGame() {
+        // cubes for endorsements
+        stateNames.filter(name => this.data.cubes[name] === 0)
+            .forEach(name => {
+                const region = ENDORSE_NAME[STATE_REGION[name]];
+                this.data.cubes[name] = Math.sign(this.data.endorsements[region]);
+            });
+        // cubes for default win
+        stateNames.filter(name => this.data.cubes[name] === 0)
+            .forEach(name => {
+                const leanNixon = stateLeanNixon[name];
+                this.data.cubes[name] = leanNixon ? candidateDp(NIXON) : candidateDp(KENNEDY);
+            });
+
+        const kennedyElectors = stateNames
+            .map(name => this.getElectors(name, KENNEDY))
+            .reduce(sum, 0);
+        const nixonElectors = stateNames
+            .map(name => this.getElectors(name, NIXON))
+            .reduce(sum, 0);
+
+        this.data.finalScore = {
+            nixon: nixonElectors,
+            kennedy: kennedyElectors
+        };
+
+        this.data.finalScore.winner = this.getWinner();
+    }
+
+    getWinner() {
+        const nixonElectors = this.data.finalScore.nixon;
+        const kennedyElectors = this.data.finalScore.kennedy;
+
+        if (nixonElectors > kennedyElectors) {
+            return NIXON;
+        } else if (kennedyElectors > nixonElectors) {
+            return KENNEDY;
+        }
+
+        const nixStatesWon = stateNames
+            .map(name => Math.sign(this.data.cubes[name]) === candidateDp(NIXON))
+            .length;
+        const kenStatesWon = stateNames
+            .map(name => Math.sign(this.data.cubes[name]) === candidateDp(KENNEDY))
+            .length;
+
+        if (nixStatesWon > kenStatesWon) {
+            return NIXON;
+        } else if (kenStatesWon > nixStatesWon) {
+            return KENNEDY;
+        }
+
+        const statesTotal = stateNames
+            .map(name => this.data.cubes[name])
+            .reduce(sum, 0);
+        if (Math.sign(statesTotal) === candidateDp(NIXON)) {
+            return NIXON;
+        } else {
+            return KENNEDY; // if this is a tie too, just return kennedy lol
+        }
+    }
+
+    getElectors(stateName, candidate) {
+        const dp = candidateDp(candidate);
+        const unpledgedStates = ["alabama", "louisiana", "mississippi"];
+        const shouldUnpledge = this.data.flags[ELECTION_FLAGS.UNPLEDGED]
+            && unpledgedStates.map(name => this.data.cubes[name])
+                .filter(s => Math.sign(s) === candidateDp(KENNEDY))
+                .filter(s => Math.abs(s) < 4)
+                .reduce((a,b) => a||b, false);
+
+        if (shouldUnpledge && unpledgedStates.includes(stateName)) return 0;
+        if (Math.sign(this.data.cubes[stateName]) === dp) {
+            return ELECTORS[stateName];
+        } else {
+            return 0;
+        }
+    }
+
+    async showWinner() {
+        const winnerScore = this.data.finalScore[this.data.finalScore.winner];
+        const loserScore = this.data.finalScore[oppositeCandidate(this.data.finalScore.winner)];
+        const winner = this.data.finalScore.winner[0].toUpperCase() + this.data.finalScore.winner.substring(1);
+        showPopup(`${winner} won the game, with ${winnerScore} electors to ${loserScore} electors.`, "Okay");
+        await popupSelector(this.cancelSignal).build();
     }
 }
 

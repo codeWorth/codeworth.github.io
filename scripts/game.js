@@ -5,7 +5,7 @@ import GameLogic from "./game_logic.js";
 import GameSetup from "./game_setup.js";
 import * as VIEW from "./view.js";
 import * as CONSTANTS from "./constants.js";
-import { addCSSClass, getPlayerCandidate, removeCSSClass } from "./util.js";
+import { addCSSClass, getOtherCandidate, getPlayerCandidate, removeCSSClass } from "./util.js";
 import { AbortError } from "./deferred.js";
 import { infoDiv, userNameField } from "./dom.js";
 import { setUser } from './user.js';
@@ -61,8 +61,16 @@ export function gameUpdate(gameData) {
     VIEW.highlightSelf(playerCandidate);
     infoDiv.innerText = "";
     VIEW.showBagRoll(gameData);
-    VIEW.displayCampaignDeck(gameData[playerCandidate].campaignDeck);
     addCSSClass(choosePopup, "hidden");
+
+    VIEW.displayCampaignDeck(gameData[playerCandidate].campaignDeck);
+    if (gameData[playerCandidate].hand.length > 0) {
+        VIEW.displayHand(
+            gameData[playerCandidate].hand, 
+            gameData[playerCandidate].exhausted, 
+            playerCandidate
+        );
+    }
 
     if ((gameData.phase === CONSTANTS.PHASE.DEBATE
         || gameData.phase === CONSTANTS.PHASE.DEBATE_INITIATIVE
@@ -74,14 +82,6 @@ export function gameUpdate(gameData) {
         VIEW.showDebateWindow(gameData);
     } else {
         VIEW.hideDebateWindow();
-    }
-
-    if (gameData[playerCandidate].hand.length > 0) {
-        VIEW.displayHand(
-            gameData[playerCandidate].hand, 
-            gameData[playerCandidate].exhausted, 
-            playerCandidate
-        );
     }
 
     gameAction(gameData)
@@ -104,6 +104,11 @@ async function gameAction(gameData) {
     const logic = new GameLogic(gameData, cancelUI.signal);
     const playerCandidate = getPlayerCandidate(gameData);
 
+    if (gameData.finalScore !== null) {
+        await logic.showWinner();
+        return {};
+    }
+
     if (gameData.event !== null) {
         if (gameData.event.target === playerCandidate) {
             await logic.handleEvent();
@@ -113,7 +118,7 @@ async function gameAction(gameData) {
         }
     }
 
-    if (gameData.phase === CONSTANTS.PHASE.TRIGGER_EVENT && gameData.choosingPlayer === playerCandidate) {
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.TRIGGER_EVENT) {
         await logic.triggerEvent();
         return logic.getData();
     } else if (gameData.chosenCard !== null && gameData.currentPlayer !== playerCandidate) {
@@ -131,7 +136,7 @@ async function gameAction(gameData) {
         return logic.getData();
     }
 
-    if (gameData.phase === CONSTANTS.PHASE.CHOOSE_FIRST && gameData.choosingPlayer === playerCandidate) {
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.CHOOSE_FIRST) {
         await logic.chooseFirst();
         return logic.getData();
     }
@@ -173,6 +178,16 @@ async function gameAction(gameData) {
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.DEBATE_RESOLVE) {
         await logic.debateResolve();
+        return logic.getData();
+    }
+
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.CHOOSE_FIRST_END) {
+        await logic.chooseFirstEnd();
+        return logic.getData();
+    }
+
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.RESOLVE_GAME) {
+        await logic.resolveGame();
         return logic.getData();
     }
     

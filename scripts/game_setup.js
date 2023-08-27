@@ -159,6 +159,7 @@ class GameSetup {
             endorsementsDeck: ENDORSEMENT_CARDS,
             discard: [],
             debate: null,
+            finalScore: null,
             turn: 0,
             round: 1,
             lastBagOut: {

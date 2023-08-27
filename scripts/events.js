@@ -1,5 +1,5 @@
 import { EVENT_TYPE, FLAGS, KENNEDY, NIXON, REGION, STATE_REGION, ISSUE, stateCodes, REGION_NAME, CP_MOD_TYPE } from "./constants.js";
-import { candidateDp, candidateForDp, moveUp, oppositeCandidate } from "./util.js";
+import { candidateDp, candidateForDp, moveUp, oppositeCandidate, sum } from "./util.js";
 
 export const ALL_REGIONS = Object.values(REGION);
 
@@ -63,7 +63,7 @@ function mmtmRegion(gameData, player, region) {
     const leadingCount = Object.keys(STATE_REGION)
         .filter(state => STATE_REGION[state] === region)
         .map(state => Math.sign(gameData.cubes[state]))
-        .reduce((a,b)=>a+b, 0); // sum total
+        .reduce(sum, 0); // sum total
 
     if (leadingCount === 0) return;
 
@@ -703,5 +703,8 @@ export function henryLuce(gameData, player) {
 }
 
 export function swingState(gameData, player) {
-    gameData.event = event(EVENT_TYPE.SWING_STATE, player);
+    gameData.event = {
+        ...event(EVENT_TYPE.SWING_STATE, player),
+        count: 3
+    };
 }

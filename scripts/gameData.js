@@ -129,15 +129,13 @@ class Cubes extends FieldsObj {
         const player = getPlayerCandidate(this._parent);
 
         if (this.needSupportCheck(stateName)) {
-            let supportCount = chooseFromBags(this._parent.kennedy, this._parent.nixon, absDelta, 12);
+            const counts = chooseFromBags(this._parent.kennedy, this._parent.nixon, absDelta, 12);
             this._parent.lastBagOut = {
-                kennedy: supportCount,
-                nixon: absDelta - supportCount,
+                kennedy: counts.count1,
+                nixon: counts.count2,
                 name: "Support Check"
             };
-            if (player === NIXON) {
-                supportCount = absDelta - supportCount;
-            }
+            const supportCount = player === KENNEDY ? counts.count1 : counts.count2; 
             this[stateName] += Math.sign(delta) * supportCount;
         } else {
             this[stateName] = score;

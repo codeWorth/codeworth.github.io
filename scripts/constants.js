@@ -1,5 +1,6 @@
 export const TURNS_PER_ROUND = 10;
-export const DEBATE_ROUND = 2; // TODO set to 6
+export const DEBATE_ROUND = 6;
+export const END_GAME_ROUND = 9;
 export const NIXON = "nixon";
 export const KENNEDY = "kennedy";
 export const RESET_SIGNAL = new Object();
@@ -22,7 +23,10 @@ export const PHASE = {
     DEBATE: "debate",
     DEBATE_INITIATIVE: "debateInitiative",
     DEBATE_PARTY: "debateParty",
-    DEBATE_RESOLVE: "debateResolve"
+    DEBATE_RESOLVE: "debateResolve",
+    CHOOSE_FIRST_END: "chooseFirstEnd",
+    ELECTION_DAY_EVENTS: "electionDay",
+    RESOLVE_GAME: "resolveGame"
 }
 
 export const DEBATE_FLAGS = {

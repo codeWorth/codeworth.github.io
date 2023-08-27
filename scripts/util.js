@@ -97,24 +97,34 @@ export function popRandom(array, count) {
 
 export function chooseFromBags(holder1, holder2, count, max) {
     let holder1Count = 0;
+    let holder2Count = 0;
     
-        for (let i = 0; i < count; i++) {
-            if (holder1.bag == 0) {
-                holder1.bag = max;
-            }
-            if (holder2.bag == 0) {
-                holder2.bag = max;
-            }
-    
-            const bagItem = Math.floor(Math.random() * (holder1.bag + holder2.bag));
-            const isHolder1 = bagItem < holder1.bag;
-            if (isHolder1) {
-                holder1.bag--;
-                holder1Count++;
-            } else {
-                holder2.bag--;
-            }
+    for (let i = 0; i < count; i++) {
+        if (holder1.bag == 0) {
+            holder1.bag = max;
         }
-    
-        return holder1Count;
+        if (holder2.bag == 0) {
+            holder2.bag = max;
+        }
+
+        if (holder1.bag + holder2.bag === 0) break;
+        const bagItem = Math.floor(Math.random() * (holder1.bag + holder2.bag));
+        const isHolder1 = bagItem < holder1.bag;
+        if (isHolder1) {
+            holder1.bag--;
+            holder1Count++;
+        } else {
+            holder2.bag--;
+            holder2Count++;
+        }
+    }
+
+    return {
+        count1: holder1Count,
+        count2: holder2Count
+    };
+}
+
+export function sum(a, b) {
+    return a+b;
 }

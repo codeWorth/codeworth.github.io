@@ -9,7 +9,8 @@ import {
     flagActive,
     chooseFromBags,
     candidateForDp,
-    sum
+    sum,
+    timeout
 } from './util.js';
 import { 
     awaitClick,
@@ -471,6 +472,7 @@ class GameLogic {
     }
 
     async showChosenCard() {
+        await timeout(500);
         const cardName = this.data.chosenCard;
         this.data.chosenCard = null;
 
@@ -488,6 +490,7 @@ class GameLogic {
     }
 
     async triggerEvent() {
+        await timeout(500);
         const player = getPlayerCandidate(this.data);
         const cardName = this.data.chosenCard;
 

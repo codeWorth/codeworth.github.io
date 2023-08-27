@@ -5,7 +5,7 @@ import GameLogic from "./game_logic.js";
 import GameSetup from "./game_setup.js";
 import * as VIEW from "./view.js";
 import * as CONSTANTS from "./constants.js";
-import { addCSSClass, getOtherCandidate, getPlayerCandidate, removeCSSClass } from "./util.js";
+import { addCSSClass, getOtherCandidate, getPlayerCandidate, removeCSSClass, timeout } from "./util.js";
 import { AbortError } from "./deferred.js";
 import { infoDiv, kennedyIcon, nixonIcon, userNameField } from "./dom.js";
 import { setUser } from './user.js';
@@ -45,7 +45,7 @@ async function refreshData() {
     return rec.data();
 }
 
-export function gameUpdate(gameData) {
+export async function gameUpdate(gameData) {
     if (!gameData.started) return;
 
     if (gameData.prev) {
@@ -53,6 +53,7 @@ export function gameUpdate(gameData) {
         removeCSSClass(kennedyIcon, "smooth-pos");
 
         VIEW.moveIcons(gameData.prev);
+        await timeout(1);
     }
 
     addCSSClass(nixonIcon, "smooth-pos");

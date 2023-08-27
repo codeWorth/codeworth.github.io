@@ -199,3 +199,11 @@ export function chooseFromBags(holder1, holder2, count, max) {
 export function sum(a, b) {
     return a+b;
 }
+
+/**
+ * @param {number} ms 
+ * @returns {Promise<void}
+ */
+export function timeout(ms) {
+    return new Promise(resolve => setTimeout(resolve, ms));
+}

@@ -511,7 +511,8 @@ class GameLogic {
         if (selection === triggerButton) {
             const card = CARDS[cardName];
             this.data[player].momentum--;
-            this.activateEvent(card, player); // TODO Resolve after
+            this.activateEvent(card, player);
+            // this.data.phase = PHASE.NEXT_TURN;
         } else if (selection === continueButton) {
             this.nextTurn(cardName);
         }

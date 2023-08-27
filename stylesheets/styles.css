@@ -11,6 +11,12 @@ body {
     display: none !important;
 }
 
+.smooth-pos {
+    transition-property: top, left;
+    transition-duration: 0.3s;
+    transition-timing-function: linear;
+}
+
 #header {
     margin: 0px;
     margin-bottom: 20px;

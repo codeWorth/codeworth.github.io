@@ -207,7 +207,7 @@ class EventHandler {
 
     async retrieve() {
         showInfo("Choose a card to add to your hand.");
-        showEventCount("✓");
+        showEventCount("&#10003;");
 
         const eventCard = this.data.event.card;
         const cardItem = eventCard
@@ -230,7 +230,7 @@ class EventHandler {
 
     async eventFromDiscard() {
         showInfo("Choose a card to play its event.");
-        showEventCount("✓");
+        showEventCount("&#10003;");
 
         const cardItem = await this.chooseCardFromDiscard();
         if (cardItem === UI.eventCounter) return false;
@@ -262,7 +262,7 @@ class EventHandler {
 
     async discard() {
         showInfo(`Discard any number of cards to redraw replacements.`);
-        showEventCount("✓");
+        showEventCount("&#10003;");
 
         const player = this.data.event.target;
         if (this.data[player].hand.length === 0) {
@@ -427,18 +427,18 @@ class EventHandler {
 
     async setIssueOrder() {
         showInfo("Select an issue to swap it left. You may do this as many times as you like.");
-        showEventCount("✓");
+        showEventCount("&#10003;");
 
         while (true) {
             const issueClicked = await Deferred(this.cancelSignal)
-                .withAwaitClickAndReturn(Object.values(issueButtons))
+                .withAwaitClickAndReturn(...Object.values(UI.issueButtons))
                 .withAwaitClick(UI.eventCounter)
                 .build();
                 
             if (issueClicked === UI.eventCounter) break;
                 
             const i = issueClicked.dataIndex;
-            if (i === 0) return;
+            if (i === 0) continue;
             
             const issue = this.data.issues[i];
             const swapIssue = this.data.issues[i - 1];
@@ -531,8 +531,8 @@ class EventHandler {
     }
 
     async opposition() {
-        showInfo("Click the ✓ when you're done looking at your opponent's hand.")
-        showEventCount("✓");
+        showInfo("Click the &#10003; when you're done looking at your opponent's hand.")
+        showEventCount("&#10003;");
         displayHand(this.data.kennedy.hand, this.data.kennedy.exhausted, KENNEDY);
         await awaitClick(UI.eventCounter);
 

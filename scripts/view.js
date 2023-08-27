@@ -2,7 +2,7 @@ import * as UI from "./dom.js";
 import {
     ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY, NIXON, STATE_CODES, CANDIDATE
 } from "./constants.js";
-import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ISSUE_URL, PARTY_URL, Card } from "./cards.js";
+import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ISSUE_URL, PARTY_URL } from "./cards.js";
 import { addCSSClass, removeCSSClass } from "./util.js";
 
 let showingElectors = false;
@@ -337,7 +337,7 @@ export function highlightSelf(playerCandidate) {
 
 export function showEventCount(count) {
     removeCSSClass(UI.eventCounter, "hidden");
-    UI.eventCounter.innerText = count;
+    UI.eventCounter.innerHTML = count;
 }
 export function hideEventCount() {
     addCSSClass(UI.eventCounter, "hidden");

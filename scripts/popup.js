@@ -5,7 +5,7 @@ import {
 } from "./util.js";
 import { chooseButtonsContainer, chooseTitle, choosePopup, popupCard } from "./dom.js";
 import { Deferred } from "./deferred.js";
-import { ISSUE_URL, PARTY_URL, Card } from "./cards.js";
+import { ISSUE_URL, PARTY_URL } from "./cards.js";
 
 let buttons = [];
 

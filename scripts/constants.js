@@ -4,6 +4,13 @@ export const END_GAME_ROUND = 9;
 export const NIXON = "nixon";
 export const KENNEDY = "kennedy";
 export const RESET_SIGNAL = new Object();
+export const SAVED_FIELDS = [
+    "endorsements",
+    "media",
+    "issueScores",
+    NIXON,
+    KENNEDY
+];
 
 /**
  * @enum {string}
@@ -40,7 +47,8 @@ export const PHASE = {
     DEBATE_RESOLVE: "debateResolve",
     CHOOSE_FIRST_END: "chooseFirstEnd",
     ELECTION_DAY_EVENTS: "electionDay",
-    RESOLVE_GAME: "resolveGame"
+    RESOLVE_GAME: "resolveGame",
+    NEXT_TURN: "nextTurn"
 }
 
 /**

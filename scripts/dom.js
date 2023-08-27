@@ -94,7 +94,7 @@ export const mediaButtons = Object.fromEntries([...document.getElementsByClassNa
 export const issueButtons = Object.fromEntries([...document.getElementsByClassName("issue-select")].map(sb => [
     parseInt(sb.dataset.index), {
         button: sb,
-        dataIndex: sb.dataset.index,
+        dataIndex: parseInt(sb.dataset.index),
         setText: s => sb.children[0].innerText = s,
         setCount: n => {
             sb.children[0].innerText = n === 0 ? "" : Math.abs(n);

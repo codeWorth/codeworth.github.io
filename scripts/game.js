@@ -7,7 +7,7 @@ import * as VIEW from "./view.js";
 import * as CONSTANTS from "./constants.js";
 import { addCSSClass, getOtherCandidate, getPlayerCandidate, removeCSSClass } from "./util.js";
 import { AbortError } from "./deferred.js";
-import { infoDiv, userNameField } from "./dom.js";
+import { infoDiv, kennedyIcon, nixonIcon, userNameField } from "./dom.js";
 import { setUser } from './user.js';
 
 var db = undefined;
@@ -47,9 +47,19 @@ async function refreshData() {
 
 export function gameUpdate(gameData) {
     if (!gameData.started) return;
-    VIEW.updateCubes(gameData);
+
+    if (gameData.prev) {
+        removeCSSClass(nixonIcon, "smooth-pos");
+        removeCSSClass(kennedyIcon, "smooth-pos");
+
+        VIEW.moveIcons(gameData.prev);
+    }
+
+    addCSSClass(nixonIcon, "smooth-pos");
+    addCSSClass(kennedyIcon, "smooth-pos");
 
     const playerCandidate = getPlayerCandidate(gameData);
+    VIEW.updateCubes(gameData);
     VIEW.showEndorsements(gameData);
     VIEW.showMedia(gameData);
     VIEW.showIssues(gameData);
@@ -86,6 +96,11 @@ export function gameUpdate(gameData) {
 
     gameAction(gameData)
         .then(data => {
+            if ((Object.keys(data).length) === 0) {
+                CONSTANTS.SAVED_FIELDS.forEach(field => 
+                    data.prev[field] = gameData[field]
+                );
+            }
             updateDoc(doc(db, "elec_games", gameId), data);
         })
         .catch(error => {

@@ -133,6 +133,11 @@ async function gameAction(gameData) {
         }
     }
 
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.NEXT_TURN) {
+        await logic.doNextTurn();
+        return logic.data();
+    }
+
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.TRIGGER_EVENT) {
         await logic.triggerEvent();
         return logic.getData();

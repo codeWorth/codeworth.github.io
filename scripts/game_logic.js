@@ -489,14 +489,10 @@ class GameLogic {
 
     async triggerEvent() {
         const player = getPlayerCandidate(this.data);
-        this.data.phase = PHASE.PLAY_CARDS;
+        const cardName = this.data.chosenCard;
 
         if (this.data[player].momentum === 0) return this.showChosenCard();
         if (this.data[player].canMomentum()) return this.showChosenCard();
-
-        const cardName = this.data.chosenCard;
-        this.data.chosenCard = null;
-        this.data.choosingPlayer = null;
 
         const card = cardName === CANDIDATE_CARD_NAME 
             ? CANDIDATE_CARD(getOtherCandidate(this.data))
@@ -512,12 +508,23 @@ class GameLogic {
             const card = CARDS[cardName];
             this.data[player].momentum--;
             this.activateEvent(card, player);
-            // this.data.phase = PHASE.NEXT_TURN;
+            this.data.phase = PHASE.NEXT_TURN;
         } else if (selection === continueButton) {
+            this.data.chosenCard = null;
+            this.data.choosingPlayer = null;
+            this.data.phase = PHASE.PLAY_CARDS;
             this.nextTurn(cardName);
         }
     }
     
+    async doNextTurn() {
+        const cardName = this.data.chosenCard;
+            this.data.chosenCard = null;
+            this.data.choosingPlayer = null;
+            this.data.phase = PHASE.PLAY_CARDS;
+        this.nextTurn(cardName);
+    }
+
     nextTurn(cardName) {
         this.data.turn++;
         this.data.preempted = false;

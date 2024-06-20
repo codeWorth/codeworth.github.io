@@ -186,7 +186,7 @@
     left: 1050rem;
 
     overflow-x: hidden;
-    overflow-y: scroll;
+    overflow-y: auto;
 }
 #hand, #campaign {
     width: 642rem;
@@ -234,7 +234,8 @@
     font-size: 9.6em;
     text-align: center;
 
-    overflow: scroll;
+    overflow-y: auto;
+    overflow-x: hidden;
     height: calc(100% - 7em);
 }
 

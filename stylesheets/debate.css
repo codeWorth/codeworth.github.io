@@ -73,7 +73,7 @@
     height: calc(100% - 40rem);
     background-color: rgb(240, 240, 240);
     box-shadow: 0 0 5rem rgba(33,33,33,.4);
-    overflow-x: scroll;
+    overflow-x: auto;
     overflow-y: hidden;
     white-space: nowrap;
     padding-right: 5rem;

@@ -153,6 +153,7 @@ async function gameAction(gameData) {
             await logic.getHand();
             VIEW.showHand();
         } else {
+            VIEW.showHand();
             await logic.playHand();
         }
         return logic.getData();

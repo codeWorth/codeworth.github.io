@@ -161,14 +161,7 @@ class Player extends FieldsObj {
 
     set momentum(newMomentum) {
         if (newMomentum < this._momentum
-            && this._candidate === KENNEDY && this._userCandidate === KENNEDY
-            && !this.kennedyCanMomentum()
-        ) {
-            throw RESET_SIGNAL;
-        }
-        if (newMomentum < this._momentum
-            && this._candidate === NIXON && this._userCandidate === NIXON
-            && !this.nixonCanMomentum()
+            && !this.canMomentum(1)
         ) {
             throw RESET_SIGNAL;
         }
@@ -176,19 +169,21 @@ class Player extends FieldsObj {
         this._momentum = Math.max(0, newMomentum);
     }
 
-    nixonCanMomentum() {
+    nixonCanMomentum(count) {
         if (this._parent.flags[FLAGS.JOE_KENNEDY] === this._parent.round) return false;
+        if (this._momentum < count) return false;
         return true;
     }
 
-    kennedyCanMomentum() {
+    kennedyCanMomentum(count) {
         if (this._parent.flags[FLAGS.PUERTO_RICAN] === this._parent.round) return false;
+        if (this._momentum < count) return false;
         return true;
     }
 
-    canMomentum() {
-        if (this._candidate === NIXON && this._userCandidate === NIXON) return this.nixonCanMomentum();
-        if (this._candidate === KENNEDY && this._userCandidate === KENNEDY) return this.kennedyCanMomentum();
+    canMomentum(count) {
+        if (this._candidate === NIXON && this._userCandidate === NIXON) return this.nixonCanMomentum(count);
+        if (this._candidate === KENNEDY && this._userCandidate === KENNEDY) return this.kennedyCanMomentum(count);
         return true; // player A can always remove player B's momentum
     }
 

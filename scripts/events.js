@@ -87,7 +87,7 @@ export function dwight(gameData, player) {
     gameData.flags[FLAGS.STOP_SILENCE] = true;
     gameData.event = addPer(
         EVENT_TYPE.CHANGE_PER, NIXON, 
-        7, 1, false, ALL_REGIONS
+        7, 1, ALL_REGIONS
     );
 }
 

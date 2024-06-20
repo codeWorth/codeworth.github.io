@@ -405,7 +405,19 @@
     font-family: Tahoma;
     color: rgb(30, 30, 30);
     top: -50rem;
-    left: 560rem;
+    left: 540rem;
+    width: 500rem;
+    text-align: center;
+}
+#subTurnIndicator {
+    position: absolute;
+    font-size: 1.5em;
+    font-family: Tahoma;
+    color: rgb(50, 50, 50);
+    top: 10rem;
+    left: 540rem;
+    width: 500rem;
+    text-align: center;
 }
 
 #info {

@@ -45,6 +45,7 @@ export const stateButtons = Object.fromEntries([...document.getElementsByClassNa
 ]));
 export const showElectorsButton = document.getElementById("showElectors");
 export const turnIndicator = document.getElementById("turnIndicator");
+export const subTurnIndicator = document.getElementById("subTurnIndicator");
 export const handDiv = document.getElementById("hand");
 export const campaignDiv = document.getElementById("campaign");
 export const handModeButton = document.getElementById("handMode");

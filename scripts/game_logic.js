@@ -32,7 +32,7 @@ import { showCardPopup, showPopup, popupSelector, showPopupWithCard } from "./po
 import * as UI from "./dom.js";
 import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ENDORSE_REGIONS, ISSUE_NAME, PARTY } from './cards.js';
 import EventHandler from './event_handler.js';
-import { DEBATE_FLAGS, DEBATE_ROUND, ELECTION_FLAGS, ELECTORS, END_GAME_ROUND, EVENT_TYPE, FLAGS, KENNEDY, NIXON, PHASE, REGION_NAME, RESET_SIGNAL, STATE_REGION, TURNS_PER_ROUND, STATE_CODES, stateLeanNixon, stateNames } from './constants.js';
+import { DEBATE_FLAGS, DEBATE_ROUND, ELECTION_FLAGS, ELECTORS, END_GAME_ROUND, EVENT_TYPE, FLAGS, KENNEDY, NIXON, PHASE, REGION, RESET_SIGNAL, STATE_REGION, TURNS_PER_ROUND, STATE_CODES, stateLeanNixon, stateNames, REGION } from './constants.js';
 import GameData from './gameData.js';
 import { ALL_REGIONS, addPer } from './events.js';
 
@@ -171,15 +171,19 @@ class GameLogic {
     }
 
     preemptNeedsMmtm(player) {
-        if (player === KENNEDY && this.data.flags[KENNEDY_CORPS] === this.data.round) return false;
+        if (player === KENNEDY && this.data.flags[FLAGS.KENNEDY_CORPS] === this.data.round) return false;
         return true;
     }
 
     nixonCanCampaign(state) {
-        if (flagActive(this.data, FLAGS.NIXON_EGGED)) return false;
+        if (flagActive(this.data, FLAGS.NIXON_EGGED) && STATE_REGION[state] === REGION.MIDWEST) return false;
+        if (flagActive(this.data, FLAGS.NIXONS_KNEE) && !this.data[player].canMomentum(1)) return false;
 
         const oldSouth = this.data.flags[FLAGS.OLD_SOUTH];
-        if (oldSouth && oldSouth.player === NIXON && oldSouth.round === this.data.round) return false;
+        if (oldSouth && 
+            oldSouth.player === NIXON && 
+            STATE_REGION[state] === REGION.SOUTH && 
+            oldSouth.round === this.data.round) return false;
 
         if (flagActive(this.data, FLAGS.SILENCE) && state !== null) {
             const kenDp = candidateDp(KENNEDY);
@@ -193,7 +197,10 @@ class GameLogic {
         if (this.data.flags[FLAGS.KEN_NO_CP] === undefined) return true;
         
         const oldSouth = this.data.flags[FLAGS.OLD_SOUTH];
-        if (oldSouth.player === KENNEDY && oldSouth.round === this.data.round) return false;
+        if (oldSouth && 
+            oldSouth.player === KENNEDY && 
+            STATE_REGION[state] === REGION.SOUTH  && 
+            oldSouth.round === this.data.round) return false;
 
         const region = state === null ? null : STATE_REGION[state];
         const matches = this.data.flags[FLAGS.KEN_NO_CP].filter(rule => 
@@ -203,9 +210,15 @@ class GameLogic {
     }
     
     canCardEvent(cardName) {
+        const player = getPlayerCandidate(this.data);
+
         if (cardName === "Norman Vincent Peale" && this.data.flags[FLAGS.HOUSTON_ASSOC]) return false;
-        if (cardName === "Eisenhower's Silence" && this.data.flags[FLAGS.SILENCE]) return false;
         if (cardName === "Baptist Ministers" && this.data.flags[FLAGS.HOUSTON_ASSOC]) return false;
+        if (cardName === "Puerto Rican Bishops" && this.data.flags[FLAGS.HOUSTON_ASSOC]) return false;
+
+        if (cardName === "Eisenhower's Silence" && this.data.flags[FLAGS.SILENCE]) return false;
+
+        if (flagActive(this.data, FLAGS.JACKIE_KENNEDY) && player === NIXON && this.data[player].canMomentum(1)) return false;
 
         return true;
     }
@@ -247,8 +260,7 @@ class GameLogic {
         const usedCampaign = (selectedButton === cpButton
             || selectedButton === issueButton
             || selectedButton === mediaButton);
-        const hasMomentum = this.data[playerCandidate].momentum >= 2 
-            && this.data[playerCandidate].canMomentum();
+        const hasMomentum = this.data[playerCandidate].canMomentum(2);
         if (usedCampaign && !isCandidate && (hasMomentum || !this.preemptNeedsMmtm(playerCandidate))) {
             const [yesButton, noButton] = showPopup("Preempt this card's event?", "Yes", "No");
             const popupButton = await popupSelector(this.cancelSignal).build();
@@ -317,20 +329,14 @@ class GameLogic {
     }
 
     activateEvent(card, player) {
-        if (flagActive(this.data, FLAGS.JACKIE_KENNEDY)) {
-            if (this.data[player].momentum === 0) throw RESET_SIGNAL;
-            this.data[player].momentum--;
-        }
+        if (flagActive(this.data, FLAGS.JACKIE_KENNEDY) && player === NIXON) this.data[player].momentum--;
 
         card.event(this.data, player);
     }
     
     async useCampaignPoints(points, cardSlot, doneButton) {
         const player = getPlayerCandidate(this.data);
-        if (flagActive(this.data, FLAGS.NIXONS_KNEE)) {
-            if (this.data[player].momentum === 0) throw RESET_SIGNAL;
-            this.data[player].momentum--;
-        }
+        if (flagActive(this.data, FLAGS.NIXONS_KNEE) && player === NIXON)  this.data[player].momentum--;
 
         const stateItems = stateNames.map(name => ({
             name: name,
@@ -381,11 +387,6 @@ class GameLogic {
     
     async useIssuePoints(points, doneButton, showPoints) {
         const player = getPlayerCandidate(this.data);
-        if (flagActive(this.data, FLAGS.NIXONS_KNEE)) {
-            if (this.data[player].momentum === 0) throw RESET_SIGNAL;
-            this.data[player].momentum--;
-        }
-
         const issuesBought = [];
         let exited = false;
         while (points > 0) {
@@ -423,12 +424,7 @@ class GameLogic {
     }
 
     async useMediaPoints(points, doneButton, showPoints) {
-        const player = getPlayerCandidate(this.data);
-        if (flagActive(this.data, FLAGS.NIXONS_KNEE)) {
-            if (this.data[player].momentum === 0) throw RESET_SIGNAL;
-            this.data[player].momentum--;
-        }
-    
+        const player = getPlayerCandidate(this.data);    
         let exited = false;
         while (points > 0) {
             const buttonClicked = await Deferred(this.cancelSignal)
@@ -494,8 +490,7 @@ class GameLogic {
         const player = getPlayerCandidate(this.data);
         const cardName = this.data.chosenCard;
 
-        if (this.data[player].momentum === 0) return this.showChosenCard();
-        if (!this.data[player].canMomentum()) return this.showChosenCard();
+        if (!this.data[player].canMomentum(1)) return this.showChosenCard();
 
         const card = cardName === CANDIDATE_CARD_NAME 
             ? CANDIDATE_CARD(getOtherCandidate(this.data))

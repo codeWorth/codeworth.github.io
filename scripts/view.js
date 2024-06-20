@@ -1,6 +1,6 @@
 import * as UI from "./dom.js";
 import {
-    ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY, NIXON, STATE_CODES, CANDIDATE
+    ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY, NIXON, STATE_CODES, CANDIDATE, PHASE
 } from "./constants.js";
 import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ISSUE_URL, PARTY_URL } from "./cards.js";
 import { addCSSClass, removeCSSClass } from "./util.js";
@@ -76,22 +76,22 @@ let showingHand = true;
 UI.handModeButton.onclick = toggleHandMode;
 function toggleHandMode() {
     if (showingHand) {
-        showingHand = false;
-        UI.handModeButton.innerText = "Show Hand";
-        removeCSSClass(UI.campaignDiv, "hidden");
-        addCSSClass(UI.handDiv, "hidden");
+        showCampaignDeck();
     } else {
-        showingHand = true;
-        UI.handModeButton.innerText = "Show Campaign Strategy";
-        removeCSSClass(UI.handDiv, "hidden");
-        addCSSClass(UI.campaignDiv, "hidden");
+        showHand();
     }
 }
 export function showHand() {
-    if (!showingHand) toggleHandMode();
+    showingHand = true;
+    UI.handModeButton.innerText = "Show Campaign Strategy";
+    removeCSSClass(UI.handDiv, "hidden");
+    addCSSClass(UI.campaignDiv, "hidden");
 }
 export function showCampaignDeck() {
-    if (showingHand) toggleHandMode();
+    showingHand = false;
+    UI.handModeButton.innerText = "Show Hand";
+    removeCSSClass(UI.campaignDiv, "hidden");
+    addCSSClass(UI.handDiv, "hidden");
 }
 
 UI.chooseWindow.onclick = e => e.stopPropagation();
@@ -272,9 +272,20 @@ export function showRound(gameData, playerCandidate) {
     const round = gameData.round;
 
     if (gameData.currentPlayer === playerCandidate && gameData.turn < TURNS_PER_ROUND) {
-        UI.turnIndicator.innerText = `Your turn! (Round ${round})`;
+        UI.turnIndicator.innerText = `Your move! (Turn ${round})`;
     } else {
-        UI.turnIndicator.innerText = `(Round ${round})`;
+        UI.turnIndicator.innerText = `(Turn ${round})`;
+    }
+
+    if (gameData.phase === PHASE.ISSUE_SWAP || 
+        gameData.phase === PHASE.ISSUE_REWARD_CHOICE || 
+        gameData.phase === PHASE.ISSUE1_ENDORSE_REWARD
+    ) {
+        UI.subTurnIndicator.innerText = `Momentum Phase`;
+    } else if (gameData.phase === PHASE.STRATEGY) {
+        UI.subTurnIndicator.innerText = `Strategy Phase`;
+    } else {
+        UI.subTurnIndicator.innerText = `Phase ${gameData.turn}`;
     }
 }
 

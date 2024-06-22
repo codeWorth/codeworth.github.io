@@ -44,6 +44,7 @@ export const stateButtons = Object.fromEntries([...document.getElementsByClassNa
     }
 ]));
 export const showElectorsButton = document.getElementById("showElectors");
+export const hideSummaryButton = document.getElementById("hideSummary");
 export const turnIndicator = document.getElementById("turnIndicator");
 export const subTurnIndicator = document.getElementById("subTurnIndicator");
 export const handDiv = document.getElementById("hand");
@@ -54,6 +55,7 @@ export const choosePopup = document.getElementById("choosePopup");
 export const chooseWindow = document.getElementById("chooseWindow");
 export const chooseTitle = chooseWindow.getElementsByClassName("header")[0];
 export const chooseButtonsContainer = document.getElementById("buttonContainer");
+export const showSummaryButton = document.getElementById("showSummary");
 
 export const nixonIcon = document.getElementById("nixonIcon");
 export const kennedyIcon = document.getElementById("kennedyIcon");
@@ -96,6 +98,13 @@ export const issueButtons = Object.fromEntries([...document.getElementsByClassNa
     parseInt(sb.dataset.index), {
         button: sb,
         dataIndex: parseInt(sb.dataset.index),
+        setHighlight: on => {
+            if (on) {
+                addCSSClass(sb, "highlight");
+            } else {
+                removeCSSClass(sb, "highlight");
+            }
+        },
         setText: s => sb.children[0].innerText = s,
         setCount: n => {
             sb.children[0].innerText = n === 0 ? "" : Math.abs(n);

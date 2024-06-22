@@ -2,3 +2,6 @@ show some animation of changes to cubes per state
 show how they used the card when "Your opponent played this card"
 allow player to NOT swap issues if they want
 player should manually step thru rolls
+set state circle color based on who would win it (including state lean and endorsement)
+running tally of score
+byrd states BROWN

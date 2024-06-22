@@ -95,7 +95,8 @@ export async function gameUpdate(gameData) {
         VIEW.hideDebateWindow();
     }
 
-    gameAction(gameData)
+    const gameDataCopy = JSON.parse(JSON.stringify(gameData));
+    gameAction(gameDataCopy)
         .then(data => {
             if (data.prev === null) data.prev = {};
             if ((Object.keys(data).length) > 0) {

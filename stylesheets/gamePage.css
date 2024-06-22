@@ -59,10 +59,32 @@
     background-color: inherit;
 }
 
+.sb .delta {
+    position: absolute;
+    
+    font-size: 13rem;
+    left: 0;
+    top: -22rem;
+    padding-top: 1rem;
+    padding-right: 1rem;
+    width: 18rem;
+    height: 18rem;
+
+    border-radius: 2rem;
+    background-color: rgba(240, 240, 240, 0.8);
+    border:1rem solid black;
+}
+
 #showElectors {
     position: absolute;
     top: 10rem;
     left: 10rem;
+}
+
+#hideSummary {
+    position: absolute;
+    top: 10rem;
+    left: 130rem;
 }
 
 .media {
@@ -87,6 +109,22 @@
     text-align: center;
     font-size: 1.2em;
 }
+.media .delta {
+    position: absolute;
+    
+    font-size: 13rem;
+    left: -16rem;
+    top: -22rem;
+    padding-top: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    width: 19rem;
+    height: 19rem;
+
+    border-radius: 2rem;
+    background-color: rgba(240, 240, 240, 0.8);
+    border:1rem solid black;
+}
 
 .endorse {
     position: absolute;
@@ -110,6 +148,22 @@
     width: 30rem;
     text-align: center;
     font-size: 1.2em;
+}
+.endorse .delta {
+    position: absolute;
+    
+    font-size: 13rem;
+    right: -16rem;
+    top: -22rem;
+    padding-top: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    width: 19rem;
+    height: 19rem;
+
+    border-radius: 2rem;
+    background-color: rgba(240, 240, 240, 0.8);
+    border:1rem solid black;
 }
 
 #eventCounter {
@@ -150,6 +204,9 @@
     box-shadow: 0 0 5rem rgba(33,33,33,.1); 
 
 }
+.issue-select.highlight {
+    border:2rem solid rgb(22, 0, 117);
+}
 .issue-select:hover {
     cursor: pointer;
     box-shadow: 0 0 5rem rgba(33,33,33,.4); 
@@ -160,6 +217,22 @@
     left: 5rem;
     top: 0rem;
     font-size: 1.2em;
+}
+.issue-select .delta {
+    position: absolute;
+    
+    font-size: 13rem;
+    left: -3rem;
+    top: -21rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    padding-left: 4rem;
+    width: 18rem;
+    height: 18rem;
+
+    border-radius: 2rem;
+    background-color: rgba(240, 240, 240, 0.8);
+    border:1rem solid black;
 }
 
 #issue1 {

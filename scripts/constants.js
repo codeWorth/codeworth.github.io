@@ -8,6 +8,7 @@ export const SAVED_FIELDS = [
     "endorsements",
     "media",
     "issueScores",
+    "cubes",
     NIXON,
     KENNEDY
 ];
@@ -136,6 +137,16 @@ export const ISSUE_URLS = {
     [ISSUE.CIVIL_RIGHTS]: "../images/civilrights_gray.png",
     [ISSUE.ECONOMY]: "../images/economy_gray.png"
 };
+
+/**
+ * @enum {string}
+ */
+export const CARD_MODE = {
+    EVENT: "event",
+    CAMPAIGN: "campaign",
+    MEDIA: "media",
+    ISSUES: "issue"
+}
 
 /**
  * @enum {string}

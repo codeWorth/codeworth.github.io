@@ -5,6 +5,7 @@
 body {
     margin: 0px;
     font-size: 16px;
+    overflow-x: hidden;
 }
 
 .hidden {
@@ -22,7 +23,6 @@ body {
     margin-bottom: 20px;
     padding: 10px;
     padding-left: 0px;
-    width: calc(100vw-10px);
     background-color: rgb(40, 40, 40);
     
     display: flex;

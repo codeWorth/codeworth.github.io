@@ -124,7 +124,7 @@ class Cubes extends FieldsObj {
     }
 
     setState(stateName, score) {
-        const delta = score - this[stateName];
+        let delta = score - this[stateName];
         const absDelta = Math.abs(delta);
         const player = getPlayerCandidate(this._parent);
 
@@ -136,10 +136,13 @@ class Cubes extends FieldsObj {
                 name: "Support Check"
             };
             const supportCount = player === KENNEDY ? counts.count1 : counts.count2; 
-            this[stateName] += Math.sign(delta) * supportCount;
+            delta = Math.sign(delta) * supportCount;
+            this[stateName] += delta;
         } else {
             this[stateName] = score;
         }
+
+        console.log(`${stateName} change ${delta * candidateDp(player)}`);
     }
 }
 

@@ -26,13 +26,26 @@ import {
     displayHand,
     showMomentum,
     displayCampaignDeck,
-    showInfo
+    showInfo,
+    showTurnSummary, hideTurnSummary
 } from "./view.js";
 import { showCardPopup, showPopup, popupSelector, showPopupWithCard } from "./popup.js";
 import * as UI from "./dom.js";
 import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ENDORSE_REGIONS, ISSUE_NAME, PARTY } from './cards.js';
 import EventHandler from './event_handler.js';
-import { DEBATE_FLAGS, DEBATE_ROUND, ELECTION_FLAGS, ELECTORS, END_GAME_ROUND, EVENT_TYPE, FLAGS, KENNEDY, NIXON, PHASE, REGION, RESET_SIGNAL, STATE_REGION, TURNS_PER_ROUND, STATE_CODES, stateLeanNixon, stateNames, REGION } from './constants.js';
+import { 
+    DEBATE_FLAGS, DEBATE_ROUND, FLAGS,
+    ELECTION_FLAGS, ELECTORS, 
+    END_GAME_ROUND, EVENT_TYPE, 
+    KENNEDY, NIXON, PHASE, 
+    REGION, STATE_REGION,
+    RESET_SIGNAL, 
+    TURNS_PER_ROUND, 
+    STATE_CODES, 
+    stateNames,
+    stateLeanNixon,
+    CARD_MODE
+} from './constants.js';
 import GameData from './gameData.js';
 import { ALL_REGIONS, addPer } from './events.js';
 
@@ -278,6 +291,7 @@ class GameLogic {
                 this.data.kennedy.momentum++;
             }
             this.activateEvent(card, playerCandidate);
+            this.data.cardMode = CARD_MODE.EVENT;
         } else if (selectedButton === cpButton) {
             const modPoints = this.modCardPoints(card.points, playerCandidate);
             showPointsOnCard(cardSlot.pointsCover, modPoints);
@@ -286,6 +300,7 @@ class GameLogic {
             addCSSClass(cardSlot.pointsCover, "hidden");
             const choseCard = await this.confirmCardChoices(card);
             if (!choseCard) throw RESET_SIGNAL;
+            this.data.cardMode = CARD_MODE.CAMPAIGN;
         }
         else if (selectedButton === issueButton) {
             showPointsOnCard(cardSlot.pointsCover, card.points);
@@ -294,6 +309,7 @@ class GameLogic {
             addCSSClass(cardSlot.pointsCover, "hidden");
             const choseCard = await this.confirmCardChoices(card);
             if (!choseCard) throw RESET_SIGNAL;
+            this.data.cardMode = CARD_MODE.ISSUES;
         }
         else if (selectedButton === mediaButton) {
             const modPoints = this.modCardPoints(card.points, playerCandidate);
@@ -322,6 +338,7 @@ class GameLogic {
                 points: points,
                 cardName: cardName
             };
+            this.data.cardMode = CARD_MODE.MEDIA;
         }
         else {
             throw RESET_SIGNAL;
@@ -467,21 +484,38 @@ class GameLogic {
         if (!card.isCandidate) this.data[candidate].rest += card.rest;
     }
 
+    phraseForCardMode(cardMode) {
+        let phrase = "";
+        if (cardMode === CARD_MODE.CAMPAIGN) {
+            phrase = " for campaign points";
+        } else if (cardMode === CARD_MODE.EVENT) {
+            phrase = " as an event";
+        } else if (cardMode === CARD_MODE.ISSUES) {
+            phrase = " for positioning";
+        } else if (cardMode === CARD_MODE.MEDIA) {
+            phrase = " for advertising points";
+        }
+        return phrase;
+    }
+
     async showChosenCard() {
         await timeout(500);
         const cardName = this.data.chosenCard;
         this.data.chosenCard = null;
 
+        showTurnSummary(this.data, candidateDp(getOtherCandidate(this.data)));
         const card = cardName === CANDIDATE_CARD_NAME 
             ? CANDIDATE_CARD(getOtherCandidate(this.data))
             : CARDS[cardName];
         showPopupWithCard(
-            "Your opponent played this card.", 
+            `Your opponent played this card${this.phraseForCardMode(this.data.cardMode)}.`, 
             cardName, card,
             "Okay",
         );
         await popupSelector(this.cancelSignal).build();
+        this.data.cardMode = null;
 
+        hideTurnSummary();
         this.nextTurn(cardName);
     }
 
@@ -492,15 +526,18 @@ class GameLogic {
 
         if (!this.data[player].canMomentum(1)) return this.showChosenCard();
 
+        showTurnSummary(this.data, candidateDp(getOtherCandidate(this.data)));
         const card = cardName === CANDIDATE_CARD_NAME 
             ? CANDIDATE_CARD(getOtherCandidate(this.data))
             : CARDS[cardName];
         const [triggerButton, continueButton] = showPopupWithCard(
-            "Your opponent played this card. Would you like to trigger its event?", 
+            `Your opponent played this card${this.phraseForCardMode(this.data.cardMode)}. Would you like to trigger its event?`, 
             cardName, card,
             "Trigger", "Continue"
         );
         const selection = await popupSelector(this.cancelSignal).build();
+        this.data.cardMode = null;
+        hideTurnSummary();
 
         if (selection === triggerButton) {
             const card = CARDS[cardName];

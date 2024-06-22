@@ -2,9 +2,9 @@
 #choosePopup {
     position: absolute;
     left: -5rem;
-    right: -5rem;
-    top: -13px;
-    height: calc(100vh - 42px);
+    top: -8rem;
+    height: calc(100vh - 40rem);
+    width: 100vw;
     background-color: rgba(0, 0, 0, 0.7);
 }
 
@@ -82,4 +82,10 @@
     bottom: 20em;
     width: 35em;
     height: 35em;
+}
+
+#showSummary {
+    position: absolute;
+    top: 18rem;
+    left: 130rem;
 }

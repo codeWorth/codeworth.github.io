@@ -49,6 +49,68 @@ export function updateCubes(gameData) {
     if (!showingElectors) showCubes(gameData);
 }
 
+UI.showSummaryButton.onclick = () => {
+    addCSSClass(choosePopup, "hidden");
+}
+UI.hideSummaryButton.onclick = () => {
+    removeCSSClass(choosePopup, "hidden");
+}
+function removeDeltas() {
+    const deltaDivs = document.getElementsByClassName("delta");
+    while (deltaDivs.length > 0) {
+        deltaDivs[0].parentElement.removeChild(deltaDivs[0]);
+    }
+    for (let i = 0; i < UI.issueButtons.length; i++) {
+        UI.issueButtons[i].setHighlight(false);
+    }
+}
+function createDelta(count) {
+    const deltaDiv = document.createElement("div");
+    deltaDiv.className = "delta";
+    deltaDiv.innerText = count < 0 ? count : `+${count}`;
+    return deltaDiv;
+}
+export function showTurnSummary(gameData, dp) {
+    removeCSSClass(UI.showSummaryButton, "hidden");
+    removeCSSClass(UI.hideSummaryButton, "hidden");
+
+    removeDeltas();
+
+    for (const state of stateNames) {
+        if (gameData.cubes[state] === gameData.prev.cubes[state]) continue;
+        const delta = (gameData.cubes[state] - gameData.prev.cubes[state]) * dp;
+        UI.stateButtons[state].button.appendChild(createDelta(delta));
+    }
+    for (const issue of Object.keys(gameData.issueScores)) {
+        if (gameData.issueScores[issue] === gameData.prev.issueScores[issue]) continue;
+        const delta = (gameData.issueScores[issue] - gameData.prev.issueScores[issue]) * dp;
+        const issueIndex = gameData.issues.indexOf(issue);
+        UI.issueButtons[issueIndex].button.appendChild(createDelta(delta));
+    }
+    for (const loc of Object.keys(gameData.media)) {
+        if (gameData.media[loc] === gameData.prev.media[loc]) continue;
+        const delta = (gameData.media[loc] - gameData.prev.media[loc]) * dp;
+        UI.mediaButtons[`${loc}Media`].button.appendChild(createDelta(delta));
+    }
+    for (const loc of Object.keys(gameData.endorsements)) {
+        if (gameData.endorsements[loc] === gameData.prev.endorsements[loc]) continue;
+        const delta = (gameData.endorsements[loc] - gameData.prev.endorsements[loc]) * dp;
+        UI.endorseButtons[`${loc}Endorse`].button.appendChild(createDelta(delta));
+    }
+    for (let i = 0; i < gameData.issues.length; i++) {
+        if (gameData.issues[i] === gameData.prev.issues[i]) continue;
+        UI.issueButtons[i].setHighlight(true);
+        const index = gameData.prev.issues.indexOf(gameData.issues[i]);
+        UI.issueButtons[index].setHighlight(true);
+    }
+}
+export function hideTurnSummary() {
+    addCSSClass(UI.showSummaryButton, "hidden");
+    addCSSClass(UI.hideSummaryButton, "hidden");
+
+    removeDeltas();
+}
+
 UI.showElectorsButton.onclick = () => toggleShowElectors();
 document.addEventListener("keydown", e => {
     if (e.key === "e") toggleShowElectors();
@@ -271,7 +333,10 @@ export function displayCampaignDeck(hand) {
 export function showRound(gameData, playerCandidate) {
     const round = gameData.round;
 
-    if (gameData.currentPlayer === playerCandidate && gameData.turn < TURNS_PER_ROUND) {
+    if (
+        (gameData.currentPlayer === playerCandidate && gameData.turn < TURNS_PER_ROUND && gameData.chosenCard === null) ||
+        (gameData.currentPlayer !== playerCandidate && gameData.chosenCard !== null)
+    ) {
         UI.turnIndicator.innerText = `Your move! (Turn ${round})`;
     } else {
         UI.turnIndicator.innerText = `(Turn ${round})`;
@@ -285,7 +350,7 @@ export function showRound(gameData, playerCandidate) {
     } else if (gameData.phase === PHASE.STRATEGY) {
         UI.subTurnIndicator.innerText = `Strategy Phase`;
     } else {
-        UI.subTurnIndicator.innerText = `Phase ${gameData.turn}`;
+        UI.subTurnIndicator.innerText = `Phase ${gameData.turn+1}`;
     }
 }
 

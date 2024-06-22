@@ -210,7 +210,8 @@ class GameSetup {
             cpMods: [],
             event: null,
             flags: {},
-            prev: null
+            prev: null,
+            cardMode: null
         });
         addCSSClass(choosePage, "hidden");
         this.enterGame(gameId);

@@ -74,6 +74,7 @@ export const handDiv = byId("hand");
 export const campaignDiv = byId("campaign");
 export const effectsDiv = byId("effects");
 export const handModeButton = byId("handMode");
+export const handLabelDiv = byId("handLabel");
 
 export const choosePopup = byId("choosePopup");
 export const chooseWindow =  byId("chooseWindow");

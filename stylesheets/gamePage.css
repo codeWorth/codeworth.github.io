@@ -261,8 +261,19 @@
     overflow-x: hidden;
     overflow-y: auto;
 }
-#hand, #campaign {
+#hand, #campaign, #effects {
     width: 642rem;
+}
+#handLabel {
+    position: absolute;
+    top: 370rem;
+    left: 1050rem;
+    width: 640rem;
+    text-align: center;
+    font-family: Tahoma;
+    font-size: 20rem;
+    color: rgb(0, 0, 0, 0.8);
+    z-index: -3;
 }
 
 .card {
@@ -419,7 +430,7 @@
     border-radius: 50%;
     background-color: rgb(215, 215, 215);
     border: 1rem solid black;
-    overflow: hidden;
+    overflow: visible;
 
     font-family: Tahoma;
     font-size: 3.7em;
@@ -432,10 +443,28 @@
     left: 0;
     width: 100%;
     opacity: 0.7;
+    border-radius: 50%;
 }
 .iconCounter div {
     position: relative;
     z-index: 2;
+}
+.iconCounter .delta {
+    position: absolute;
+    
+    font-size: 15rem;
+    left: 0;
+    top: -8rem;
+    left: -5rem;
+    padding-top: 2rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    width: 20rem;
+    height: 20rem;
+
+    border-radius: 2rem;
+    background-color: rgba(240, 240, 240, 0.8);
+    border:1rem solid black;
 }
 
 #mmtm {

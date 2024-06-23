@@ -112,6 +112,23 @@ export function showTurnSummary(gameData, dp) {
         const index = gameData.prev.issues.indexOf(gameData.issues[i]);
         UI.issueButtons[index].setHighlight(true);
     }
+
+    if (gameData.nixon.rest !== gameData.prev.nixon.rest) {
+        const delta = (gameData.nixon.rest - gameData.prev.nixon.rest) * dp;
+        UI.nixonRestCount.parentElement?.appendChild(createDelta(delta));
+    }
+    if (gameData.kennedy.rest !== gameData.prev.kennedy.rest) {
+        const delta = (gameData.kennedy.rest - gameData.prev.kennedy.rest) * dp;
+        UI.kennedyRestCount.parentElement?.appendChild(createDelta(delta));
+    }
+    if (gameData.nixon.momentum !== gameData.prev.nixon.momentum) {
+        const delta = (gameData.nixon.momentum - gameData.prev.nixon.momentum) * dp;
+        UI.nixonMomentum.parentElement?.appendChild(createDelta(delta));
+    }
+    if (gameData.kennedy.momentum !== gameData.prev.kennedy.momentum) {
+        const delta = (gameData.kennedy.momentum - gameData.prev.kennedy.momentum) * dp;
+        UI.kennedyMomentum.parentElement?.appendChild(createDelta(delta));
+    }
 }
 export function hideTurnSummary() {
     addCSSClass(UI.showSummaryButton, "hidden");
@@ -162,6 +179,7 @@ function toggleHandMode() {
 export function showHand() {
     viewedCards = VIEWED_CARDS.HAND;
     UI.handModeButton.innerText = "Show Campaign Strategy";
+    UI.handLabelDiv.innerText = "Hand";
     removeCSSClass(UI.handDiv, "hidden");
     addCSSClass(UI.campaignDiv, "hidden");
     addCSSClass(UI.effectsDiv, "hidden");
@@ -169,6 +187,7 @@ export function showHand() {
 export function showCampaignDeck() {
     viewedCards = VIEWED_CARDS.CAMPAIGN;
     UI.handModeButton.innerText = "Show Active Effects";
+    UI.handLabelDiv.innerText = "Campaign Deck";
     removeCSSClass(UI.campaignDiv, "hidden");
     addCSSClass(UI.handDiv, "hidden");
     addCSSClass(UI.effectsDiv, "hidden");
@@ -176,6 +195,7 @@ export function showCampaignDeck() {
 export function showEffects() {
     viewedCards = VIEWED_CARDS.EFFECTS;
     UI.handModeButton.innerText = "Show Hand";
+    UI.handLabelDiv.innerText = "Active Effects";
     removeCSSClass(UI.effectsDiv, "hidden");
     addCSSClass(UI.handDiv, "hidden");
     addCSSClass(UI.campaignDiv, "hidden");

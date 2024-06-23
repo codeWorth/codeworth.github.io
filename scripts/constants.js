@@ -11,7 +11,8 @@ export const SAVED_FIELDS = [
     "issues",
     "cubes",
     NIXON,
-    KENNEDY
+    KENNEDY,
+    "currentPlayer"
 ];
 
 /** @enum {string} */

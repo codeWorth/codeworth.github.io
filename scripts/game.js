@@ -51,7 +51,7 @@ async function refreshData() {
 export async function gameUpdate(gameData) {
     if (!gameData.started) return;
 
-    if (gameData.prev) {
+    if (gameData.prev.currentPlayer) {
         removeCSSClass(nixonIcon, "smooth-pos");
         removeCSSClass(kennedyIcon, "smooth-pos");
 
@@ -102,8 +102,7 @@ export async function gameUpdate(gameData) {
     const gameDataCopy = JSON.parse(JSON.stringify(gameData));
     gameAction(gameDataCopy)
         .then(data => {
-            if (data.prev === null) data.prev = {};
-            if ((Object.keys(data).length) > 0) {
+            if (data.prev && data.prev.currentPlayer !== data.currentPlayer && (Object.keys(data).length) > 0) {
                 CONSTANTS.SAVED_FIELDS.forEach(field => 
                     data.prev[field] = gameData[field]
                 );

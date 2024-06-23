@@ -341,6 +341,7 @@ class GameLogic {
         }
     
         if (selectedButton === eventButton) {
+            this.data.preempted = true;
             if (playerCandidate === NIXON && flagActive(this.data, FLAGS.NIXON_PLEDGE)) {
                 this.data.kennedy.momentum++;
             }

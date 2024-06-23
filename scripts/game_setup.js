@@ -209,7 +209,7 @@ class GameSetup {
             cpMods: [],
             event: null,
             flags: {},
-            prev: null,
+            prev: {},
             cardMode: null
         });
         addCSSClass(UI.choosePage, "hidden");

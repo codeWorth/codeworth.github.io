@@ -139,20 +139,7 @@ class GameData extends FieldsObj {
             if (field === NIXON || field === KENNEDY) {
                 this[field] = new Player(fields[field], field, player, this);
             } else if (field === "cubes") {
-                this[field] = new Proxy(new Cubes(fields[field], this), {
-                    get(target, prop) {
-                        return target[prop];
-                    },
-                    set(target, prop, newValue) {
-                        //@ts-ignore
-                        if (Object.values(STATE_CODES).includes(prop)) {
-                            target.setState(prop, newValue);
-                        } else {
-                            target[prop] = newValue;
-                        }
-                        return true;
-                    }
-                });
+                this[field] = new Cubes(fields[field], this);
             } else {
                 this[field] = fields[field];
             }
@@ -187,7 +174,7 @@ class GameData extends FieldsObj {
 
     eventFinished() {
         if (this.event.after) {
-            this.event = this.event.after;
+            this._event = this.event.after;
         } else {
             this._event = null;
         }
@@ -203,10 +190,14 @@ class GameData extends FieldsObj {
         if (this.event) {
             let lastEvent = this.event;
             while (lastEvent.after) lastEvent = lastEvent.after;
-            lastEvent.after = event;
+            lastEvent.after = JSON.parse(JSON.stringify(event)); // prevent self reference
         } else {
             this.event = event;
         }
+    }
+
+    delayEvent() {
+        this._event = {after: this._event};
     }
 }
 
@@ -338,8 +329,12 @@ class Cubes extends FieldsObj {
         return false;
     }
 
-    setState(stateName, score) {
-        let delta = score - this[stateName];
+    /**
+     * @param {string} stateName 
+     * @param {number} delta 
+     */
+    supportCheckSetState(stateName, delta) {
+        const score = this[stateName] + delta;
         const absDelta = Math.abs(delta);
         const player = getPlayerCandidate(this._parent);
 
@@ -356,12 +351,10 @@ class Cubes extends FieldsObj {
         } else {
             this[stateName] = score;
         }
-
-        console.log(`${stateName} change ${delta * candidateDp(player)}`);
     }
 }
 
-class Player extends FieldsObj {
+export class Player extends FieldsObj {
 
     /** @type {number} */
     bag

@@ -20,7 +20,7 @@ const byId = (id) => document.getElementById(id);
  * @returns {HTMLElement}
  */
 // @ts-ignore
-const byClass = (className) => document.getElementsByClassName(className)[0];
+const byClass = (parent, className) => parent.getElementsByClassName(className)[0];
 
 export const loginPage = byId("loginPage");
 export const loginButton = byId("login");
@@ -77,7 +77,7 @@ export const handModeButton = byId("handMode");
 
 export const choosePopup = byId("choosePopup");
 export const chooseWindow =  byId("chooseWindow");
-export const chooseTitle = byClass("header");
+export const chooseTitle = byClass(chooseWindow, "header");
 export const chooseButtonsContainer = byId("buttonContainer");
 export const showSummaryButton = byId("showSummary");
 
@@ -150,14 +150,14 @@ const popupCardDiv = byId("popupCard");
 /** @type {import('./view.js').CardDiv} */
 export const popupCard = {
     card: /** @type {HTMLDivElement} */ (popupCardDiv), 
-    header: /** @type {HTMLDivElement} */ (byClass("header")), 
-    body: /** @type {HTMLDivElement} */ (byClass("body")), 
-    candidateImg: /** @type {HTMLImageElement} */ (byClass("candidate")), 
-    issueImg: /** @type {HTMLImageElement} */ (byClass("issue")), 
-    cp: /** @type {HTMLDivElement} */ (byClass("cp")), 
-    state: /** @type {HTMLDivElement} */ (byClass("state")), 
-    rest: /** @type {HTMLDivElement} */ (byClass("rest")),
-    pointsCover: /** @type {HTMLDivElement} */ (byClass("pointsCover"))
+    header: /** @type {HTMLDivElement} */ (byClass(popupCardDiv, "header")), 
+    body: /** @type {HTMLDivElement} */ (byClass(popupCardDiv, "body")), 
+    candidateImg: /** @type {HTMLImageElement} */ (byClass(popupCardDiv, "candidate")), 
+    issueImg: /** @type {HTMLImageElement} */ (byClass(popupCardDiv, "issue")), 
+    cp: /** @type {HTMLDivElement} */ (byClass(popupCardDiv, "cp")), 
+    state: /** @type {HTMLDivElement} */ (byClass(popupCardDiv, "state")), 
+    rest: /** @type {HTMLDivElement} */ (byClass(popupCardDiv, "rest")),
+    pointsCover: /** @type {HTMLDivElement} */ (byClass(popupCardDiv, "pointsCover"))
 };
 
 export const debateWindow = byId("debate");

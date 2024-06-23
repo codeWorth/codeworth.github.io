@@ -7,7 +7,7 @@ import GameSetup from "./game_setup.js";
 import * as VIEW from "./view.js";
 import * as CONSTANTS from "./constants.js";
 import { gamePage, choosePopup } from './dom.js';
-import { addCSSClass, getPlayerCandidate, removeCSSClass, timeout } from "./util.js";
+import { addCSSClass, oppositeCandidate, getPlayerCandidate, removeCSSClass, timeout } from "./util.js";
 import { AbortError } from "./deferred.js";
 import { infoDiv, kennedyIcon, nixonIcon, userNameField } from "./dom.js";
 import { setUser } from './user.js';
@@ -39,6 +39,7 @@ async function enterGame(gameId_) {
     removeCSSClass(gamePage, "hidden");
     const gameData = (await getDoc(doc(db, "elec_games", gameId))).data();
     VIEW.showCubes(gameData);
+    VIEW.showHand();
     gameUpdate(gameData);
 }
 
@@ -139,22 +140,30 @@ async function gameAction(gameData) {
         }
     }
 
-    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.NEXT_TURN) {
-        await logic.doNextTurn();
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.FINISH_TRIGGER) {
+        await logic.showChosenCard();
         return logic.getData();
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.TRIGGER_EVENT) {
+        if (gameData[playerCandidate].hand.length === 0) {
+            logic.getHand();
+            VIEW.showHand();
+        }
         await logic.triggerEvent();
         return logic.getData();
-    } else if (gameData.chosenCard !== null && gameData.currentPlayer !== playerCandidate) {
+    } else if (gameData.chosenCard !== null && gameData.currentPlayer !== playerCandidate && gameData.phase !== CONSTANTS.PHASE.FINISH_TRIGGER) {
+        if (gameData[playerCandidate].hand.length === 0) {
+            logic.getHand();
+            VIEW.showHand();
+        }
         await logic.showChosenCard();
         return logic.getData();
     }
 
     if (gameData.currentPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.PLAY_CARDS) {
         if (gameData[playerCandidate].hand.length === 0) {
-            await logic.getHand();
+            logic.getHand();
             VIEW.showHand();
         } else {
             VIEW.showHand();
@@ -178,7 +187,7 @@ async function gameAction(gameData) {
         return logic.getData();
     }
 
-    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.ISSUE1_ENDORSE_REWARD) {
+    if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.ISSUE_ENDORSE_REWARD) {
         await logic.firstStrategy();
         return logic.getData();
     }

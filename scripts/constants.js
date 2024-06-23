@@ -8,6 +8,7 @@ export const SAVED_FIELDS = [
     "endorsements",
     "media",
     "issueScores",
+    "issues",
     "cubes",
     NIXON,
     KENNEDY
@@ -34,7 +35,7 @@ export const PHASE = {
     DISCARD_CHOICE: "discard_choice",
     ISSUE_SWAP: "issue_swap",
     ISSUE_REWARD_CHOICE: "issue_choice",
-    ISSUE1_ENDORSE_REWARD: "endorse_reward",
+    ISSUE_ENDORSE_REWARD: "endorse_reward",
     STRATEGY: "strategy",
     DEBATE: "debate",
     DEBATE_INITIATIVE: "debateInitiative",
@@ -43,7 +44,7 @@ export const PHASE = {
     CHOOSE_FIRST_END: "chooseFirstEnd",
     ELECTION_DAY_EVENTS: "electionDay",
     RESOLVE_GAME: "resolveGame",
-    NEXT_TURN: "nextTurn"
+    FINISH_TRIGGER: "finishTrigger"
 }
 
 /** @enum {string} */

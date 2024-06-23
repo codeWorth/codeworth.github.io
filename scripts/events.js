@@ -120,7 +120,7 @@ function mmtmRegion(gameData, player, region) {
     for (const state in gameData.cubes) {
         if (STATE_REGION[state] !== region) continue;
         if (gameData.cubes[state] !== 0) continue;
-        gameData.cubes[state] = dp;
+        gameData.cubes[state] += dp;
     }
 }
 
@@ -733,7 +733,7 @@ export function gallup(gameData, player) {
 /** @type {Event} */
 export function whistlestop(gameData, player) {
     gameData.event = addPer(
-        EVENT_TYPE.CHOOSE_CP_USE, player,
+        EVENT_TYPE.CHANGE_PER, player,
         7, 1, ALL_REGIONS
     );
 }

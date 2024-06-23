@@ -280,7 +280,7 @@ function writeToCard(cardObj, cardName, card) {
     cardObj.rest.innerText = card.rest + " Rest";
     cardObj.state.innerText = card.state.toUpperCase();
     cardObj.candidateImg.src = PARTY_URL(card.party);
-    cardObj.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
+    cardObj.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL(card.issue);
 }
 
 /**
@@ -367,14 +367,22 @@ export function displayCampaignDeck(hand) {
 }
 
 /**
+ * @param {string|number} value 
+ * @returns {boolean}
+ */
+function isNumber(value) {
+    return !isNaN(/** @type {number} */ (value));
+}
+
+/**
  * @param {import("./gameData.js").Discard[]} discard 
  * @param {number} turn
  */
 export function displayEffects(discard, turn) {
     const effectCards = discard
         .filter(card => 
-            card.lifetime !== LIFETIME.NONE ||
-            (!isNaN(parseInt(card.lifetime)) && parseInt(card.lifetime) >= turn));
+            (!isNumber(card.lifetime) && card.lifetime !== LIFETIME.NONE) || //@ts-ignore
+            (isNumber(card.lifetime) && parseInt(card.lifetime) >= turn));
     const cardItems = [];
 
     const cardDivs = UI.effectsDiv.querySelectorAll(".card");
@@ -404,10 +412,21 @@ export function displayEffects(discard, turn) {
 export function showRound(gameData, playerCandidate) {
     const round = gameData.round;
 
-    if (
-        (gameData.currentPlayer === playerCandidate && gameData.turn < TURNS_PER_ROUND && gameData.chosenCard === null) ||
-        (gameData.currentPlayer !== playerCandidate && gameData.chosenCard !== null)
-    ) {
+    const yourMovePlayCards = 
+        (gameData.currentPlayer === playerCandidate && gameData.turn < TURNS_PER_ROUND && gameData.event === null && gameData.chosenCard === null) ||
+        (gameData.event && gameData.event.target === playerCandidate) ||
+        (gameData.currentPlayer !== playerCandidate && gameData.event === null && gameData.chosenCard !== null);
+    const yourMoveEvent = 
+        gameData.event !== null && gameData.event.target === playerCandidate;
+    const yourMoveOtherwise = 
+        gameData.choosingPlayer === playerCandidate &&
+        (gameData.phase === PHASE.ISSUE_SWAP || 
+            gameData.phase === PHASE.ISSUE_REWARD_CHOICE ||
+            gameData.phase === PHASE.ISSUE_ENDORSE_REWARD ||
+            gameData.phase === PHASE.STRATEGY ||
+            gameData.phase === PHASE.TRIGGER_EVENT);
+
+    if ((gameData.phase == PHASE.PLAY_CARDS && yourMovePlayCards) || yourMoveEvent || yourMoveOtherwise) {
         UI.turnIndicator.innerText = `Your move! (Turn ${round})`;
     } else {
         UI.turnIndicator.innerText = `(Turn ${round})`;
@@ -415,13 +434,13 @@ export function showRound(gameData, playerCandidate) {
 
     if (gameData.phase === PHASE.ISSUE_SWAP || 
         gameData.phase === PHASE.ISSUE_REWARD_CHOICE || 
-        gameData.phase === PHASE.ISSUE1_ENDORSE_REWARD
+        gameData.phase === PHASE.ISSUE_ENDORSE_REWARD
     ) {
         UI.subTurnIndicator.innerText = `Momentum Phase`;
     } else if (gameData.phase === PHASE.STRATEGY) {
         UI.subTurnIndicator.innerText = `Strategy Phase`;
     } else {
-        UI.subTurnIndicator.innerText = `Phase ${gameData.turn+1}`;
+        UI.subTurnIndicator.innerText = `Phase ${Math.floor(gameData.turn/2)+1}`;
     }
 }
 

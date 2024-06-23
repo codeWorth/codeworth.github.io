@@ -26,8 +26,9 @@ import {
     displayHand,
     showMomentum,
     displayCampaignDeck,
-    showInfo,
-    showTurnSummary, hideTurnSummary
+    showInfo, showHand,
+    showTurnSummary, hideTurnSummary,
+    showEventCount, hideEventCount
 } from "./view.js";
 import { showCardPopup, showPopup, popupSelector, showPopupWithCard } from "./popup.js";
 import * as UI from "./dom.js";
@@ -48,7 +49,7 @@ import {
     ISSUE,
     REGION_NAME
 } from './constants.js';
-import GameData from './gameData.js';
+import GameData, { Player } from './gameData.js';
 import { ALL_REGIONS, addPer } from './events.js';
 
 class GameLogic {
@@ -129,7 +130,7 @@ class GameLogic {
         }
     }
     
-    async getHand() {
+    getHand() {
         const handSize = 6;
     
         const availableCards = this.data.deck;
@@ -150,7 +151,7 @@ class GameLogic {
     }
 
     async playHand() {
-        const hand = await this.getHand();
+        const hand = this.getHand();
 
         const playerCandidate = getPlayerCandidate(this.data);
         const cardItems = displayHand(
@@ -323,7 +324,7 @@ class GameLogic {
             .withAwaitKey(document, "Escape")
             .build();
         
-        this.data.preempted = true;
+        this.data.preempted = false;
         const usedCampaign = (selectedButton === cpButton
             || selectedButton === issueButton
             || selectedButton === mediaButton);
@@ -334,9 +335,8 @@ class GameLogic {
             
             if (popupButton === yesButton) {
                 this.data[playerCandidate].momentum -= 2;
+                this.data.preempted = true;
                 showMomentum(this.data);
-            } else if (popupButton === noButton) {
-                this.data.preempted = false;
             }
         }
     
@@ -357,9 +357,10 @@ class GameLogic {
             this.data.cardMode = CARD_MODE.CAMPAIGN;
         }
         else if (selectedButton === issueButton) {
-            showPointsOnCard(cardSlot.pointsCover, card.points);
+            const modPoints = this.modCardPoints(card.points, playerCandidate);
+            showPointsOnCard(cardSlot.pointsCover, modPoints);
     
-            await this.useIssuePoints(card.points, cardSlot.card, p => showPointsOnCard(cardSlot.pointsCover, p));
+            await this.useIssuePoints(modPoints, cardSlot.card, p => showPointsOnCard(cardSlot.pointsCover, p));
             addCSSClass(cardSlot.pointsCover, "hidden");
             const choseCard = await this.confirmCardChoices(card);
             if (!choseCard) throw RESET_SIGNAL;
@@ -469,7 +470,7 @@ class GameLogic {
         if (points <= 0) return points;
     
         points--;
-        this.data.cubes[stateName] += candidateDp(playerCandidate);
+        this.data.cubes.supportCheckSetState(stateName, candidateDp(playerCandidate));
         showCubes(this.data);
         return points;
     }
@@ -480,7 +481,6 @@ class GameLogic {
      * @param {Function} showPoints 
      */
     async useIssuePoints(points, doneButton, showPoints) {
-        const player = getPlayerCandidate(this.data);
         const issuesBought = [];
         let exited = false;
         while (points > 0) {
@@ -604,8 +604,9 @@ class GameLogic {
         const card = cardName === CANDIDATE_CARD_NAME 
             ? CANDIDATE_CARD(getOtherCandidate(this.data))
             : CARDS[cardName];
+        const who = this.data.choosingPlayer === this.data.currentPlayer ? "Your opponent" : "You";
         showPopupWithCard(
-            `Your opponent played this card${this.phraseForCardMode(this.data.cardMode)}.`, 
+            `${who} played this card${this.phraseForCardMode(this.data.cardMode)}.`, 
             cardName, card,
             "Okay",
         );
@@ -613,6 +614,8 @@ class GameLogic {
         const asEvent = this.data.cardMode === CARD_MODE.EVENT;
         this.data.chosenCard = null;
         this.data.cardMode = null;
+        this.data.choosingPlayer = null;
+        this.data.phase = PHASE.PLAY_CARDS;
 
         hideTurnSummary();
         this.nextTurn(cardName, asEvent);
@@ -639,22 +642,33 @@ class GameLogic {
             "Trigger", "Continue"
         );
         const selection = await popupSelector(this.cancelSignal).build();
-        const asEvent = this.data.cardMode === CARD_MODE.EVENT;
-
         hideTurnSummary();
 
         if (selection === triggerButton) {
             const card = CARDS[cardName];
             this.data[player].momentum--;
             this.activateEvent(card, player);
-            this.data.phase = PHASE.NEXT_TURN;
+            this.data.cardMode = CARD_MODE.EVENT;
+            this.data.phase = PHASE.FINISH_TRIGGER;
         } else if (selection === continueButton) {
             this.data.chosenCard = null;
             this.data.cardMode = null;
             this.data.choosingPlayer = null;
             this.data.phase = PHASE.PLAY_CARDS;
-            this.nextTurn(cardName, asEvent);
+            this.nextTurn(cardName, false);
         }
+    }
+
+    /**
+     * @param {string} cardName
+     * @return {import('./gameData.js').Discard} 
+     */
+    cardAsUnplayed(cardName) {
+        return {
+            name: cardName,
+            player: null,
+            lifetime: LIFETIME.NONE
+        };
     }
 
     /**
@@ -662,6 +676,8 @@ class GameLogic {
      * @param {boolean} asEvent 
      */
     discardCard(cardName, asEvent) {
+        if (cardName === CANDIDATE_CARD_NAME) return;
+        
         /** @type {LIFETIME|number} */
         let lifetime = asEvent ? CARDS[cardName].eventLifetime : LIFETIME.NONE;
         if (lifetime === LIFETIME.TURN) {
@@ -669,7 +685,7 @@ class GameLogic {
         }
         this.data.discard.push({
             name: cardName,
-            player: getPlayerCandidate(this.data),
+            player: this.data.currentPlayer,
             lifetime: lifetime 
         });
 
@@ -728,15 +744,21 @@ class GameLogic {
     }
     
     async issueSwap() {
+        showEventCount("&#10003;");
         showShouldSwap();
-        const issueClicked = await awaitClickAndReturn(this.cancelSignal, ...Object.values(UI.issueButtons));    
-        const i = issueClicked.dataIndex;
-        if (i === 0) return;
-    
-        const issue = this.data.issues[i];
-        const swapIssue = this.data.issues[i - 1];
-        this.data.issues[i] = swapIssue;
-        this.data.issues[i - 1] = issue;
+        const issueClicked = await Deferred(this.cancelSignal)
+            .withAwaitClickAndReturn(...Object.values(UI.issueButtons))
+            .withAwaitClick(UI.eventCounter)
+            .build();
+        hideEventCount();
+            
+        if (issueClicked !== UI.eventCounter) {
+            const i = issueClicked.dataIndex;    
+            const issue = this.data.issues[i];
+            const swapIssue = this.data.issues[i - 1];
+            this.data.issues[i] = swapIssue;
+            this.data.issues[i - 1] = issue;
+        }
         
         this.momentumAwards();
     }
@@ -759,7 +781,7 @@ class GameLogic {
             this.data.kennedy.momentum++;
         }
     
-        this.data.phase = PHASE.ISSUE1_ENDORSE_REWARD;
+        this.data.phase = PHASE.ISSUE_ENDORSE_REWARD;
         if (issue2Score > 0) {
             this.data.choosingPlayer = NIXON;
             this.data.phase = PHASE.ISSUE_REWARD_CHOICE;
@@ -781,7 +803,7 @@ class GameLogic {
     
         const issue1Score = this.getIssueScore(0);
 
-        this.data.phase = PHASE.ISSUE1_ENDORSE_REWARD;
+        this.data.phase = PHASE.ISSUE_ENDORSE_REWARD;
         this.data.choosingPlayer = issue1Score > 0 ? NIXON : KENNEDY;
     
         if (choiceButton === momentumButton) {
@@ -818,6 +840,7 @@ class GameLogic {
         const count = this.data.round < DEBATE_ROUND ? 1 : 2;
         const playerData = this.data[playerCandidate];
         showShouldDiscard(count);
+        showHand();
     
         for (let i = 0; i < count; i++) {
             const cardItems = displayHand(playerData.hand, true, playerCandidate);
@@ -839,10 +862,14 @@ class GameLogic {
     async playerRoundEnd() {
         await this.discardToCampaign();
 
-        const playerData = this.data[getPlayerCandidate(this.data)];
+        const playerData = /** @type {Player} */ (this.data[getPlayerCandidate(this.data)]);
         playerData.bag += playerData.rest;
         playerData.rest = 0;
-        this.data.discard = [...this.data.discard, ...playerData.hand];
+        this.data.discard = [...this.data.discard, ...playerData.hand.map(name => ({
+            name: name,
+            player: null,
+            lifetime: LIFETIME.NONE
+        }))];
         playerData.hand = [];
     }
     
@@ -903,6 +930,8 @@ class GameLogic {
     async handleEvent() {
         const handler = new EventHandler(this.data, this.cancelSignal, this);
         await handler.handleEvent();
+        // set up game review if needed
+        if (this.data.phase === PHASE.FINISH_TRIGGER) this.data.choosingPlayer = getOtherCandidate(this.data);
     }
 
     /**
@@ -919,11 +948,7 @@ class GameLogic {
 
         const issue = ISSUE_NAME(card.issue);
         if (!this.data.debate.hands[issue]) {
-            this.data.discard.push({
-                name: cardName,
-                player: null,
-                lifetime: LIFETIME.NONE
-            });
+            this.data.discard.push(this.cardAsUnplayed(cardName));
             return;
         }
 
@@ -1079,7 +1104,7 @@ class GameLogic {
     }
 
     /**
-     * @param {Object<ISSUE, import('./gameData.js').HandsPair>} hands 
+     * @param {Object<string, import('./gameData.js').HandsPair>} hands 
      * @param {ISSUE} issue 
      */
     resolveDebateIssue(hands, issue) {
@@ -1101,7 +1126,7 @@ class GameLogic {
         }
 
         this.data.issues.unshift(issue);
-        this.data.discard.push(...hands[issue].nixon, ...hands[issue].kennedy);
+        this.data.discard.push(...hands[issue].nixon.map(this.cardAsUnplayed), ...hands[issue].kennedy.map(this.cardAsUnplayed));
         this.data.debate.hands[issue] = null;
 
         const issuesWon = this.getIssuesWon();
@@ -1114,16 +1139,8 @@ class GameLogic {
     }
 
     endDebates() {
-        this.data.discard.push(...this.data.nixon.campaignDeck.map(name => ({
-            name: name,
-            player: null,
-            lifetime: LIFETIME.NONE
-        })));
-        this.data.discard.push(...this.data.kennedy.campaignDeck.map(name => ({
-            name: name,
-            player: null,
-            lifetime: LIFETIME.NONE
-        })));
+        this.data.discard.push(...this.data.nixon.campaignDeck.map(this.cardAsUnplayed));
+        this.data.discard.push(...this.data.kennedy.campaignDeck.map(this.cardAsUnplayed));
         this.data.nixon.campaignDeck = [];
         this.data.kennedy.campaignDeck = [];
 

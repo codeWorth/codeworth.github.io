@@ -34,11 +34,9 @@ class EventHandler {
             throw RESET_SIGNAL;
         }
 
-        const preserveEvent = await this[type]();
+        await this[type]();
         hideEventCount();
-        if (!preserveEvent) {   // if the above event is done
-            this.data.eventFinished();
-        }
+        this.data.eventFinished();
     }
 
     /**
@@ -234,7 +232,7 @@ class EventHandler {
         showEventCount("&#10003;");
 
         const cardItem = await this.chooseCardFromDiscard();
-        if (cardItem === UI.eventCounter) return false;
+        if (cardItem === UI.eventCounter) return;
 
         const [yesButton, noButton] = showPopupWithCard(
             "Play this card's event?", cardItem.name, cardItem.card, 
@@ -245,7 +243,7 @@ class EventHandler {
         if (selection === noButton) throw RESET_SIGNAL;
         const player = this.data.event.target;
         cardItem.card.event(this.data, player);
-        return true;
+        this.data.delayEvent(); // delay event so that progressing events doesn't skip anything
     }
 
     async drawCards() {
@@ -364,12 +362,11 @@ class EventHandler {
 
     async highHopes() {
         const hhEvent = this.data.event;
-        if (hhEvent.count === 0) return false;  // clear event if we're done
-        hhEvent.count--;
+        if (hhEvent.count === 0) return;
 
         const campaignDeck = this.data[hhEvent.sourcePlayer].campaignDeck;
         const player = getPlayerCandidate(this.data);
-        const cardName = campaignDeck[campaignDeck.length - 1];
+        const cardName = campaignDeck[campaignDeck.length - hhEvent.count];
         const card = CARDS[cardName];
         if (card.party === PARTY.REPUBLICAN) {
             const [okayButton] = showPopupWithCard(
@@ -393,8 +390,8 @@ class EventHandler {
             card.event(this.data, player);
         }
 
+        hhEvent.count--;
         this.data.queueEvent(hhEvent);
-        return true;
     }
 
     async addIssue() {
@@ -422,7 +419,7 @@ class EventHandler {
             }
 
             const issueClicked = this.data.issues[buttonClicked.dataIndex];
-            this.data.issueScores[issueClicked] += choseOne ? (dp * count) : count;
+            this.data.issueScores[issueClicked] += choseOne ? (dp * count) : dp;
             showIssues(this.data);
             count = choseOne ? 0 : (count - 1);
         }

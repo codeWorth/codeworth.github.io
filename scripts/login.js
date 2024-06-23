@@ -1,13 +1,16 @@
+// @ts-ignore
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-app.js';
 import { 
     getAuth, 
     signInWithPopup, 
     GoogleAuthProvider, 
     signOut
+// @ts-ignore
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-auth.js';
+// @ts-ignore
 import { getFirestore} from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 import { setup } from "./game.js";
-import { loginButton, logoutButton } from './dom.js';
+import { joinPage, loginButton, logoutButton, userNameField } from './dom.js';
 import { addCSSClass, removeCSSClass } from './util.js';
 
 const firebaseConfig = {

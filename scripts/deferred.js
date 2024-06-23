@@ -4,9 +4,17 @@ export class AbortError extends Error {
     }
 }
 
-/** @typedef {addEventListener: Function} Listener */
+/**  
+ * @typedef {Object} Listener
+ * @property {Function} addEventListener
+*/
+/**
+ * @typedef {Object} Item
+ * @property {Listener} button
+ */
 
-class DeferredBuilder {
+/** @template T */
+export class DeferredBuilder {
     /**
      * @param {AbortSignal} abortSignal 
      */
@@ -15,7 +23,7 @@ class DeferredBuilder {
     }
 
     /**
-     * @param {...Listener} clickables 
+     * @param {...Listener & T} clickables 
      * @returns {DeferredBuilder}
      */
     withAwaitClick(...clickables) {
@@ -24,7 +32,7 @@ class DeferredBuilder {
     }
 
     /**
-     * @param {...{button: Listener}} items 
+     * @param {...Item & T} items 
      * @returns {DeferredBuilder}
      */
     withAwaitClickAndReturn(...items) {
@@ -34,7 +42,7 @@ class DeferredBuilder {
 
     /**
      * @param {Listener} target 
-     * @param {string} key 
+     * @param {T} key 
      * @returns {DeferredBuilder}
      */
     withAwaitKey(target, key) {
@@ -52,17 +60,23 @@ class DeferredBuilder {
     }
 
     /**
-     * @returns {Promise<void>}
+     * @returns {Promise<T>}
      */
     build() {
         return this.def.promise;
     }
 }
 
+/** @template T */
 class _deferred {
-    /**
-     * @param {AbortSignal} externalAbortSignal 
+    /** 
+     * @callback Resolver
+     * @param {T} result
      */
+    /** @type {Resolver} */
+    _resolve
+
+    /** @param {AbortSignal} externalAbortSignal */
     constructor(externalAbortSignal) {
         this.aborter = new AbortController();
         this.promise = new Promise((resolve, reject) => {
@@ -79,6 +93,7 @@ class _deferred {
         this.aborter.signal.addEventListener("abort", task, {once: true});
     }
 
+    /** @param {T} result */
     resolve(result) {
         this.aborter.abort();
         this._resolve(result);
@@ -89,6 +104,7 @@ class _deferred {
         this._reject(result);
     }
 
+    /** @param  {...Listener & T} buttons */
     awaitClick(...buttons) {
         buttons.forEach(button => {
             button.addEventListener(
@@ -99,6 +115,7 @@ class _deferred {
         });
     }
 
+    /** @param  {...Item & T} items */
     awaitClickAndReturn(...items) {
         items.forEach(item => {
             item.button.addEventListener(
@@ -109,7 +126,12 @@ class _deferred {
         });
     }
 
+    /**
+     * @param {Listener} target 
+     * @param {T} key 
+     */
     awaitKey(target, key) {
+        document.createElement("div").onkeydown = (e) => e;
         target.addEventListener(
             "keydown", 
             e => { if (e.key === key) this.resolve(key); }, 
@@ -120,25 +142,28 @@ class _deferred {
 
 /**
  * @param {AbortSignal} abortSignal 
- * @returns {DeferredBuilder}
+ * @template T
+ * @returns {DeferredBuilder<T>}
  */
 export function Deferred(abortSignal) {
     return new DeferredBuilder(abortSignal);
 }
 
 /**
+ * @template T
  * @param {AbortSignal} abortSignal
- * @param {...Listener} clickables
- * @returns {Promise<void>}
+ * @param {...Listener & T} clickables
+ * @returns {Promise<T>}
  */
 export function awaitClick(abortSignal, ...clickables) {
     return Deferred(abortSignal).withAwaitClick(...clickables).build();
 }
 
 /**
+ * @template T
  * @param {AbortSignal} abortSignal
- * @param {...{button: Listener}} items
- * @returns {Promise<void>}
+ * @param {...Item & T} items
+ * @returns {Promise<T>}
  */
 export function awaitClickAndReturn(abortSignal, ...items) {
     return Deferred(abortSignal).withAwaitClickAndReturn(...items).build();

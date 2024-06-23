@@ -1,11 +1,13 @@
 import { 
     doc, getDoc, updateDoc
+//@ts-ignore
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 import GameLogic from "./game_logic.js";
 import GameSetup from "./game_setup.js";
 import * as VIEW from "./view.js";
 import * as CONSTANTS from "./constants.js";
-import { addCSSClass, getOtherCandidate, getPlayerCandidate, removeCSSClass, timeout } from "./util.js";
+import { gamePage, choosePopup } from './dom.js';
+import { addCSSClass, getPlayerCandidate, removeCSSClass, timeout } from "./util.js";
 import { AbortError } from "./deferred.js";
 import { infoDiv, kennedyIcon, nixonIcon, userNameField } from "./dom.js";
 import { setUser } from './user.js';
@@ -75,6 +77,7 @@ export async function gameUpdate(gameData) {
     addCSSClass(choosePopup, "hidden");
 
     VIEW.displayCampaignDeck(gameData[playerCandidate].campaignDeck);
+    VIEW.displayEffects(gameData.discard, gameData.round);
     if (gameData[playerCandidate].hand.length > 0) {
         VIEW.displayHand(
             gameData[playerCandidate].hand, 
@@ -138,7 +141,7 @@ async function gameAction(gameData) {
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.NEXT_TURN) {
         await logic.doNextTurn();
-        return logic.data();
+        return logic.getData();
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.TRIGGER_EVENT) {

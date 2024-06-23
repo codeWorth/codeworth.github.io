@@ -1,5 +1,5 @@
 import { CARDS, PARTY } from "./cards.js";
-import { ELECTORS, EVENT_TYPE, KENNEDY, PRETTY_STATES, REGION_NAME, RESET_SIGNAL, STATE_REGION, stateNames } from "./constants.js";
+import { ELECTORS, EVENT_TYPE, KENNEDY, PRETTY_STATES, REGION_NAME, RESET_SIGNAL, STATE_REGION, stateNames, STATE_CODES, FLAGS, NIXON } from "./constants.js";
 import { Deferred, awaitClick, awaitClickAndReturn } from "./deferred.js";
 import * as UI from "./dom.js";
 import { ALL_REGIONS, addPer } from "./events.js";
@@ -41,6 +41,10 @@ class EventHandler {
         }
     }
 
+    /**
+     * @param {string} message 
+     * @returns {Promise<boolean>}
+     */
     async confirmChoice(message) {
         const [finalizeButton, resetButton] = showPopup(message, "Finalize", "Reset");
         const popupButton = await popupSelector(this.cancelSignal).build();
@@ -49,6 +53,7 @@ class EventHandler {
     }
 
     async chooseCardFromDiscard() {
+        const player = getPlayerCandidate(this.data);
         const cardItems = displayHand(this.data.discard, true, player);
         return await Deferred(this.cancelSignal)
             .withAwaitClickAndReturn(...cardItems)
@@ -75,7 +80,7 @@ class EventHandler {
 
         while (count > 0) {
             showEventCount(count);
-            const buttonClicked = await awaitClickAndReturn(...Object.values(UI.issueButtons));
+            const buttonClicked = await awaitClickAndReturn(this.cancelSignal, ...Object.values(UI.issueButtons));
             const issueClicked = this.data.issues[buttonClicked.dataIndex];
 
             if (Math.sign(this.data.issueScores[issueClicked]) !== dp) continue;
@@ -162,10 +167,6 @@ class EventHandler {
 
     async heartland() {
         await this._changePer(true, state => ELECTORS[state] <= 10);
-    }
-
-    async addMedia() {
-        this._changeMedia(candidateDp(this.data.event.target), true);
     }
 
     async changeMedia() {
@@ -266,7 +267,7 @@ class EventHandler {
 
         const player = this.data.event.target;
         if (this.data[player].hand.length === 0) {
-            await awaitClick(UI.eventCounter);
+            await awaitClick(this.cancelSignal, UI.eventCounter);
             return;
         }
         const cardItems = displayHand(
@@ -364,9 +365,21 @@ class EventHandler {
 
         const campaignDeck = this.data[hhEvent.sourcePlayer].campaignDeck;
         const player = getPlayerCandidate(this.data);
-        const cardName = campaignDeck.slice(-i - 1)[0];
+        const cardName = campaignDeck[campaignDeck.length - 1];
         const card = CARDS[cardName];
-        if (card.party === PARTY.DEMOCRAT) {
+        if (card.party === PARTY.REPUBLICAN) {
+            const [okayButton] = showPopupWithCard(
+                "This card's event will not be played, it isn't Kennedy's.", 
+                cardName, card, "Okay"
+            );
+            await awaitClick(this.cancelSignal, okayButton);
+        } else if (!card.event) {
+            const [okayButton] = showPopupWithCard(
+                "This card does not have an event.", 
+                cardName, card, "Okay"
+            );
+            await awaitClick(this.cancelSignal, okayButton);
+        } else {
             const [okayButton] = showPopupWithCard(
                 "This card's event will be played.", 
                 cardName, card, "Okay"
@@ -374,9 +387,9 @@ class EventHandler {
             await awaitClick(this.cancelSignal, okayButton);
 
             card.event(this.data, player);
-            this.data.queueEvent(hhEvent);
         }
 
+        this.data.queueEvent(hhEvent);
         return true;
     }
 
@@ -465,7 +478,10 @@ class EventHandler {
         }
 
         const count = this.data.event.count;
-        const {cpButton, issueButton, mediaButton} = showPopup(`How would you like to spend ${count} CP?`);
+        const [cpButton, issueButton, mediaButton] = showPopup(
+            `How would you like to spend ${count} CP?`,
+            "Campaign", "Issues", "Media"
+        );
         const selectedButton = await popupSelector(this.cancelSignal).build();
     
         if (selectedButton === cpButton) {
@@ -509,32 +525,11 @@ class EventHandler {
         }
     }
 
-    async move() {
-        const player = this.data.event.target;
-        const states = this.data.event.states;
-        const prettyStates = states.map(r => PRETTY_STATES[r]);
-        const stateItems = stateNames.map(name => ({
-            name: name,
-            button: UI.stateButtons[name].button
-        }));
-
-        showInfo(`Move to ${listAndCapitalize(prettyStates, "or")}.`);
-
-        while (true) {
-            const state = await awaitClickAndReturn(this.cancelSignal, ...stateItems);
-            const stateName = state.name;
-
-            if (states.includes(stateName)) {
-                gameData[player].state = stateName;
-            }
-        }
-    }
-
     async opposition() {
         showInfo("Click the &#10003; when you're done looking at your opponent's hand.")
         showEventCount("&#10003;");
         displayHand(this.data.kennedy.hand, this.data.kennedy.exhausted, KENNEDY);
-        await awaitClick(UI.eventCounter);
+        await awaitClick(this.cancelSignal, UI.eventCounter);
 
         this.data.event = addPer(
             EVENT_TYPE.CHOOSE_CP_USE, NIXON,

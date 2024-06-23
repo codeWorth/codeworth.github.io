@@ -1,5 +1,6 @@
 import * as CONSTANTS from "./constants.js";
 import { getUser } from "./user.js";
+import GameData from "./gameData.js";
 
 /**
  * @param {Element} elem 
@@ -23,7 +24,7 @@ export function addCSSClass(elem, className) {
  * @param {Element} elem 
  */
 export function removeAllChildren(elem) {
-    while (elem.firstChild) elem.removeChild(elem.lastChild);
+    while (elem.lastChild) elem.removeChild(elem.lastChild);
 }
 
 /**
@@ -51,10 +52,14 @@ export function getOtherCandidate(gameData) {
 }
 
 /**
- * @param {CONSTANTS.CANDIDATE} candidate
+ * @param {CONSTANTS.CANDIDATE|null} candidate
  * @returns {CONSTANTS.CANDIDATE}
  */
 export function oppositeCandidate(candidate) {
+    if (candidate === null) {
+        console.error("Null candidate!");
+        throw CONSTANTS.RESET_SIGNAL;
+    }
     return candidate === CONSTANTS.NIXON ? CONSTANTS.KENNEDY : CONSTANTS.NIXON;
 }
 
@@ -67,7 +72,7 @@ export function candidateDp(candidate) {
 }
 
 /**
- * @param {1|-1} dp 
+ * @param {1|-1|number} dp 
  * @returns {CONSTANTS.CANDIDATE}
  */
 export function candidateForDp(dp) {
@@ -121,7 +126,7 @@ export function flagActive(data, flag) {
 /**
  * @param {string[]} names 
  * @param {string} seperator 
- * @returns {string[]}
+ * @returns {string}
  */
 export function listAndCapitalize(names, seperator) {
     const capNames = names

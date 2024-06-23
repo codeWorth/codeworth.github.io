@@ -1,32 +1,34 @@
 import * as CONSTANTS from "./constants.js";
 import * as EVENT from "./events.js";
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const PARTY = {
 	REPUBLICAN: "r",
 	DEMOCRAT: "d",
 	BOTH: "b"
 };
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const ISSUE = {
 	ECONOMY: "e",
 	CIVIL_RIGHTS: "c",
 	DEFENSE: "d"
 };
-export const ISSUE_NAME = {
-	[ISSUE.ECONOMY]: [CONSTANTS.ISSUE.ECONOMY],
-	[ISSUE.DEFENSE]: [CONSTANTS.ISSUE.DEFENSE],
-	[ISSUE.CIVIL_RIGHTS]: [CONSTANTS.ISSUE.CIVIL_RIGHTS],
-}
 
 /**
- * @enum {string}
+ * @param {ISSUE} k 
+ * @returns {CONSTANTS.ISSUE}
  */
+export const ISSUE_NAME = (k) => {
+	return _ISSUE_NAME[k];
+}
+const _ISSUE_NAME = {
+	[ISSUE.ECONOMY]: CONSTANTS.ISSUE.ECONOMY,
+	[ISSUE.DEFENSE]: CONSTANTS.ISSUE.DEFENSE,
+	[ISSUE.CIVIL_RIGHTS]: CONSTANTS.ISSUE.CIVIL_RIGHTS,
+}
+
+/** @enum {string} */
 export const LOCATION = {
 	NONE: "n",
 	DEBATE: "d",
@@ -34,18 +36,33 @@ export const LOCATION = {
 	ELECTION_DAY: "e"
 };
 
-export const PARTY_URL = {
+/**
+ * @param {PARTY} k 
+ * @returns {string}
+ */
+export const PARTY_URL = (k) => {
+	return _PARTY_URL[k];
+}
+export const _PARTY_URL = {
 	[PARTY.DEMOCRAT]: "../images/kennedy.png",
 	[PARTY.REPUBLICAN]: "../images/nixon.png",
 	[PARTY.BOTH]: "../images/both.png"
 };
 
-export const ISSUE_URL = {
+/**
+ * @param {ISSUE} k 
+ * @returns {string}
+ */
+export const ISSUE_URL = (k) => {
+	return _ISSUE_URL[k];
+}
+export const _ISSUE_URL = {
 	[ISSUE.ECONOMY]: "../images/economy.png",
 	[ISSUE.CIVIL_RIGHTS]: "../images/civilrights.png",
 	[ISSUE.DEFENSE]: "../images/defense.png"
 };
 
+/** @enum {string} */
 export const ENDORSE_REGIONS = {
 	WEST: "west",
 	EAST: "east",
@@ -53,12 +70,20 @@ export const ENDORSE_REGIONS = {
 	SOUTH: "south",
 	ALL: "all"
 };
-export const ENDORSE_NAME = {
+/**
+ * @param {CONSTANTS.REGION} k 
+ * @returns {ENDORSE_REGIONS}
+ */
+export const ENDORSE_NAME = (k) => {
+	return _ENDORSE_NAME[k];
+}
+const _ENDORSE_NAME = {
 	[CONSTANTS.REGION.MIDWEST]: ENDORSE_REGIONS.MID,
 	[CONSTANTS.REGION.NORTHEAST]: ENDORSE_REGIONS.EAST,
 	[CONSTANTS.REGION.WEST]: ENDORSE_REGIONS.WEST,
 	[CONSTANTS.REGION.SOUTH]: ENDORSE_REGIONS.SOUTH,
 }
+/** @type {ENDORSE_REGIONS[]} */
 export const ENDORSEMENT_CARDS = [
 	ENDORSE_REGIONS.WEST, ENDORSE_REGIONS.WEST, ENDORSE_REGIONS.WEST,
 	ENDORSE_REGIONS.EAST, ENDORSE_REGIONS.EAST, ENDORSE_REGIONS.EAST,
@@ -67,15 +92,36 @@ export const ENDORSEMENT_CARDS = [
 	ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL, ENDORSE_REGIONS.ALL
 ];
 
+/** @enum {string} */
+export const LIFETIME = {
+	NONE: "none",
+	TURN: "turn",
+	GAME: "game",
+	DEBATE: "debate"
+};
+
 /**
- * @typedef {Object} Card
+ * @typedef {Object} Subcard
  * @property {number} points
- * @property {number} rest
  * @property {string} text
  * @property {CONSTANTS.STATE_CODES} state
  * @property {PARTY} party
- * @property {ISSUE} issue
+ * @property {ISSUE|null} issue
+ * @property {Function} [event]
+ * @property {LOCATION} location Likely won't be used, kept around in case
+ * @property {string} [eventLifetime]
+ */
+/**
+ * @typedef {Object} Card
+ * @property {number} points
+ * @property {string} text
+ * @property {CONSTANTS.STATE_CODES} state
+ * @property {PARTY} party
+ * @property {ISSUE|null} issue
+ * @property {Function} [event]
+ * @property {number} rest
  * @property {boolean} isCandidate
+ * @property {string} eventLifetime
  */
 
 export const CANDIDATE_CARD_NAME = "Candidate Card";
@@ -91,9 +137,11 @@ export const CANDIDATE_CARD = candidate => ({
 	state: candidate === "kennedy" ? "ma" : "ca",
 	party: candidate === "kennedy" ? PARTY.DEMOCRAT : PARTY.REPUBLICAN,
 	issue: null,
-	isCandidate: true
+	isCandidate: true,
+	eventLifetime: LIFETIME.NONE
 });
 
+/** @type {Object<string, Subcard>} */
 const _CARDS = {
 	"Give 'Em Hell Harry": {
 		text: "If Kennedy is leading in multiple issues, the Kennedy player loses 1 momentum marker and must subtract a total of 2 issue support",
@@ -118,7 +166,7 @@ const _CARDS = {
 		points: 4,
 		party: PARTY.BOTH,
 		issue: null,
-		state: null,
+		state: "",
 		location: LOCATION.NONE,
 		event: EVENT.mmtmEast
 	},
@@ -129,7 +177,8 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "ca",
 		location: LOCATION.ELECTION_DAY,
-		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.UNPLEDGED)
+		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.UNPLEDGED),
+		eventLifetime: LIFETIME.GAME
 	},
     "Dwight D. Eisenhower": {
 		text: "The Nixon player may add a total of 7 state support anywhere, no more than 1 per state. This event prevents the Eisenhower's Silence event.",
@@ -138,7 +187,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "pa",
 		location: LOCATION.PREVENTION,
-		event: EVENT.dwight
+		event: EVENT.dwight,
+		eventLifetime: LIFETIME.GAME
 	},
     "Harvard Brain Trust": {
 		text: "In the Debates, the Kennedy player gains +1 to their Campaign Point total for each issue. This event has no effect after the Debates.",
@@ -147,7 +197,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "pa",
 		location: LOCATION.DEBATE,
-		event: EVENT.putFlag(CONSTANTS.DEBATE_FLAGS.BRAIN_TRUST)
+		event: EVENT.putFlag(CONSTANTS.DEBATE_FLAGS.BRAIN_TRUST),
+		eventLifetime: LIFETIME.DEBATE
 	},
     "Heartland of America": {
 		text: "The Nixon player may add a total of 7 state support in states in the West or Midwest having 10 or fewer electoral votes, no more than 1 per state.",
@@ -201,7 +252,8 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "hi",
 		location: LOCATION.NONE,
-		event: EVENT.nixonEgged
+		event: EVENT.nixonEgged,
+		eventLifetime: LIFETIME.TURN
 	},
     "\"Give Me A Week\"": {
 		text: "The Nixon player loses 2 momentum markers and must subtract 1 issue support in each issue.",
@@ -237,7 +289,8 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "ga",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(CONSTANTS.FLAGS.JOE_KENNEDY)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.JOE_KENNEDY),
+		eventLifetime: LIFETIME.TURN
 	},
     "Herblock": {
 		text: "The Kennedy player may remove 2 Nixon media support cubes from the board.",
@@ -258,13 +311,14 @@ const _CARDS = {
 		event: EVENT.gaffe
 	},
     "Stevenson Loyalists": {
-		text: "The Kennedy player may not spend CP on Campaigning action in the West or Midwest for the remainder fo the turn.",
+		text: "The Kennedy player may not spend CP on Campaigning action in the West or Midwest for the remainder of the turn.",
 		points: 2,
 		party: PARTY.REPUBLICAN,
 		issue: ISSUE.DEFENSE,
 		state: "sd",
 		location: LOCATION.NONE,
-		event: EVENT.loyalists
+		event: EVENT.loyalists,
+		eventLifetime: LIFETIME.TURN
 	},
     "Greater Houston Ministerial Association": {
 		text: "Immediately move the Kennedy candidate token to Texas, without paying the normal travel costs. The Kennedy player gains 1 momentum marker and may add a total of 5 state support anywhere, no more than 1 per state. This event prevents the Baptist Ministers, Norman Vincent Peale, and Puerto Rican Bishops events.",
@@ -273,7 +327,8 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "ny",
 		location: LOCATION.PREVENTION,
-		event: EVENT.houstonAssoc
+		event: EVENT.houstonAssoc,
+		eventLifetime: LIFETIME.GAME
 	},
     "Quemoy and Matsu": {
 		text: "The leader in Defense gains 1 momentum marker and may add a total of 3 state support anywhere, no more than 1 per state.",
@@ -318,7 +373,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "md",
 		location: LOCATION.NONE,
-		event: EVENT.kenAir
+		event: EVENT.kenAir,
+		eventLifetime: LIFETIME.TURN
 	},
     "Johnson Jeered in Dallas": {
 		text: "The Kennedy player loses 1 state support in Texas and may not spend CP on Campaigning actions in the South for the remainder of the turn.",
@@ -327,7 +383,8 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "mo",
 		location: LOCATION.NONE,
-		event: EVENT.johnsonJeered
+		event: EVENT.johnsonJeered,
+		eventLifetime: LIFETIME.TURN
 	},
     "Lyndon Johnson": {
 		text: "The Kennedy player may add 2 state support in Texas and a total of 3 additional state support anywhere in the South, no more than 2 per state. If the Kennedy candidate card is currently flipped to its Exhausted side, the Kennedy player may reclaim it face-up.",
@@ -343,7 +400,7 @@ const _CARDS = {
 		points: 4,
 		party: PARTY.BOTH,
 		issue: null,
-		state: null,
+		state: "",
 		location: LOCATION.NONE,
 		event: EVENT.mmtmWest
 	},
@@ -352,7 +409,7 @@ const _CARDS = {
 		points: 4,
 		party: PARTY.BOTH,
 		issue: null,
-		state: null,
+		state: "",
 		location: LOCATION.NONE,
 		event: EVENT.mmtmSouth
 	},
@@ -361,7 +418,7 @@ const _CARDS = {
 		points: 4,
 		party: PARTY.BOTH,
 		issue: null,
-		state: null,
+		state: "",
 		location: LOCATION.NONE,
 		event: EVENT.mmtmMidwest
 	},
@@ -372,7 +429,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "il",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(CONSTANTS.FLAGS.SILENCE)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.SILENCE),
+		eventLifetime: LIFETIME.TURN
 	},
     "1960 Civil Rights Act": {
 		text: "Civil Rights moves up one space on the Issue Track and Nixon gains 1 issue support in Civil Rights.",
@@ -408,7 +466,7 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "ut",
 		location: LOCATION.NONE,
-		EVENT: EVENT.worldSeries
+		event: EVENT.worldSeries
 	},
     "Baptist Ministers": {
 		text: "The Nixon player may subtract a total of 5 state support from Kennedy in the South or Midwest, no more than 2 per state. This event prevented by the Greater Houston Ministerial Association event.",
@@ -453,7 +511,8 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "nj",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(CONSTANTS.FLAGS.JACKIE_KENNEDY)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.JACKIE_KENNEDY),
+		eventLifetime: LIFETIME.TURN
 	},
     "The Great Seal Bug": {
 		text: "Nixon gains 1 issue support in Defense and may retrieve the Henry Cabot Lodge card from the discard pile if it is there.",
@@ -471,7 +530,8 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "il",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(CONSTANTS.FLAGS.NIXON_PLEDGE)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.NIXON_PLEDGE),
+		eventLifetime: LIFETIME.TURN
 	},
     "Industrial Midwest": {
 		text: "The Nixon player may add a total of 5 state support in Illinois, Indiana, Michigan, Minnesota, Ohio, and Wisconsin, no more than 2 per state.",
@@ -489,7 +549,8 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "ct",
 		location: LOCATION.NONE,
-		event: EVENT.bobKen
+		event: EVENT.bobKen,
+		eventLifetime: LIFETIME.TURN
 	},
     "The New Nixon": {
 		text: "The Nixon player gains 1 momentum marker.",
@@ -507,7 +568,8 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "nc",
 		location: LOCATION.DEBATE,
-		event: EVENT.putFlag(CONSTANTS.DEBATE_FLAGS.LAZY_SHAVE)
+		event: EVENT.putFlag(CONSTANTS.DEBATE_FLAGS.LAZY_SHAVE),
+		eventLifetime: LIFETIME.DEBATE
 	},
     "Puerto Rican Bishops": {
 		text: "The Kennedy player may not expend momentum markers for the remainder of the turn. This event is prevented by the Greater Houston Ministerial Association event.",
@@ -516,7 +578,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "ne",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(CONSTANTS.FLAGS.PUERTO_RICAN)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.PUERTO_RICAN),
+		eventLifetime: LIFETIME.TURN
 	},
     "\"High Hopes\"": {
 		text: "Reveal the top two cards from the Campaign Deck, one at a time. Events on cards featuring the Kennedy icon take effect in the order revealed as if played by the Kennedy player.",
@@ -597,7 +660,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "la",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(CONSTANTS.FLAGS.KENNEDY_CORPS)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.KENNEDY_CORPS),
+		eventLifetime: LIFETIME.TURN
 	},
     "Nelson Rockefeller": {
 		text: "The Nixon player gains 1 state support in New York and may retrieve any card from the discard pile.",
@@ -642,7 +706,8 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "nv",
 		location: LOCATION.NONE,
-		event: EVENT.advanceMen
+		event: EVENT.advanceMen,
+		eventLifetime: LIFETIME.TURN
 	},
     "Citizens for Nixon-Lodge": {
 		text: "The Nixon player gains +1 CP to all cards played for the remainder of the turn, to a maximum value of 5 CP.",
@@ -669,7 +734,8 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "vt",
 		location: LOCATION.NONE,
-		event: EVENT.structureGap
+		event: EVENT.structureGap,
+		eventLifetime: LIFETIME.TURN
 	},
     "Nixon's Knee": {
 		text: "Immediately move the Nixon candidate token to Maryland, without paying the normal travel cost. For the remainder of the turn, the Nixon player must expend 1 momentum marker in order to play a card as a Campaigning action.",
@@ -678,7 +744,8 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "tx",
 		location: LOCATION.NONE,
-		event: EVENT.nixonKnee
+		event: EVENT.nixonKnee,
+		eventLifetime: LIFETIME.TURN
 	},
     "Fifty Stars": {
 		text: "Whichever player has more state support in Alaska and Hawaii may add a total of 5 state support anywhere, no more than 1 per state.",
@@ -759,7 +826,8 @@ const _CARDS = {
 		issue: ISSUE.ECONOMY,
 		state: "sc",
 		location: LOCATION.NONE,
-		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.COOK_COUNTY)
+		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.COOK_COUNTY),
+		eventLifetime: LIFETIME.GAME
 	},
     "Suburban Voters": {
 		text: "The Kennedy player may add a total of 5 state support in states having 20 or more electoral votes, no more than 2 per state.",
@@ -777,7 +845,8 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "ny",
 		location: LOCATION.NONE,
-		event: EVENT.oldSouth
+		event: EVENT.oldSouth,
+		eventLifetime: LIFETIME.TURN
 	},
     "Catholic Support": {
 		text: "The Kennedy player may add a total of 7 state support anywhere, no more than 2 per state.",
@@ -795,7 +864,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "wy",
 		location: LOCATION.ELECTION_DAY,
-		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.EARLY_RETURNS)
+		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.EARLY_RETURNS),
+		eventLifetime: LIFETIME.GAME
 	},
     "Volunteers": {
 		text: "Player gains 1 momentum marker.",
@@ -867,7 +937,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "tx",
 		location: LOCATION.ELECTION_DAY,
-		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.RECOUNT)
+		event: EVENT.putFlag(CONSTANTS.ELECTION_FLAGS.RECOUNT),
+		eventLifetime: LIFETIME.GAME
 	},
     "A Low Blow": {
 		text: "If Nixon is leading in multiple issues, the Kennedy player gains 1 momentum marker and may discard any number of cards from their hand, drawing the same number of replacements from the Campaign Deck.",
@@ -894,7 +965,8 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "pa",
 		location: LOCATION.NONE,
-		event: EVENT.summerSession
+		event: EVENT.summerSession,
+		eventLifetime: LIFETIME.TURN
 	},
     "Profiles in Courage": {
 		text: "For the remainder of the turn, the Kennedy player may redraw any failed support check. Each failed check may only be redrawn once.",
@@ -903,7 +975,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "de",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(CONSTANTS.FLAGS.PROFILES_COURAGE)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.PROFILES_COURAGE),
+		eventLifetime: LIFETIME.TURN
 	},
     "Opposition Research": {
 		text: "The Kennedy player reveals all cards in their hand. The Nixon player may then spend 3 CP.",
@@ -957,7 +1030,8 @@ const _CARDS = {
 		issue: ISSUE.DEFENSE,
 		state: "pa",
 		location: LOCATION.NONE,
-		event: EVENT.roundFlag(CONSTANTS.FLAGS.HOSTILE_PRESS)
+		event: EVENT.roundFlag(CONSTANTS.FLAGS.HOSTILE_PRESS),
+		eventLifetime: LIFETIME.TURN
 	},
     "Swing State": {
 		text: "Player may add 5 state support to a single state which is currently being led, but not carried, by the opposing player. Immediately move player's candidate token to that state, without paying the normal travel costs.",
@@ -973,5 +1047,12 @@ const _CARDS = {
  * @type {Object<string, Card>}
  */
 export const CARDS = Object.fromEntries(Object.keys(_CARDS).map(name => [
-	name, {rest: 4 - _CARDS[name].points, ..._CARDS[name]}
+	name, {
+		rest: 4 - _CARDS[name].points, 
+		isCandidate: false,
+		..._CARDS[name],
+		eventLifetime: _CARDS[name].eventLifetime || LIFETIME.NONE
+	}
 ]));
+
+const a = CARDS["Give 'Em Hell Harry"];

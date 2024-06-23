@@ -1,5 +1,63 @@
-import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, STATE_CODES } from "./constants.js";
+import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, STATE_CODES, CP_MOD_TYPE, CARD_MODE, ISSUE } from "./constants.js";
+import { ENDORSE_REGIONS, LIFETIME } from "./cards.js";
 import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate } from "./util.js";
+
+/**
+ * @typedef {Object} HandsPair
+ * @property {string[]} nixon
+ * @property {string[]} kennedy
+ */
+/**
+ * @typedef {Object} Cards
+ * @property {string|null} nixon
+ * @property {string|null} kennedy
+ */
+/**
+ * @typedef {Object} Debate
+ * @property {Object<ISSUE, HandsPair>} hands
+ * @property {Cards} cards
+ * @property {string} initiative
+ * @property {string[]} issues
+ * @property {number} resolveIndex
+ * @property {boolean} cleanUp
+ * @property {string} [needParty]
+ */
+
+/**
+ * @typedef {Object} PlayerCounts
+ * @property {number} kennedy
+ * @property {number} nixon
+ */
+
+/**
+ * @typedef {Object} LastBagOut
+ * @property {number} kennedy
+ * @property {number} nixon
+ * @property {string} name
+ */
+
+/**
+ * @typedef {Object} LastRoll
+ * @property {number} points
+ * @property {string} cardName
+ */
+
+/**
+ * @typedef {Object} Discard
+ * @property {string} name
+ * @property {LIFETIME} lifetime
+ * @property {string} player
+ */
+
+/**
+ * @typedef {Object} CpMod
+ * @property {string} player
+ * @property {number} round
+ * @property {number} boost
+ * @property {number} [min]
+ * @property {number} [max]
+ * @property {CP_MOD_TYPE} type
+ */
 
 class FieldsObj {
     constructor(fields) {
@@ -19,6 +77,60 @@ class FieldsObj {
 }
 
 class GameData extends FieldsObj {
+
+    /** @type {boolean} */ 
+    started
+    /** @type {string|null} */
+    choosingPlayer
+    /** @type {string|null} */ 
+    currentPlayer
+    /** @type {PHASE} */
+    phase
+    /** @type {boolean} */ 
+    preempted
+    /** @type {string|null} */
+    chosenCard
+    /** @type {Cubes} */ 
+    cubes
+    /** @type {string[]} */ 
+    issues
+    /** @type {string[]} */ 
+    deck
+    /** @type {string[]} */ 
+    endorsementsDeck
+    /** @type {Discard[]} */
+    discard
+    /** @type {Debate} */
+    debate
+    /** @type {PlayerCounts & {winner: string}} */
+    finalScore
+    /** @type {number} */
+    turn
+    /** @type {number} */
+    round
+    /** @type {LastBagOut} */
+    lastBagOut
+    /** @type {LastRoll|null} */
+    lastRoll
+    /** @type {Object<string, number>} Keys are one of {@link ENDORSE_REGIONS}*/
+    endorsements
+    /** @type {Object<string, number>} Keys are one of {@link ENDORSE_REGIONS}*/
+    media
+    /** @type {Object<string, number>} Keys are one of {@link ISSUE}*/
+    issueScores
+    /** @type {Player} */
+    kennedy
+    /** @type {Player} */
+    nixon
+    /** @type {CpMod[]} */
+    cpMods
+    /** @type {Object<string, any>} */
+    flags
+    /** @type {Object} */
+    prev
+    /** @type {CARD_MODE|null} */
+    cardMode
+            
     constructor(fields) {
         super(fields);
         const player = getPlayerCandidate(fields);
@@ -32,6 +144,7 @@ class GameData extends FieldsObj {
                         return target[prop];
                     },
                     set(target, prop, newValue) {
+                        //@ts-ignore
                         if (Object.values(STATE_CODES).includes(prop)) {
                             target.setState(prop, newValue);
                         } else {
@@ -74,7 +187,7 @@ class GameData extends FieldsObj {
 
     eventFinished() {
         if (this.event.after) {
-            this.event = after;
+            this.event = this.event.after;
         } else {
             this._event = null;
         }
@@ -90,7 +203,7 @@ class GameData extends FieldsObj {
         if (this.event) {
             let lastEvent = this.event;
             while (lastEvent.after) lastEvent = lastEvent.after;
-            lastEvent.after = newEvent;
+            lastEvent.after = event;
         } else {
             this.event = event;
         }
@@ -98,6 +211,108 @@ class GameData extends FieldsObj {
 }
 
 class Cubes extends FieldsObj {
+
+    /** @type {number} */
+    alabama
+    /** @type {number} */
+    alaska
+    /** @type {number} */
+    arizona
+    /** @type {number} */
+    arkansas
+    /** @type {number} */
+    california
+    /** @type {number} */
+    colorado
+    /** @type {number} */
+    connecticut
+    /** @type {number} */
+    delaware
+    /** @type {number} */
+    florida
+    /** @type {number} */
+    georgia
+    /** @type {number} */
+    hawaii
+    /** @type {number} */
+    idaho
+    /** @type {number} */
+    illinois
+    /** @type {number} */
+    indiana
+    /** @type {number} */
+    iowa
+    /** @type {number} */
+    kansas
+    /** @type {number} */
+    kentucky
+    /** @type {number} */
+    louisiana
+    /** @type {number} */
+    maine
+    /** @type {number} */
+    maryland
+    /** @type {number} */
+    massachusetts
+    /** @type {number} */
+    michigan
+    /** @type {number} */
+    minnesota
+    /** @type {number} */
+    mississippi
+    /** @type {number} */
+    missouri
+    /** @type {number} */
+    montana
+    /** @type {number} */
+    nebraska
+    /** @type {number} */
+    nevada
+    /** @type {number} */
+    newhampshire
+    /** @type {number} */
+    newjersey
+    /** @type {number} */
+    newmexico
+    /** @type {number} */
+    newyork
+    /** @type {number} */
+    northcarolina
+    /** @type {number} */
+    northdakota
+    /** @type {number} */
+    ohio
+    /** @type {number} */
+    oklahoma
+    /** @type {number} */
+    oregon
+    /** @type {number} */
+    pennsylvania
+    /** @type {number} */
+    rhodeisland
+    /** @type {number} */
+    southcarolina
+    /** @type {number} */
+    southdakota
+    /** @type {number} */
+    tennessee
+    /** @type {number} */
+    texas
+    /** @type {number} */
+    utah
+    /** @type {number} */
+    vermont
+    /** @type {number} */
+    virginia
+    /** @type {number} */
+    washington
+    /** @type {number} */
+    westvirginia
+    /** @type {number} */
+    wisconsin
+    /** @type {number} */
+    wyoming
+
     constructor(fields, parent) {
         super(fields);
         this._parent = parent;
@@ -147,6 +362,22 @@ class Cubes extends FieldsObj {
 }
 
 class Player extends FieldsObj {
+
+    /** @type {number} */
+    bag
+    /** @type {string[]} */
+    campaignDeck
+    /** @type {boolean} */
+    exhausted
+    /** @type {string[]} */
+    hand
+    /** @type {number} */
+    rest
+    /** @type {string} */
+    state
+    /** @type {string} */
+    uid
+
     constructor(fields, candidate, userCandidate, parent) {
         super(fields);
         this._candidate = candidate;
@@ -158,6 +389,7 @@ class Player extends FieldsObj {
         };
     }
 
+    /** @returns {number} */
     get momentum() {
         return this._momentum;
     }

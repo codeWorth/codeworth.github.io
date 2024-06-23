@@ -31,7 +31,7 @@ import {
 } from "./view.js";
 import { showCardPopup, showPopup, popupSelector, showPopupWithCard } from "./popup.js";
 import * as UI from "./dom.js";
-import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ENDORSE_REGIONS, ISSUE_NAME, PARTY } from './cards.js';
+import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ENDORSE_REGIONS, ISSUE_NAME, LIFETIME, PARTY, ENDORSE_NAME } from './cards.js';
 import EventHandler from './event_handler.js';
 import { 
     DEBATE_FLAGS, DEBATE_ROUND, FLAGS,
@@ -44,14 +44,26 @@ import {
     STATE_CODES, 
     stateNames,
     stateLeanNixon,
-    CARD_MODE
+    CARD_MODE,
+    ISSUE
 } from './constants.js';
 import GameData from './gameData.js';
 import { ALL_REGIONS, addPer } from './events.js';
 
 class GameLogic {
+    /**
+     * 
+     * @param {Object} gameData 
+     * @param {AbortSignal} cancelSignal 
+     */
     constructor(gameData, cancelSignal) {
+        /**
+         * @type {GameData}
+         */
         this.data = new GameData(gameData);
+        /**
+         * @type {AbortSignal}
+         */
         this.cancelSignal = cancelSignal;
     }
 
@@ -59,6 +71,11 @@ class GameLogic {
         return this.data.toDict();
     }
 
+    /**
+     * Returns the count from grab bag where + is kennedy and - is nixon
+     * @param {number} count 
+     * @returns {number}
+     */
     grabBagIsKennedy(count) {
         const counts = chooseFromBags(this.data.kennedy, this.data.nixon, count, 12);
         this.data.lastBagOut = {
@@ -69,6 +86,7 @@ class GameLogic {
         return counts.count1;
     }
 
+    /** @returns {import("./gameData.js").PlayerCounts} */
     initiativeCheck() {
         let kenCount = this.grabBagIsKennedy(2);
         if (kenCount === 2) {
@@ -154,6 +172,7 @@ class GameLogic {
                 selectedCard.isCandidate
             );
         } else {
+            //@ts-ignore
             selectedCard = cardItems.find(item => item.name === this.data.lastRoll.cardName);
             await this.alreadyChoseMediaCard(
                 selectedCard.card, 
@@ -190,7 +209,7 @@ class GameLogic {
 
     nixonCanCampaign(state) {
         if (flagActive(this.data, FLAGS.NIXON_EGGED) && STATE_REGION[state] === REGION.MIDWEST) return false;
-        if (flagActive(this.data, FLAGS.NIXONS_KNEE) && !this.data[player].canMomentum(1)) return false;
+        if (flagActive(this.data, FLAGS.NIXONS_KNEE) && !this.data.nixon.canMomentum(1)) return false;
 
         const oldSouth = this.data.flags[FLAGS.OLD_SOUTH];
         if (oldSouth && 
@@ -484,6 +503,7 @@ class GameLogic {
         if (!card.isCandidate) this.data[candidate].rest += card.rest;
     }
 
+    /** @param {CARD_MODE} cardMode */
     phraseForCardMode(cardMode) {
         let phrase = "";
         if (cardMode === CARD_MODE.CAMPAIGN) {
@@ -501,7 +521,10 @@ class GameLogic {
     async showChosenCard() {
         await timeout(500);
         const cardName = this.data.chosenCard;
-        this.data.chosenCard = null;
+        if (cardName === null || this.data.cardMode === null) {
+            console.error("Null chosen card!");
+            throw RESET_SIGNAL;
+        }
 
         showTurnSummary(this.data, candidateDp(getOtherCandidate(this.data)));
         const card = cardName === CANDIDATE_CARD_NAME 
@@ -513,16 +536,22 @@ class GameLogic {
             "Okay",
         );
         await popupSelector(this.cancelSignal).build();
+        const asEvent = this.data.cardMode === CARD_MODE.EVENT;
+        this.data.chosenCard = null;
         this.data.cardMode = null;
 
         hideTurnSummary();
-        this.nextTurn(cardName);
+        this.nextTurn(cardName, asEvent);
     }
 
     async triggerEvent() {
         await timeout(500);
         const player = getPlayerCandidate(this.data);
         const cardName = this.data.chosenCard;
+        if (cardName === null || this.data.cardMode === null) {
+            console.error("Null chosen card!");
+            throw RESET_SIGNAL;
+        }
 
         if (!this.data[player].canMomentum(1)) return this.showChosenCard();
 
@@ -536,7 +565,8 @@ class GameLogic {
             "Trigger", "Continue"
         );
         const selection = await popupSelector(this.cancelSignal).build();
-        this.data.cardMode = null;
+        const asEvent = this.data.cardMode === CARD_MODE.EVENT;
+
         hideTurnSummary();
 
         if (selection === triggerButton) {
@@ -546,25 +576,50 @@ class GameLogic {
             this.data.phase = PHASE.NEXT_TURN;
         } else if (selection === continueButton) {
             this.data.chosenCard = null;
+            this.data.cardMode = null;
             this.data.choosingPlayer = null;
             this.data.phase = PHASE.PLAY_CARDS;
-            this.nextTurn(cardName);
+            this.nextTurn(cardName, asEvent);
         }
+    }
+
+    discardCard(cardName, asEvent) {
+        let lifetime = asEvent ? CARDS[cardName].eventLifetime : LIFETIME.NONE;
+        if (lifetime === LIFETIME.TURN) {
+            lifetime = this.data.round;
+        }
+        this.data.discard.push({
+            name: cardName,
+            player: getPlayerCandidate(this.data),
+            lifetime: lifetime 
+        });
+
     }
     
     async doNextTurn() {
         const cardName = this.data.chosenCard;
-            this.data.chosenCard = null;
-            this.data.choosingPlayer = null;
-            this.data.phase = PHASE.PLAY_CARDS;
-        this.nextTurn(cardName);
+        if (cardName === null || this.data.cardMode === null) {
+            console.error("Null chosen card!");
+            throw RESET_SIGNAL;
+        }
+        const asEvent = this.data.cardMode === CARD_MODE.EVENT;
+
+        this.data.chosenCard = null;
+        this.data.cardMode = null;
+        this.data.choosingPlayer = null;
+        this.data.phase = PHASE.PLAY_CARDS;
+        this.nextTurn(cardName, asEvent);
     }
 
-    nextTurn(cardName) {
+    /**
+     * @param {string} cardName 
+     * @param {boolean} asEvent 
+     */
+    nextTurn(cardName, asEvent) {
+        this.discardCard(cardName, asEvent);
         this.data.turn++;
         this.data.preempted = false;
         this.data.currentPlayer = oppositeCandidate(this.data.currentPlayer);
-        this.data.discard.push(cardName);
     
         if (this.data.turn === TURNS_PER_ROUND) {
             this.data.currentPlayer = null;
@@ -574,7 +629,7 @@ class GameLogic {
     
     endPlayPhase() {
         this.data.choosingPlayer = getPlayerCandidate(this.data);
-        this.data.turns = 0;
+        this.data.turn = 0;
         this.data.kennedy.momentumDecay();
         this.data.nixon.momentumDecay();
     
@@ -744,7 +799,8 @@ class GameLogic {
                 },
                 initiative: check.kennedy > check.nixon ? KENNEDY : NIXON,
                 issues: [...this.data.issues],
-                resolveIndex: this.data.issues.length - 1
+                resolveIndex: this.data.issues.length - 1,
+                cleanUp: false
             };
             this.data.issues = this.data.issues.map(s => null);
             this.data.choosingPlayer = this.data.flags[DEBATE_FLAGS.LAZY_SHAVE]
@@ -765,7 +821,7 @@ class GameLogic {
     }
 
     placeDebateCard(card, cardName, _party) {
-        const issue = ISSUE_NAME[card.issue];
+        const issue = ISSUE_NAME(card.issue);
         if (!this.data.debate.hands[issue]) {
             this.data.discard.push(cardName);
             return;
@@ -876,7 +932,7 @@ class GameLogic {
 
         if (this.data.debate.needParty) {
             this.data.choosingPlayer = this.data.debate.needParty;
-            this.data.debate.needParty = null;
+            this.data.debate.needParty = undefined;
             this.data.phase = PHASE.DEBATE_PARTY;
         } else {
             this.data.phase = PHASE.DEBATE_RESOLVE;
@@ -994,9 +1050,9 @@ class GameLogic {
             [ENDORSE_REGIONS.SOUTH]: 0
         };
         this.data.issueScores = {
-            [Object.keys(ISSUE_URLS)[0]]: 0,
-            [Object.keys(ISSUE_URLS)[1]]: 0,
-            [Object.keys(ISSUE_URLS)[2]]: 0
+            [Object.values(ISSUE)[0]]: 0,
+            [Object.values(ISSUE)[1]]: 0,
+            [Object.values(ISSUE)[2]]: 0
         };
 
         this.data.nixon.bag += this.data.nixon.momentum*2;
@@ -1055,7 +1111,7 @@ class GameLogic {
             this.data.cubes[STATE_CODES.ct] += ctScore * supCheck;
         }
 
-        if (this.data.flag[ELECTION_FLAGS.RECOUNT]) {
+        if (this.data.flags[ELECTION_FLAGS.RECOUNT]) {
             this.data.event = {
                 type: EVENT_TYPE.SWING_STATE,
                 target: NIXON,
@@ -1069,7 +1125,7 @@ class GameLogic {
         // cubes for endorsements
         stateNames.filter(name => this.data.cubes[name] === 0)
             .forEach(name => {
-                const region = ENDORSE_NAME[STATE_REGION[name]];
+                const region = ENDORSE_NAME(STATE_REGION[name]);
                 this.data.cubes[name] = Math.sign(this.data.endorsements[region]);
             });
         // cubes for default win
@@ -1088,7 +1144,8 @@ class GameLogic {
 
         this.data.finalScore = {
             nixon: nixonElectors,
-            kennedy: kennedyElectors
+            kennedy: kennedyElectors,
+            winner: ""
         };
 
         this.data.finalScore.winner = this.getWinner();

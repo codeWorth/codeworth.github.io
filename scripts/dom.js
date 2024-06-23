@@ -1,33 +1,54 @@
 import { addCSSClass, removeCSSClass } from "./util.js";
 
-export const loginPage = document.getElementById("loginPage");
-export const loginButton = document.getElementById("login");
+/**
+ * @param {Element} e 
+ * @returns {HTMLElement}
+ */
+// @ts-ignore
+const html = e => e;
 
-export const joinPage = document.getElementById("joinPage");
-export const logoutButton = document.getElementById("logout");
-export const userNameField = document.getElementById("name");
-export const createGameButton = document.getElementById("createGame");
-export const gameCodeField = document.getElementById("gameCode");
-export const joinGameButton = document.getElementById("joinGame");
-export const deleteGameButton = document.getElementById("deleteGame");
-export const ownedGameIdsField = document.getElementById("ownedGameIds");
-export const joinedGameIdsField = document.getElementById("joinedGameIds");
+/**
+ * @param {string} id 
+ * @returns {HTMLElement}
+ */
+// @ts-ignore
+const byId = (id) => document.getElementById(id);
 
-export const choosePage = document.getElementById("choosePage");
-export const kennedyButton = document.getElementById("kennedy");
-export const nixonButton = document.getElementById("nixon");
-export const nixonMomentum = document.getElementById("nixonCount");
-export const kennedyMomentum = document.getElementById("kennedyCount");
-export const nixonRestCount = document.getElementById("nixonRestCount");
-export const kennedyRestCount = document.getElementById("kennedyRestCount");
+/**
+ * @param {string} className 
+ * @returns {HTMLElement}
+ */
+// @ts-ignore
+const byClass = (className) => document.getElementsByClassName(className)[0];
 
-export const gamePage = document.getElementById("gamePage");
-export const stateButtons = Object.fromEntries([...document.getElementsByClassName("sb")].map(sb => [
+export const loginPage = byId("loginPage");
+export const loginButton = byId("login");
+
+export const joinPage = byId("joinPage");
+export const logoutButton = byId("logout");
+export const userNameField = byId("name");
+export const createGameButton = byId("createGame");
+export const gameCodeField = /** @type {HTMLInputElement} */ (byId("gameCode"));
+export const joinGameButton = byId("joinGame");
+export const deleteGameButton = byId("deleteGame");
+export const ownedGameIdsField = byId("ownedGameIds");
+export const joinedGameIdsField = byId("joinedGameIds");
+
+export const choosePage = byId("choosePage");
+export const kennedyButton = byId("kennedy");
+export const nixonButton = byId("nixon");
+export const nixonMomentum = byId("nixonCount");
+export const kennedyMomentum = byId("kennedyCount");
+export const nixonRestCount = byId("nixonRestCount");
+export const kennedyRestCount = byId("kennedyRestCount");
+
+export const gamePage = byId("gamePage");
+export const stateButtons = Object.fromEntries([...document.getElementsByClassName("sb")].map(html).map(sb => [
     sb.id, {
         button: sb, 
-        setText: s => sb.children[0].innerText = s,
+        setText: s => html(sb.children[0]).innerText = s,
         setCount: n => {
-            sb.children[0].innerText = n === 0 ? "" : Math.abs(n);
+            html(sb.children[0]).innerText = n === 0 ? "" : Math.abs(n).toString();
             removeCSSClass(sb, "red");
             removeCSSClass(sb, "blue");
             if (n > 0) {
@@ -37,36 +58,38 @@ export const stateButtons = Object.fromEntries([...document.getElementsByClassNa
             }
         },
         showElectors: s => {
-            sb.children[1].innerText = s;
+            html(sb.children[1]).innerText = s;
             removeCSSClass(sb.children[1], "hidden")
         },
         hideElectors: () => addCSSClass(sb.children[1], "hidden")
     }
 ]));
-export const showElectorsButton = document.getElementById("showElectors");
-export const hideSummaryButton = document.getElementById("hideSummary");
-export const turnIndicator = document.getElementById("turnIndicator");
-export const subTurnIndicator = document.getElementById("subTurnIndicator");
-export const handDiv = document.getElementById("hand");
-export const campaignDiv = document.getElementById("campaign");
-export const handModeButton = document.getElementById("handMode");
 
-export const choosePopup = document.getElementById("choosePopup");
-export const chooseWindow = document.getElementById("chooseWindow");
-export const chooseTitle = chooseWindow.getElementsByClassName("header")[0];
-export const chooseButtonsContainer = document.getElementById("buttonContainer");
-export const showSummaryButton = document.getElementById("showSummary");
+export const showElectorsButton = byId("showElectors");
+export const hideSummaryButton = byId("hideSummary");
+export const turnIndicator = byId("turnIndicator");
+export const subTurnIndicator = byId("subTurnIndicator");
+export const handDiv = byId("hand");
+export const campaignDiv = byId("campaign");
+export const effectsDiv = byId("effects");
+export const handModeButton = byId("handMode");
 
-export const nixonIcon = document.getElementById("nixonIcon");
-export const kennedyIcon = document.getElementById("kennedyIcon");
+export const choosePopup = byId("choosePopup");
+export const chooseWindow =  byId("chooseWindow");
+export const chooseTitle = byClass("header");
+export const chooseButtonsContainer = byId("buttonContainer");
+export const showSummaryButton = byId("showSummary");
 
-export const endorseButtons = Object.fromEntries([...document.getElementsByClassName("endorse")].map(sb => [
+export const nixonIcon = byId("nixonIcon");
+export const kennedyIcon = byId("kennedyIcon");
+
+export const endorseButtons = Object.fromEntries([...document.getElementsByClassName("endorse")].map(html).map(sb => [
     sb.id, {
         button: sb,
-        dataKey: sb.dataset.key,
-        setText: s => sb.children[0].innerText = s,
+        dataKey: /** @type {string} */ (sb.dataset.key),
+        setText: s => html(sb.children[0]).innerText = s,
         setCount: n => {
-            sb.children[0].innerText = n === 0 ? "" : Math.abs(n);
+            html(sb.children[0]).innerText = n === 0 ? "" : Math.abs(n).toString();
             removeCSSClass(sb, "red");
             removeCSSClass(sb, "blue");
             if (n > 0) {
@@ -77,13 +100,13 @@ export const endorseButtons = Object.fromEntries([...document.getElementsByClass
         }
     }
 ]));
-export const mediaButtons = Object.fromEntries([...document.getElementsByClassName("media")].map(sb => [
+export const mediaButtons = Object.fromEntries([...document.getElementsByClassName("media")].map(html).map(sb => [
     sb.id, {
         button: sb,
-        dataKey: sb.dataset.key,
-        setText: s => sb.children[0].innerText = s,
+        dataKey: /** @type {string} */ (sb.dataset.key),
+        setText: s => html(sb.children[0]).innerText = s,
         setCount: n => {
-            sb.children[0].innerText = n === 0 ? "" : Math.abs(n);
+            html(sb.children[0]).innerText = n === 0 ? "" : Math.abs(n).toString();
             removeCSSClass(sb, "red");
             removeCSSClass(sb, "blue");
             if (n > 0) {
@@ -94,10 +117,10 @@ export const mediaButtons = Object.fromEntries([...document.getElementsByClassNa
         }
     }
 ]));
-export const issueButtons = Object.fromEntries([...document.getElementsByClassName("issue-select")].map(sb => [
-    parseInt(sb.dataset.index), {
+export const issueButtons = Object.fromEntries([...document.getElementsByClassName("issue-select")].map(html).map(sb => [
+    parseInt(sb.dataset.index || '0'), {
         button: sb,
-        dataIndex: parseInt(sb.dataset.index),
+        dataIndex: parseInt(sb.dataset.index || '0'),
         setHighlight: on => {
             if (on) {
                 addCSSClass(sb, "highlight");
@@ -105,9 +128,9 @@ export const issueButtons = Object.fromEntries([...document.getElementsByClassNa
                 removeCSSClass(sb, "highlight");
             }
         },
-        setText: s => sb.children[0].innerText = s,
+        setText: s => html(sb.children[0]).innerText = s,
         setCount: n => {
-            sb.children[0].innerText = n === 0 ? "" : Math.abs(n);
+            html(sb.children[0]).innerText = n === 0 ? "" : Math.abs(n).toString();
             removeCSSClass(sb, "red");
             removeCSSClass(sb, "blue");
             if (n > 0) {
@@ -119,22 +142,24 @@ export const issueButtons = Object.fromEntries([...document.getElementsByClassNa
     }
 ]));
 
-export const infoDiv = document.getElementById("info");
-export const eventCounter = document.getElementById("eventCounter");
+export const infoDiv = byId("info");
+export const eventCounter = byId("eventCounter");
 
-const popupCardDiv = document.getElementById("popupCard");
+const popupCardDiv = byId("popupCard");
+/** @type {import('./view.js').CardDiv} */
 export const popupCard = {
-    card: popupCardDiv, 
-    header: popupCardDiv.getElementsByClassName("header")[0], 
-    body: popupCardDiv.getElementsByClassName("body")[0], 
-    candidateImg: popupCardDiv.getElementsByClassName("candidate")[0], 
-    issueImg: popupCardDiv.getElementsByClassName("issue")[0], 
-    cp: popupCardDiv.getElementsByClassName("cp")[0], 
-    state: popupCardDiv.getElementsByClassName("state")[0], 
-    rest: popupCardDiv.getElementsByClassName("rest")[0]
+    card: /** @type {HTMLDivElement} */ (popupCardDiv), 
+    header: /** @type {HTMLDivElement} */ (byClass("header")), 
+    body: /** @type {HTMLDivElement} */ (byClass("body")), 
+    candidateImg: /** @type {HTMLImageElement} */ (byClass("candidate")), 
+    issueImg: /** @type {HTMLImageElement} */ (byClass("issue")), 
+    cp: /** @type {HTMLDivElement} */ (byClass("cp")), 
+    state: /** @type {HTMLDivElement} */ (byClass("state")), 
+    rest: /** @type {HTMLDivElement} */ (byClass("rest")),
+    pointsCover: /** @type {HTMLDivElement} */ (byClass("pointsCover"))
 };
 
-export const debateWindow = document.getElementById("debate");
+export const debateWindow = byId("debate");
 
 /**
  * @typedef {Object} DebateRow
@@ -144,9 +169,9 @@ export const debateWindow = document.getElementById("debate");
  * @property {HTMLElement} left
  * @property {HTMLElement} right
  */
-/** @type {Object<number, DebateRow} */
+/** @type {Object<number, DebateRow>} */
 export const debateRows = Object.fromEntries([...document.getElementsByClassName("debate-row")]
-    .map(row => [
+    .map(html).map(row => [
         row.dataset.index,
         {
             index: row.dataset.index,

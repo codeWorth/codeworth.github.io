@@ -13,26 +13,20 @@ export const SAVED_FIELDS = [
     KENNEDY
 ];
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const CANDIDATE = {
     nixon: NIXON,
     kennedy: KENNEDY
 };
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const CP_MOD_TYPE = {
     ALL: "all",
     POSITIONING: "pos",
     CAMPAIGNING: "cam"
 }
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const PHASE = {
     CHOOSE_FIRST: "choose_first",
     PLAY_CARDS: "play_cards",
@@ -52,17 +46,13 @@ export const PHASE = {
     NEXT_TURN: "nextTurn"
 }
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const DEBATE_FLAGS = {
     BRAIN_TRUST: "brainTrust",
     LAZY_SHAVE: "lazyShave"
 }
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const ELECTION_FLAGS = {
     UNPLEDGED: "unpledged",
     COOK_COUNTY: "cookCountry",
@@ -70,9 +60,7 @@ export const ELECTION_FLAGS = {
     RECOUNT: "recount"
 }
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const FLAGS = {
     STOP_SILENCE: "stopSilence",
     HOUSTON_ASSOC: "houstonAssoc",
@@ -88,12 +76,11 @@ export const FLAGS = {
     ADVANCE_MEN: "advanceMen",
     OLD_SOUTH: "oldSouth",
     PROFILES_COURAGE: "profilesCourage",
-    HOSTILE_PRESS: "hostilePress"
+    HOSTILE_PRESS: "hostilePress",
+    NIXON_PLEDGE: "nixonsPledge"
 };
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const EVENT_TYPE = {
     LOSE_ISSUE: "loseIssue",
     CHANGE_PER: "changePer",
@@ -120,9 +107,7 @@ export const EVENT_TYPE = {
     SWING_STATE: "swingState"
 };
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const ISSUE = {
     DEFENSE: "DEFENSE",
     CIVIL_RIGHTS: "CIVIL_RIGHTS",
@@ -130,17 +115,19 @@ export const ISSUE = {
 };
 
 /**
- * @enum {string}
+ * @param {ISSUE} k 
+ * @returns {string}
  */
-export const ISSUE_URLS = {
+export const ISSUE_URLS = (k) => {
+	return _ISSUE_URLS[k];
+}
+export const _ISSUE_URLS = {
     [ISSUE.DEFENSE]: "../images/defense_gray.png",
     [ISSUE.CIVIL_RIGHTS]: "../images/civilrights_gray.png",
     [ISSUE.ECONOMY]: "../images/economy_gray.png"
 };
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const CARD_MODE = {
     EVENT: "event",
     CAMPAIGN: "campaign",
@@ -148,9 +135,7 @@ export const CARD_MODE = {
     ISSUES: "issue"
 }
 
-/**
- * @enum {string}
- */
+/** @enum {string} */
 export const STATE_CODES = {
     al: "alabama",
     ak: "alaska",
@@ -364,6 +349,7 @@ export const stateLeanNixon = {
     [STATE_CODES.hi]: false,
 };
 
+/** @enum {number} */
 export const REGION = {
     WEST: 0,
     MIDWEST: 1,

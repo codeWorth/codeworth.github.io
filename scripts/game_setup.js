@@ -2,12 +2,13 @@ import {
     onSnapshot, runTransaction,
     doc, collection, query, where,
     getDoc, setDoc, getDocs, deleteDoc, updateDoc
+//@ts-ignore
 } from 'https://www.gstatic.com/firebasejs/9.22.1/firebase-firestore.js';
 import { addCSSClass, removeCSSClass } from "./util.js";
 import {
     NIXON, KENNEDY,
     PHASE, DEFAULT_COUNTS,
-    ISSUE_URLS
+    ISSUE
 } from "./constants.js";
 import { CARDS, ENDORSEMENT_CARDS, ENDORSE_REGIONS } from './cards.js';
 import * as UI from "./dom.js";
@@ -124,9 +125,9 @@ class GameSetup {
     }
     
     async choosePlayer(gameId, isKennedy, selfPlayer, otherPlayer) {
-        const order = Object.keys(ISSUE_URLS);
+        const order = Object.values(ISSUE);
         const issues = [];
-        for (let i = 0; i < Object.keys(ISSUE_URLS).length; i++) {
+        for (let i = 0; i < Object.values(ISSUE).length; i++) {
             const index = Math.floor(Math.random() * order.length);
             issues[i] = order[index];
             order.splice(index, 1);
@@ -181,9 +182,9 @@ class GameSetup {
                 [ENDORSE_REGIONS.SOUTH]: 0
             },
             issueScores: {
-                [Object.keys(ISSUE_URLS)[0]]: 0,
-                [Object.keys(ISSUE_URLS)[1]]: 0,
-                [Object.keys(ISSUE_URLS)[2]]: 0
+                [Object.values(ISSUE)[0]]: 0,
+                [Object.values(ISSUE)[1]]: 0,
+                [Object.values(ISSUE)[2]]: 0
             },
             kennedy: {
                 uid: isKennedy ? selfPlayer : otherPlayer,
@@ -193,8 +194,7 @@ class GameSetup {
                 rest: 0,
                 exhausted: false,
                 momentum: 2,
-                campaignDeck: [],
-                needDiscard: 0
+                campaignDeck: []
             },
             nixon: {
                 uid: isKennedy ? otherPlayer : selfPlayer,
@@ -204,8 +204,7 @@ class GameSetup {
                 rest: 0,
                 exhausted: false,
                 momentum: 2,
-                campaignDeck: [],
-                needDiscard: 0
+                campaignDeck: []
             },
             cpMods: [],
             event: null,
@@ -213,7 +212,7 @@ class GameSetup {
             prev: null,
             cardMode: null
         });
-        addCSSClass(choosePage, "hidden");
+        addCSSClass(UI.choosePage, "hidden");
         this.enterGame(gameId);
     }
 }

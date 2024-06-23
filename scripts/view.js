@@ -2,8 +2,9 @@ import * as UI from "./dom.js";
 import {
     ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY, NIXON, STATE_CODES, CANDIDATE, PHASE
 } from "./constants.js";
-import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ISSUE_URL, PARTY_URL } from "./cards.js";
+import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ISSUE_URL, PARTY_URL, LIFETIME, ENDORSE_REGIONS } from "./cards.js";
 import { addCSSClass, removeCSSClass } from "./util.js";
+import GameData from "./gameData.js";
 
 let showingElectors = false;
 
@@ -33,7 +34,7 @@ export function showIssues(gameData) {
             val.button.style.backgroundImage = "url(../images/blank_issue.png)";
         } else {
             val.setCount(gameData.issueScores[issueName]);
-            val.button.style.backgroundImage = `url(${ISSUE_URLS[issueName]})`;
+            val.button.style.backgroundImage = `url(${ISSUE_URLS(issueName)})`;
         }
     }
 }
@@ -50,26 +51,34 @@ export function updateCubes(gameData) {
 }
 
 UI.showSummaryButton.onclick = () => {
-    addCSSClass(choosePopup, "hidden");
+    addCSSClass(UI.choosePopup, "hidden");
 }
 UI.hideSummaryButton.onclick = () => {
-    removeCSSClass(choosePopup, "hidden");
+    removeCSSClass(UI.choosePopup, "hidden");
 }
 function removeDeltas() {
     const deltaDivs = document.getElementsByClassName("delta");
     while (deltaDivs.length > 0) {
-        deltaDivs[0].parentElement.removeChild(deltaDivs[0]);
+        deltaDivs[0].remove();
     }
-    for (let i = 0; i < UI.issueButtons.length; i++) {
+    for (let i = 0; i < Object.keys(UI.issueButtons).length; i++) {
         UI.issueButtons[i].setHighlight(false);
     }
 }
+/**
+ * @param {number} count 
+ * @returns {HTMLElement}
+ */
 function createDelta(count) {
     const deltaDiv = document.createElement("div");
     deltaDiv.className = "delta";
-    deltaDiv.innerText = count < 0 ? count : `+${count}`;
+    deltaDiv.innerText = count < 0 ? count.toString() : `+${count}`;
     return deltaDiv;
 }
+/**
+ * @param {GameData} gameData 
+ * @param {number} dp 
+ */
 export function showTurnSummary(gameData, dp) {
     removeCSSClass(UI.showSummaryButton, "hidden");
     removeCSSClass(UI.hideSummaryButton, "hidden");
@@ -134,26 +143,42 @@ export function toggleShowElectors() {
     }
 }
 
-let showingHand = true;
+const VIEWED_CARDS = {
+    HAND: "hand",
+    CAMPAIGN: "campaign",
+    EFFECTS: "effects"
+};
+let viewedCards = VIEWED_CARDS.HAND;
 UI.handModeButton.onclick = toggleHandMode;
 function toggleHandMode() {
-    if (showingHand) {
+    if (viewedCards == VIEWED_CARDS.HAND) {
         showCampaignDeck();
-    } else {
+    } else if (viewedCards === VIEWED_CARDS.CAMPAIGN) {
+        showEffects();
+    } else if (viewedCards === VIEWED_CARDS.EFFECTS) {
         showHand();
     }
 }
 export function showHand() {
-    showingHand = true;
+    viewedCards = VIEWED_CARDS.HAND;
     UI.handModeButton.innerText = "Show Campaign Strategy";
     removeCSSClass(UI.handDiv, "hidden");
     addCSSClass(UI.campaignDiv, "hidden");
+    addCSSClass(UI.effectsDiv, "hidden");
 }
 export function showCampaignDeck() {
-    showingHand = false;
-    UI.handModeButton.innerText = "Show Hand";
+    viewedCards = VIEWED_CARDS.CAMPAIGN;
+    UI.handModeButton.innerText = "Show Active Effects";
     removeCSSClass(UI.campaignDiv, "hidden");
     addCSSClass(UI.handDiv, "hidden");
+    addCSSClass(UI.effectsDiv, "hidden");
+}
+export function showEffects() {
+    viewedCards = VIEWED_CARDS.EFFECTS;
+    UI.handModeButton.innerText = "Show Hand";
+    removeCSSClass(UI.effectsDiv, "hidden");
+    addCSSClass(UI.handDiv, "hidden");
+    addCSSClass(UI.campaignDiv, "hidden");
 }
 
 UI.chooseWindow.onclick = e => e.stopPropagation();
@@ -173,6 +198,21 @@ export function moveIcons(gameData) {
     moveIconTo(UI.nixonIcon, gameData.nixon.state);
 }
 
+/**
+ * @typedef {Object} CardDiv
+ * @property {HTMLDivElement} card 
+ * @property {HTMLDivElement} header
+ * @property {HTMLDivElement} body
+ * @property {HTMLImageElement} candidateImg
+ * @property {HTMLImageElement} issueImg
+ * @property {HTMLDivElement} cp
+ * @property {HTMLDivElement} state
+ * @property {HTMLDivElement} rest
+ * @property {HTMLDivElement} pointsCover
+ */
+/**
+ * @returns {CardDiv}
+ */
 export function makeEmptyCard() {
     const card = document.createElement("div");
     card.className = "card";
@@ -187,10 +227,10 @@ export function makeEmptyCard() {
     bodyContainer.appendChild(body);
     
     const candidateImg = document.createElement("img");
-    candidateImg.width = "40";
+    candidateImg.width = 40;
     candidateImg.className = "candidate";
     const issueImg = document.createElement("img");
-    issueImg.width = "40";
+    issueImg.width = 40;
     issueImg.className = "issue";
 
     const info = document.createElement("div");
@@ -229,17 +269,17 @@ export function makeEmptyCard() {
 }
 
 /**
- * @param {HTMLElement} cardObj 
+ * @param {CardDiv} cardObj 
  * @param {string} cardName 
- * @param {Card} card 
+ * @param {import('./cards.js').Card} card 
  */
 function writeToCard(cardObj, cardName, card) {
     cardObj.header.innerText = cardName;
     cardObj.body.innerText = card.text;
     cardObj.cp.innerText = card.points + " CP";
     cardObj.rest.innerText = card.rest + " Rest";
-    cardObj.state.innerText = card.state === null ? "" : card.state.toUpperCase();
-    cardObj.candidateImg.src = PARTY_URL[card.party];
+    cardObj.state.innerText = card.state.toUpperCase();
+    cardObj.candidateImg.src = PARTY_URL(card.party);
     cardObj.issueImg.src = card.issue === null ? "../images/blank_issue.png" : ISSUE_URL[card.issue];
 }
 
@@ -247,7 +287,7 @@ function writeToCard(cardObj, cardName, card) {
  * @param {string[]} hand 
  * @param {boolean} exhausted 
  * @param {CANDIDATE} candidate 
- * @param {HTMLElement|undefined} handDiv 
+ * @param {HTMLElement} [handDiv] 
  */
 export function displayHand(hand, exhausted, candidate, handDiv) {
     if (!handDiv) handDiv = UI.handDiv;
@@ -283,7 +323,7 @@ export function displayHand(hand, exhausted, candidate, handDiv) {
         cardSlot.cp.innerText = fakeCard.points + " CP";
         cardSlot.rest.innerText = fakeCard.rest + " Rest";
         cardSlot.state.innerText = fakeCard.state.toUpperCase();
-        cardSlot.candidateImg.src = PARTY_URL[fakeCard.party];
+        cardSlot.candidateImg.src = PARTY_URL(fakeCard.party);
         cardSlot.issueImg.src = "../images/blank_issue.png";
 
         cardItems.push({
@@ -317,6 +357,41 @@ export function displayCampaignDeck(hand) {
 
         cardItems.push({
             name: cardName,
+            card: card,
+            cardSlot: cardSlot,
+            button: cardSlot.card
+        });
+    }
+
+    return cardItems;
+}
+
+/**
+ * @param {string[]} discard 
+ */
+export function displayEffects(discard, turn) {
+    const effectCards = discard
+        .map(name => ({
+            name: name,
+            ...CARDS[name]
+        }))
+        .filter(card => 
+            card.lifetime !== LIFETIME.NONE ||
+            (!isNaN(parseInt(card.lifetime)) && card.lifetime >= turn)
+        );
+    const cardItems = [];
+
+    const cardDivs = UI.effectsDiv.querySelectorAll(".card");
+    cardDivs.forEach(cardDiv => UI.effectsDiv.removeChild(cardDiv));
+
+    for (let i = 0; i < effectCards.length; i++) {
+        const card = effectCards[i];
+        const cardSlot = makeEmptyCard();
+        UI.effectsDiv.appendChild(cardSlot.card);
+        writeToCard(cardSlot, card.name, card);
+
+        cardItems.push({
+            name: card.name,
             card: card,
             cardSlot: cardSlot,
             button: cardSlot.card
@@ -385,20 +460,20 @@ export function showShouldDiscard(count) {
  * @param {number} points 
  */
 export function showPointsOnCard(cover, points) {
-    cover.innerText = points;
+    cover.innerText = points.toString();
     if (points === 0) cover.innerText = "Done?";
     removeCSSClass(cover, "hidden");
 }
 
 /** @param {GameData} gameData */
 export function showMomentum(gameData) {
-    UI.nixonMomentum.innerText = gameData.nixon.momentum;
-    UI.kennedyMomentum.innerText = gameData.kennedy.momentum;
+    UI.nixonMomentum.innerText = gameData.nixon.momentum.toString();
+    UI.kennedyMomentum.innerText = gameData.kennedy.momentum.toString();
 }
 /** @param {GameData} gameData */
 export function showRest(gameData) {
-    UI.nixonRestCount.innerText = gameData.nixon.rest;
-    UI.kennedyRestCount.innerText = gameData.kennedy.rest;
+    UI.nixonRestCount.innerText = gameData.nixon.rest.toString();
+    UI.kennedyRestCount.innerText = gameData.kennedy.rest.toString();
 }
 
 export function highlightSelf(playerCandidate) {
@@ -426,7 +501,7 @@ export function showDebateWindow(gameData) {
     for (let i = 0; i < issues.length; i++) {
         const issue = issues[i];
         if (hands[issue]) {
-            UI.debateRows[i].issue.style.backgroundImage = `url(${ISSUE_URLS[issue]})`;
+            UI.debateRows[i].issue.style.backgroundImage = `url(${ISSUE_URLS(issue)})`;
             displayHand(hands[issue].nixon, true, NIXON, UI.debateRows[i].left);
             displayHand(hands[issue].kennedy, true, KENNEDY, UI.debateRows[i].right);
         } else {

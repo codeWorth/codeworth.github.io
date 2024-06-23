@@ -45,7 +45,8 @@ import {
     stateNames,
     stateLeanNixon,
     CARD_MODE,
-    ISSUE
+    ISSUE,
+    REGION_NAME
 } from './constants.js';
 import GameData from './gameData.js';
 import { ALL_REGIONS, addPer } from './events.js';
@@ -193,6 +194,11 @@ class GameLogic {
         }
     }
     
+    /**
+     * @param {import('./cards.js').Card} card 
+     * @param {import('./view.js').CardDiv} cardSlot 
+     * @param {number} points 
+     */
     async alreadyChoseMediaCard(card, cardSlot, points) {
         showPointsOnCard(cardSlot.pointsCover, points);
     
@@ -202,11 +208,19 @@ class GameLogic {
         if (!choseCard) throw RESET_SIGNAL;
     }
 
+    /** 
+     * @param {string} player 
+     * @returns {boolean}
+     */
     preemptNeedsMmtm(player) {
         if (player === KENNEDY && this.data.flags[FLAGS.KENNEDY_CORPS] === this.data.round) return false;
         return true;
     }
 
+    /** 
+     * @param {string} state
+     * @returns {boolean}
+     */
     nixonCanCampaign(state) {
         if (flagActive(this.data, FLAGS.NIXON_EGGED) && STATE_REGION[state] === REGION.MIDWEST) return false;
         if (flagActive(this.data, FLAGS.NIXONS_KNEE) && !this.data.nixon.canMomentum(1)) return false;
@@ -217,7 +231,7 @@ class GameLogic {
             STATE_REGION[state] === REGION.SOUTH && 
             oldSouth.round === this.data.round) return false;
 
-        if (flagActive(this.data, FLAGS.SILENCE) && state !== null) {
+        if (flagActive(this.data, FLAGS.SILENCE)) {
             const kenDp = candidateDp(KENNEDY);
             return Math.sign(this.data.cubes[state]) !== kenDp;
         }
@@ -225,6 +239,10 @@ class GameLogic {
         return true;
     }
 
+    /** 
+     * @param {string} state
+     * @returns {boolean}
+     */
     kennedyCanCampaign(state) {
         if (this.data.flags[FLAGS.KEN_NO_CP] === undefined) return true;
         
@@ -241,6 +259,10 @@ class GameLogic {
         return matches.length === 0;
     }
     
+    /** 
+     * @param {string} cardName 
+     * @returns {boolean}
+     */
     canCardEvent(cardName) {
         const player = getPlayerCandidate(this.data);
 
@@ -255,6 +277,11 @@ class GameLogic {
         return true;
     }
 
+    /** 
+     * @param {number} points
+     * @param {string} player 
+     * @returns {number}
+     */
     modCardPoints(points, player) {
         this.data.cpMods
             .filter(mod => mod.player === player)
@@ -267,6 +294,7 @@ class GameLogic {
         return points;
     }
 
+    /** @return {boolean} */
     playerFreeMove() {
         const player = getPlayerCandidate(this.data);
         if (player === KENNEDY && flagActive(this.data, FLAGS.KEN_AIR)) return true;
@@ -277,6 +305,13 @@ class GameLogic {
         return false;
     }
 
+    /**
+     * @param {string} cardName 
+     * @param {import('./cards.js').Card} card 
+     * @param {import('./view.js').CardDiv} cardSlot 
+     * @param {boolean} isCandidate 
+     * @returns 
+     */
     async cardChosen(cardName, card, cardSlot, isCandidate) {
         const playerCandidate = getPlayerCandidate(this.data);
         if (this.data.currentPlayer !== playerCandidate) return false;
@@ -364,12 +399,25 @@ class GameLogic {
         }
     }
 
+    /**
+     * @param {import('./cards.js').Card} card 
+     * @param {string} player 
+     */
     activateEvent(card, player) {
         if (flagActive(this.data, FLAGS.JACKIE_KENNEDY) && player === NIXON) this.data[player].momentum--;
 
+        if (!card.event) {
+            console.error("Event-less card activated!");
+            throw RESET_SIGNAL;
+        }
         card.event(this.data, player);
     }
     
+    /**
+     * @param {number} points 
+     * @param {import('./view.js').CardDiv} cardSlot 
+     * @param {HTMLElement} doneButton 
+     */
     async useCampaignPoints(points, cardSlot, doneButton) {
         const player = getPlayerCandidate(this.data);
         if (flagActive(this.data, FLAGS.NIXONS_KNEE) && player === NIXON)  this.data[player].momentum--;
@@ -401,6 +449,11 @@ class GameLogic {
     
         if (!exited) await awaitClick(this.cancelSignal, doneButton);
     }
+    /**
+     * @param {string} stateName 
+     * @param {number} points 
+     * @returns {number}
+     */
     spendState(stateName, points){
         const playerCandidate = getPlayerCandidate(this.data);
         const playerLocation = this.data[playerCandidate].state;
@@ -421,6 +474,11 @@ class GameLogic {
         return points;
     }
     
+    /**
+     * @param {number} points 
+     * @param {HTMLElement} doneButton 
+     * @param {Function} showPoints 
+     */
     async useIssuePoints(points, doneButton, showPoints) {
         const player = getPlayerCandidate(this.data);
         const issuesBought = [];
@@ -436,9 +494,6 @@ class GameLogic {
                 break;
             }
 
-            if (player === NIXON && !this.nixonCanCampaign(null)) continue;
-            if (player === KENNEDY && !this.kennedyCanCampaign(null)) continue;
-
             const issueClicked = this.data.issues[buttonClicked.dataIndex];
             points = this.spendIssue(issueClicked, points, issuesBought);
             showPoints(points);
@@ -446,6 +501,12 @@ class GameLogic {
     
         if (!exited) await awaitClick(this.cancelSignal, doneButton);
     }
+    /**
+     * @param {string} issueName 
+     * @param {number} points 
+     * @param {string[]} issuesBought 
+     * @returns {number}
+     */
     spendIssue(issueName, points, issuesBought) {
         const cost = issuesBought.includes(issueName) ? 2 : 1;
         if (points < cost) return points;
@@ -459,6 +520,11 @@ class GameLogic {
         return points;
     }
 
+    /**
+     * @param {number} points 
+     * @param {HTMLElement} doneButton 
+     * @param {Function} showPoints 
+     */
     async useMediaPoints(points, doneButton, showPoints) {
         const player = getPlayerCandidate(this.data);    
         let exited = false;
@@ -473,9 +539,6 @@ class GameLogic {
                 break;
             }
 
-            if (player === NIXON && !this.nixonCanCampaign(null)) continue;
-            if (player === KENNEDY && !this.kennedyCanCampaign(null)) continue;
-
             this.data.media[buttonClicked.dataKey] += candidateDp(player);
             points--;
             showMedia(this.data);
@@ -485,6 +548,10 @@ class GameLogic {
         if (!exited) await awaitClick(this.cancelSignal, doneButton);
     }
     
+    /**
+     * @param {import('./cards.js').Card} card 
+     * @returns {Promise<boolean>}
+     */
     async confirmCardChoices(card) {
         const [finalizeButton, resetButton] = showPopup("Finalize these moves?", "Finalize", "Reset");
         const popupButton = await popupSelector(this.cancelSignal).build();
@@ -495,15 +562,22 @@ class GameLogic {
         } else if (popupButton === resetButton) {
             return false;
         }
+
+        console.error("Unexpected button presssed!");
+        throw RESET_SIGNAL;
     }
     
+    /** @param {import('./cards.js').Card} card */
     usedCard(card) {
         const candidate = getPlayerCandidate(this.data);
         if (card.isCandidate) this.data[candidate].exhausted = true;
         if (!card.isCandidate) this.data[candidate].rest += card.rest;
     }
 
-    /** @param {CARD_MODE} cardMode */
+    /**
+     * @param {CARD_MODE} cardMode 
+     * @returns {string}
+     */
     phraseForCardMode(cardMode) {
         let phrase = "";
         if (cardMode === CARD_MODE.CAMPAIGN) {
@@ -583,7 +657,12 @@ class GameLogic {
         }
     }
 
+    /**
+     * @param {string} cardName 
+     * @param {boolean} asEvent 
+     */
     discardCard(cardName, asEvent) {
+        /** @type {LIFETIME|number} */
         let lifetime = asEvent ? CARDS[cardName].eventLifetime : LIFETIME.NONE;
         if (lifetime === LIFETIME.TURN) {
             lifetime = this.data.round;
@@ -662,6 +741,10 @@ class GameLogic {
         this.momentumAwards();
     }
     
+    /**
+     * @param {number} i 
+     * @returns {number} 
+     */
     getIssueScore(i) {
         return this.data.issueScores[this.data.issues[i]];
     }
@@ -710,12 +793,14 @@ class GameLogic {
         }    
     }
     
+    /** @returns {string} card */
     drawEndorsementCard() {
         const cardIndex = Math.floor(Math.random() * this.data.endorsementsDeck.length);
         const card = this.data.endorsementsDeck[cardIndex];
         this.data.endorsementsDeck.splice(cardIndex, 1);
         return card;
     }
+    /** @param {ENDORSE_REGIONS} endorseCard */
     async useEndorsementCard(endorseCard) {
         const playerCandidate = getPlayerCandidate(this.data);
     
@@ -802,7 +887,7 @@ class GameLogic {
                 resolveIndex: this.data.issues.length - 1,
                 cleanUp: false
             };
-            this.data.issues = this.data.issues.map(s => null);
+            this.data.issues = [];
             this.data.choosingPlayer = this.data.flags[DEBATE_FLAGS.LAZY_SHAVE]
                 ? NIXON
                 : getPlayerCandidate(this.data);
@@ -820,10 +905,25 @@ class GameLogic {
         await handler.handleEvent();
     }
 
+    /**
+     * @param {import('./cards.js').Card} card 
+     * @param {string} cardName 
+     * @param {PARTY} [_party] 
+     * @returns 
+     */
     placeDebateCard(card, cardName, _party) {
+        if (!card.issue) {
+            console.error("Debate card played missing issue!");
+            throw RESET_SIGNAL;
+        }
+
         const issue = ISSUE_NAME(card.issue);
         if (!this.data.debate.hands[issue]) {
-            this.data.discard.push(cardName);
+            this.data.discard.push({
+                name: cardName,
+                player: null,
+                lifetime: LIFETIME.NONE
+            });
             return;
         }
 
@@ -978,6 +1078,10 @@ class GameLogic {
         this.resolveDebateIssue(hands, issue);
     }
 
+    /**
+     * @param {Object<ISSUE, import('./gameData.js').HandsPair>} hands 
+     * @param {ISSUE} issue 
+     */
     resolveDebateIssue(hands, issue) {
         const nixonTotal = hands[issue].nixon
             .map(name => CARDS[name].points)
@@ -996,8 +1100,7 @@ class GameLogic {
             winner = KENNEDY;
         }
 
-        const lowestPos = this.data.issues.lastIndexOf(null);
-        this.data.issues[lowestPos] = issue;
+        this.data.issues.unshift(issue);
         this.data.discard.push(...hands[issue].nixon, ...hands[issue].kennedy);
         this.data.debate.hands[issue] = null;
 
@@ -1011,8 +1114,16 @@ class GameLogic {
     }
 
     endDebates() {
-        this.data.discard.push(...this.data.nixon.campaignDeck);
-        this.data.discard.push(...this.data.kennedy.campaignDeck);
+        this.data.discard.push(...this.data.nixon.campaignDeck.map(name => ({
+            name: name,
+            player: null,
+            lifetime: LIFETIME.NONE
+        })));
+        this.data.discard.push(...this.data.kennedy.campaignDeck.map(name => ({
+            name: name,
+            player: null,
+            lifetime: LIFETIME.NONE
+        })));
         this.data.nixon.campaignDeck = [];
         this.data.kennedy.campaignDeck = [];
 
@@ -1151,6 +1262,7 @@ class GameLogic {
         this.data.finalScore.winner = this.getWinner();
     }
 
+    /** @returns {string} */
     getWinner() {
         const nixonElectors = this.data.finalScore.nixon;
         const kennedyElectors = this.data.finalScore.kennedy;
@@ -1184,6 +1296,11 @@ class GameLogic {
         }
     }
 
+    /**
+     * @param {string} stateName 
+     * @param {string} candidate 
+     * @returns {number}
+     */
     getElectors(stateName, candidate) {
         const dp = candidateDp(candidate);
         const unpledgedStates = ["alabama", "louisiana", "mississippi"];

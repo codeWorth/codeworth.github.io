@@ -1,3 +1,4 @@
+import { ENDORSE_REGIONS } from "./cards.js";
 import { addCSSClass, removeCSSClass } from "./util.js";
 
 /**
@@ -86,7 +87,7 @@ export const kennedyIcon = byId("kennedyIcon");
 export const endorseButtons = Object.fromEntries([...document.getElementsByClassName("endorse")].map(html).map(sb => [
     sb.id, {
         button: sb,
-        dataKey: /** @type {string} */ (sb.dataset.key),
+        dataKey: /** @type {ENDORSE_REGIONS} */ (sb.dataset.key),
         setText: s => html(sb.children[0]).innerText = s,
         setCount: n => {
             html(sb.children[0]).innerText = n === 0 ? "" : Math.abs(n).toString();
@@ -103,7 +104,7 @@ export const endorseButtons = Object.fromEntries([...document.getElementsByClass
 export const mediaButtons = Object.fromEntries([...document.getElementsByClassName("media")].map(html).map(sb => [
     sb.id, {
         button: sb,
-        dataKey: /** @type {string} */ (sb.dataset.key),
+        dataKey: /** @type {ENDORSE_REGIONS} */ (sb.dataset.key),
         setText: s => html(sb.children[0]).innerText = s,
         setCount: n => {
             html(sb.children[0]).innerText = n === 0 ? "" : Math.abs(n).toString();
@@ -118,9 +119,9 @@ export const mediaButtons = Object.fromEntries([...document.getElementsByClassNa
     }
 ]));
 export const issueButtons = Object.fromEntries([...document.getElementsByClassName("issue-select")].map(html).map(sb => [
-    parseInt(sb.dataset.index || '0'), {
+    parseInt(/** @type {string} */ (sb.dataset.index)), {
         button: sb,
-        dataIndex: parseInt(sb.dataset.index || '0'),
+        dataIndex: parseInt(/** @type {string} */ (sb.dataset.index)),
         setHighlight: on => {
             if (on) {
                 addCSSClass(sb, "highlight");

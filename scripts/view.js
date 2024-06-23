@@ -367,18 +367,14 @@ export function displayCampaignDeck(hand) {
 }
 
 /**
- * @param {string[]} discard 
+ * @param {import("./gameData.js").Discard[]} discard 
+ * @param {number} turn
  */
 export function displayEffects(discard, turn) {
     const effectCards = discard
-        .map(name => ({
-            name: name,
-            ...CARDS[name]
-        }))
         .filter(card => 
             card.lifetime !== LIFETIME.NONE ||
-            (!isNaN(parseInt(card.lifetime)) && card.lifetime >= turn)
-        );
+            (!isNaN(parseInt(card.lifetime)) && parseInt(card.lifetime) >= turn));
     const cardItems = [];
 
     const cardDivs = UI.effectsDiv.querySelectorAll(".card");
@@ -388,7 +384,7 @@ export function displayEffects(discard, turn) {
         const card = effectCards[i];
         const cardSlot = makeEmptyCard();
         UI.effectsDiv.appendChild(cardSlot.card);
-        writeToCard(cardSlot, card.name, card);
+        writeToCard(cardSlot, card.name, CARDS[card.name]);
 
         cardItems.push({
             name: card.name,

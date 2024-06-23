@@ -207,7 +207,7 @@ export function sum(a, b) {
 
 /**
  * @param {number} ms 
- * @returns {Promise<void}
+ * @returns {Promise<void>}
  */
 export function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));

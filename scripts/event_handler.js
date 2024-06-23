@@ -1,4 +1,4 @@
-import { CARDS, PARTY } from "./cards.js";
+import { CARDS, LIFETIME, PARTY } from "./cards.js";
 import { ELECTORS, EVENT_TYPE, KENNEDY, PRETTY_STATES, REGION_NAME, RESET_SIGNAL, STATE_REGION, stateNames, STATE_CODES, FLAGS, NIXON } from "./constants.js";
 import { Deferred, awaitClick, awaitClickAndReturn } from "./deferred.js";
 import * as UI from "./dom.js";
@@ -54,7 +54,7 @@ class EventHandler {
 
     async chooseCardFromDiscard() {
         const player = getPlayerCandidate(this.data);
-        const cardItems = displayHand(this.data.discard, true, player);
+        const cardItems = displayHand(this.data.discard.map(c => c.name), true, player);
         return await Deferred(this.cancelSignal)
             .withAwaitClickAndReturn(...cardItems)
             .withAwaitClick(UI.eventCounter)
@@ -301,7 +301,11 @@ class EventHandler {
 
         const removed = Object.keys(selected)
             .filter(name => selected[name]);
-        this.data.discard.push(...removed);
+        this.data.discard.push(...removed.map(name => ({
+            name: name,
+            player: null,
+            lifetime: LIFETIME.NONE
+        })));
 
         this.data[player].hand = this.data[player].hand
             .filter(name => !selected[name]);

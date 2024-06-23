@@ -45,8 +45,8 @@ import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCa
 /**
  * @typedef {Object} Discard
  * @property {string} name
- * @property {LIFETIME} lifetime
- * @property {string} player
+ * @property {LIFETIME|number} lifetime
+ * @property {string|null} player
  */
 
 /**

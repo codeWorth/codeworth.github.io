@@ -399,7 +399,7 @@ export function henryCabot(gameData, player) {
 /** @type {Event} */
 export function sealBug(gameData, player) {
     gameData.issueScores[ISSUE.DEFENSE] += candidateDp(NIXON);
-    if (gameData.discard.includes("Henry Cabot Lodge")) {
+    if (gameData.discard.find(c => c.name === "Henry Cabot Lodge")) {
         gameData.event = {
             ...event(EVENT_TYPE.RETRIEVE, NIXON),
             card: "Henry Cabot Lodge"

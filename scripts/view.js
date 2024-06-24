@@ -3,7 +3,7 @@ import {
     ISSUE_URLS, ELECTORS, stateNames, TURNS_PER_ROUND, KENNEDY, NIXON, STATE_CODES, CANDIDATE, PHASE
 } from "./constants.js";
 import { CANDIDATE_CARD, CANDIDATE_CARD_NAME, CARDS, ISSUE_URL, PARTY_URL, LIFETIME, ENDORSE_REGIONS } from "./cards.js";
-import { addCSSClass, removeCSSClass } from "./util.js";
+import { addCSSClass, candidateDp, removeCSSClass, stateWinner, sum } from "./util.js";
 import GameData from "./gameData.js";
 
 let showingElectors = false;
@@ -39,11 +39,24 @@ export function showIssues(gameData) {
     }
 }
 
+/**
+ * @param {CANDIDATE} player
+ * @param {GameData} gameData
+ * @returns {number} 
+ */
+function tallyScore(player, gameData) {
+    const dp = candidateDp(player);
+    return Object.keys(ELECTORS)
+        .map(stateName => stateWinner(stateName, gameData.cubes[stateName], gameData.endorsements) === dp ? ELECTORS[stateName] : 0)
+        .reduce(sum, 0);
+}
+
 /** @param {GameData} gameData */
 export function showCubes(gameData) {
     stateNames.forEach(state => {
-        UI.stateButtons[state].setCount(gameData.cubes[state]);
+        UI.stateButtons[state].setCount(gameData.cubes[state], state, gameData.endorsements);
     });
+    UI.tallyDiv.innerText = `Electors Tally:\nKennedy: ${tallyScore(KENNEDY, gameData)}\nNixon: ${tallyScore(NIXON, gameData)}`;
 }
 /** @param {GameData} gameData */
 export function updateCubes(gameData) {
@@ -146,12 +159,18 @@ stateNames.forEach(state => {
 });
 export function toggleShowElectors() {
     if (showingElectors) {
+        addCSSClass(UI.tallyDiv, "hidden");
+        removeCSSClass(UI.infoDiv, "hidden");
+
         stateNames.forEach(state => {
             UI.stateButtons[state].hideElectors();
         });
         showingElectors = false;
         UI.showElectorsButton.innerText = "Show (E)lectors";
     } else {
+        removeCSSClass(UI.tallyDiv, "hidden");
+        addCSSClass(UI.infoDiv, "hidden");
+
         stateNames.forEach(state => {
             UI.stateButtons[state].showElectors(ELECTORS[state]);
         });
@@ -209,13 +228,26 @@ UI.chooseWindow.onclick = e => e.stopPropagation();
  */
 export function moveIconTo(icon, state) {
     const locStyle = window.getComputedStyle(UI.stateButtons[state].button);
-    icon.style.left = locStyle.getPropertyValue("left");
-    icon.style.top = locStyle.getPropertyValue("top");
+    const pixelsPerRem = parseFloat(getComputedStyle(document.documentElement).fontSize);
+    icon.style.left = `${parseFloat(locStyle.getPropertyValue("left")) / pixelsPerRem}rem`;
+    icon.style.top = `${parseFloat(locStyle.getPropertyValue("top")) / pixelsPerRem}rem`;
 }
-/** @param {GameData} gameData */
-export function moveIcons(gameData) {
+/** 
+ * @param {GameData} gameData
+ * @param {boolean} [noSmooth] 
+ */
+export function moveIcons(gameData, noSmooth) {
+    if (!noSmooth) {
+        addCSSClass(UI.nixonIcon, "smooth-pos");
+        addCSSClass(UI.kennedyIcon, "smooth-pos");
+    }
+
     moveIconTo(UI.kennedyIcon, gameData.kennedy.state);
     moveIconTo(UI.nixonIcon, gameData.nixon.state);
+    addCSSClass
+    removeCSSClass(UI.nixonIcon, "smooth-pos");
+    removeCSSClass(UI.kennedyIcon, "smooth-pos");
+
 }
 
 /**
@@ -467,27 +499,34 @@ export function showRound(gameData, playerCandidate) {
 /** @param {GameData} gameData */
 export function showBagRoll(gameData) {
     if (gameData.lastBagOut === null) return;
-    UI.infoDiv.innerText = `-${gameData.lastBagOut.name}-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`;
+    setInfoText(`-${gameData.lastBagOut.name}-\nKennedy: ${gameData.lastBagOut.kennedy}\nNixon: ${gameData.lastBagOut.nixon}`);
 }
 
+/** @param {string} msg */
 export function showInfo(msg) {
-    UI.infoDiv.innerText = msg;
+    setInfoText(msg);
 }
 
 export function showShouldSwap() {
-    UI.infoDiv.innerText = "Select an issue to swap it left.";
+    setInfoText("Select an issue to swap it left.");
 }
 
 export function showChooseEndorseRegion() {
-    UI.infoDiv.innerText = "Choose a region to endorse.";
+    setInfoText("Choose a region to endorse.");
 }
 
+/** @param {number} count */
 export function showShouldDiscard(count) {
     if (count === 1) {
-        UI.infoDiv.innerText = `Select ${count} card to add to your campaign deck.`;
+        setInfoText(`Select ${count} card to add to your campaign deck.`);
     } else {
-        UI.infoDiv.innerText = `Select ${count} cards to add to your campaign deck.`;
+        setInfoText(`Select ${count} cards to add to your campaign deck.`);
     }
+}
+
+/** @param {string} msg */
+function setInfoText(msg) {
+    UI.infoDiv.innerText = msg;
 }
 
 /**

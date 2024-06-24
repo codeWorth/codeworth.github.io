@@ -47,7 +47,8 @@ import {
     stateLeanNixon,
     CARD_MODE,
     ISSUE,
-    REGION_NAME
+    REGION_NAME,
+    CANDIDATE
 } from './constants.js';
 import GameData, { Player } from './gameData.js';
 import { ALL_REGIONS, addPer } from './events.js';
@@ -1006,6 +1007,7 @@ class GameLogic {
         }
 
         const oppCardName = this.data.debate.cards[getOtherCandidate(this.data)];
+        if (oppCardName === null) throw RESET_SIGNAL;
         const oppCard = CARDS[oppCardName];
 
         if (myCard.party !== PARTY.BOTH) this.placeDebateCard(myCard, myCardName);
@@ -1046,6 +1048,12 @@ class GameLogic {
     async debateChooseParty() {
         const player = getPlayerCandidate(this.data);
         const cardName = this.data.debate.cards[player];
+
+        if (cardName === null) {
+            console.error("Null card name during debate!");
+            throw RESET_SIGNAL;
+        }
+
         const card = CARDS[cardName];
         const [nixonButton, kennedyButton] = showPopupWithCard(
             "Play this card in the debates for Nixon or Kennedy?", cardName, card,
@@ -1274,13 +1282,13 @@ class GameLogic {
         this.data.finalScore = {
             nixon: nixonElectors,
             kennedy: kennedyElectors,
-            winner: ""
+            winner: NIXON
         };
 
         this.data.finalScore.winner = this.getWinner();
     }
 
-    /** @returns {string} */
+    /** @returns {CANDIDATE} */
     getWinner() {
         const nixonElectors = this.data.finalScore.nixon;
         const kennedyElectors = this.data.finalScore.kennedy;
@@ -1316,7 +1324,7 @@ class GameLogic {
 
     /**
      * @param {string} stateName 
-     * @param {string} candidate 
+     * @param {CANDIDATE} candidate 
      * @returns {number}
      */
     getElectors(stateName, candidate) {

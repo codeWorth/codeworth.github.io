@@ -1,5 +1,5 @@
 import { ENDORSE_REGIONS } from "./cards.js";
-import { addCSSClass, removeCSSClass } from "./util.js";
+import { addCSSClass, removeCSSClass, stateWinner } from "./util.js";
 
 /**
  * @param {Element} e 
@@ -48,13 +48,15 @@ export const stateButtons = Object.fromEntries([...document.getElementsByClassNa
     sb.id, {
         button: sb, 
         setText: s => html(sb.children[0]).innerText = s,
-        setCount: n => {
+        setCount: (n, state, endorsements) => {
             html(sb.children[0]).innerText = n === 0 ? "" : Math.abs(n).toString();
             removeCSSClass(sb, "red");
             removeCSSClass(sb, "blue");
-            if (n > 0) {
+            const winner = stateWinner(state, n, endorsements);
+
+            if (winner > 0) {
                 addCSSClass(sb, "red");
-            } else if (n < 0) {
+            } else if (winner < 0) {
                 addCSSClass(sb, "blue");
             }
         },
@@ -145,6 +147,7 @@ export const issueButtons = Object.fromEntries([...document.getElementsByClassNa
 ]));
 
 export const infoDiv = byId("info");
+export const tallyDiv = byId("tally");
 export const eventCounter = byId("eventCounter");
 
 const popupCardDiv = byId("popupCard");

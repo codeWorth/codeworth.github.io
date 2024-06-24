@@ -1,8 +1,12 @@
 export const TURNS_PER_ROUND = 10;
 export const DEBATE_ROUND = 6;
 export const END_GAME_ROUND = 9;
+
+/** @type {CANDIDATE} */
 export const NIXON = "nixon";
+/** @type {CANDIDATE} */
 export const KENNEDY = "kennedy";
+
 export const RESET_SIGNAL = new Object();
 export const SAVED_FIELDS = [
     "endorsements",
@@ -15,7 +19,8 @@ export const SAVED_FIELDS = [
     "currentPlayer"
 ];
 
-/** @enum {string} */
+/** @typedef {"nixon"|"kennedy"} CANDIDATE */
+/** @type {Object<string, CANDIDATE>} */
 export const CANDIDATE = {
     nixon: NIXON,
     kennedy: KENNEDY

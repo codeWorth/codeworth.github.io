@@ -1,4 +1,3 @@
-show changes to rest and momentum
 player should manually step thru rolls
 set state circle color based on who would win it (including state lean and endorsement)
 running tally of score

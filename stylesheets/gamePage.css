@@ -79,12 +79,14 @@
     position: absolute;
     top: 10rem;
     left: 10rem;
+    font-size: 14rem;
 }
 
 #hideSummary {
     position: absolute;
     top: 10rem;
     left: 130rem;
+    font-size: 14rem;
 }
 
 .media {
@@ -392,6 +394,7 @@
     position: absolute;
     top: 369rem;
     right: 10rem;
+    font-size: 13rem;
 }
 
 .pi {
@@ -522,7 +525,7 @@
     text-align: center;
 }
 
-#info {
+#info, #tally {
     position: absolute;
     background-color: rgb(250, 250, 250);
     box-shadow: 0 0 5rem rgba(33,33,33,.4);

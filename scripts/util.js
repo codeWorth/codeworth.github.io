@@ -1,6 +1,7 @@
 import * as CONSTANTS from "./constants.js";
 import { getUser } from "./user.js";
 import GameData from "./gameData.js";
+import { ENDORSE_NAME } from "./cards.js";
 
 /**
  * @param {Element} elem 
@@ -211,4 +212,30 @@ export function sum(a, b) {
  */
 export function timeout(ms) {
     return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * @param {number} number
+ * @returns {-1|0|1} 
+ */
+export function sign(number) {
+    //@ts-ignore
+    return Math.sign(number);
+}
+
+/**
+ * 
+ * @param {string} state 
+ * @param {number} cubes 
+ * @param {Object<string, number>} endorsements
+ * @returns {-1|1}
+ */
+export function stateWinner(state, cubes, endorsements) {
+    const s = sign(cubes);
+    if (s !== 0) return s;
+
+    const endorse = sign(endorsements[ENDORSE_NAME(CONSTANTS.STATE_REGION[state])]);
+    if (endorse !== 0) return endorse;
+
+    return CONSTANTS.stateLeanNixon[state] ? candidateDp(CONSTANTS.NIXON) : candidateDp(CONSTANTS.KENNEDY);
 }

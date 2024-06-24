@@ -1,6 +1,6 @@
-import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, STATE_CODES, CP_MOD_TYPE, CARD_MODE, ISSUE } from "./constants.js";
+import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, STATE_CODES, CP_MOD_TYPE, CARD_MODE, ISSUE, CANDIDATE, ELECTORS } from "./constants.js";
 import { ENDORSE_REGIONS, LIFETIME } from "./cards.js";
-import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate } from "./util.js";
+import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate, stateWinner, sum } from "./util.js";
 
 /**
  * @typedef {Object} HandsPair
@@ -82,7 +82,7 @@ class GameData extends FieldsObj {
     started
     /** @type {string|null} */
     choosingPlayer
-    /** @type {string|null} */ 
+    /** @type {CANDIDATE|null} */ 
     currentPlayer
     /** @type {PHASE} */
     phase
@@ -102,7 +102,7 @@ class GameData extends FieldsObj {
     discard
     /** @type {Debate} */
     debate
-    /** @type {PlayerCounts & {winner: string}} */
+    /** @type {PlayerCounts & {winner: CANDIDATE}} */
     finalScore
     /** @type {number} */
     turn

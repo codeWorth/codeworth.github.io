@@ -52,15 +52,9 @@ export async function gameUpdate(gameData) {
     if (!gameData.started) return;
 
     if (gameData.prev.currentPlayer) {
-        removeCSSClass(nixonIcon, "smooth-pos");
-        removeCSSClass(kennedyIcon, "smooth-pos");
-
-        VIEW.moveIcons(gameData.prev);
+        VIEW.moveIcons(gameData.prev, true);
         await timeout(1);
     }
-
-    addCSSClass(nixonIcon, "smooth-pos");
-    addCSSClass(kennedyIcon, "smooth-pos");
 
     const playerCandidate = getPlayerCandidate(gameData);
     VIEW.updateCubes(gameData);

@@ -127,19 +127,19 @@ export function showTurnSummary(gameData, dp) {
     }
 
     if (gameData.nixon.rest !== gameData.prev.nixon.rest) {
-        const delta = (gameData.nixon.rest - gameData.prev.nixon.rest) * dp;
+        const delta = gameData.nixon.rest - gameData.prev.nixon.rest;
         UI.nixonRestCount.parentElement?.appendChild(createDelta(delta));
     }
     if (gameData.kennedy.rest !== gameData.prev.kennedy.rest) {
-        const delta = (gameData.kennedy.rest - gameData.prev.kennedy.rest) * dp;
+        const delta = gameData.kennedy.rest - gameData.prev.kennedy.rest;
         UI.kennedyRestCount.parentElement?.appendChild(createDelta(delta));
     }
     if (gameData.nixon.momentum !== gameData.prev.nixon.momentum) {
-        const delta = (gameData.nixon.momentum - gameData.prev.nixon.momentum) * dp;
+        const delta = gameData.nixon.momentum - gameData.prev.nixon.momentum;
         UI.nixonMomentum.parentElement?.appendChild(createDelta(delta));
     }
     if (gameData.kennedy.momentum !== gameData.prev.kennedy.momentum) {
-        const delta = (gameData.kennedy.momentum - gameData.prev.kennedy.momentum) * dp;
+        const delta = gameData.kennedy.momentum - gameData.prev.kennedy.momentum;
         UI.kennedyMomentum.parentElement?.appendChild(createDelta(delta));
     }
 }

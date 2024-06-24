@@ -1,4 +1,4 @@
-import { EVENT_TYPE, FLAGS, KENNEDY, NIXON, REGION, STATE_REGION, ISSUE, STATE_CODES, REGION_NAME, CP_MOD_TYPE } from "./constants.js";
+import { EVENT_TYPE, FLAGS, KENNEDY, NIXON, REGION, STATE_REGION, ISSUE, STATE_CODES, REGION_NAME, CP_MOD_TYPE, CANDIDATE } from "./constants.js";
 import GameData from "./gameData.js";
 import { candidateDp, candidateForDp, moveUp, oppositeCandidate, sum } from "./util.js";
 
@@ -6,7 +6,7 @@ export const ALL_REGIONS = Object.values(REGION);
 
 /**
  * @param {EVENT_TYPE} type 
- * @param {string} target 
+ * @param {CANDIDATE} target 
  */
 function event(type, target) {
     return {
@@ -17,7 +17,7 @@ function event(type, target) {
 
 /**
  * @param {EVENT_TYPE} type 
- * @param {string} target 
+ * @param {CANDIDATE} target 
  * @param {number} count
  * @param {number} per
  * @param {boolean} forced
@@ -33,7 +33,7 @@ function changePer(type, target, count, per, forced, regions) {
 
 /**
  * @param {EVENT_TYPE} type 
- * @param {string} target 
+ * @param {CANDIDATE} target 
  * @param {number} count
  * @param {number} per
  * @param {REGION[]} regions
@@ -44,7 +44,7 @@ export function addPer(type, target, count, per, regions) {
 
 /**
  * @param {EVENT_TYPE} type 
- * @param {string} target 
+ * @param {CANDIDATE} target 
  * @param {number} count
  * @param {number} per
  * @param {boolean} forced
@@ -57,7 +57,7 @@ function removePer(type, target, count, per, forced, regions) {
 /**
  * @callback Event
  * @param {GameData} gameData 
- * @param {string} player
+ * @param {CANDIDATE} player
  * @returns {void}
  */
 
@@ -217,7 +217,7 @@ export function gaffe(gameData, player) {
     const dp = candidateDp(opponent);
     const state = gameData[opponent].state;
 
-    gameData[opponent] = Math.max(0, gameData[opponent] - 1);
+    gameData[opponent].momentum = Math.max(0, gameData[opponent].momentum - 1);
     const score = Math.abs(gameData.cubes[state]);
     if (Math.sign(gameData.cubes[state]) === dp) {
         gameData.cubes[state] -= Math.min(score, 3) * dp;
@@ -533,7 +533,7 @@ export function experience(gameData, player) {
 export function repubTv(gameData, player) {
     gameData.nixon.state = STATE_CODES.ny;
     gameData.event = {
-        ...event(EVENT_TYPE.CHANGE_MEDIA, KENNEDY),
+        ...event(EVENT_TYPE.CHANGE_MEDIA, NIXON),
         count: 3
     };
 }

@@ -85,7 +85,7 @@
 #hideSummary {
     position: absolute;
     top: 10rem;
-    left: 130rem;
+    left: 135rem;
     font-size: 14rem;
 }
 
@@ -468,6 +468,7 @@
     border-radius: 2rem;
     background-color: rgba(240, 240, 240, 0.8);
     border:1rem solid black;
+    z-index: 0;
 }
 
 #mmtm {

@@ -325,7 +325,7 @@ class GameLogic {
             .withAwaitKey(document, "Escape")
             .build();
         
-        this.data.preempted = false;
+        this.data.preempted = isCandidate;
         const usedCampaign = (selectedButton === cpButton
             || selectedButton === issueButton
             || selectedButton === mediaButton);
@@ -1125,7 +1125,7 @@ class GameLogic {
             .reduce(sum, 0);
         if (this.data.flags[DEBATE_FLAGS.BRAIN_TRUST]) kennedyTotal++;
 
-        let winner = null;
+        let winner = KENNEDY;
         if (nixonTotal === kennedyTotal) {
             winner = this.data.debate.initiative;
         } else if (nixonTotal > kennedyTotal) {

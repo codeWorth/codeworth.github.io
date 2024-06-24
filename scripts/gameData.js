@@ -16,7 +16,7 @@ import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCa
  * @typedef {Object} Debate
  * @property {Object<ISSUE, HandsPair>} hands
  * @property {Cards} cards
- * @property {string} initiative
+ * @property {CANDIDATE} initiative
  * @property {string[]} issues
  * @property {number} resolveIndex
  * @property {boolean} cleanUp

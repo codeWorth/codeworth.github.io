@@ -64,13 +64,15 @@ export function popupSelector(cancelSignal) {
  * @param {string} cardName 
  * @param {import('./cards.js').Card} card 
  * @param {boolean} disableEvent 
+ * @param {boolean} [disableCampaign]
  */
-export function showCardPopup(cardName, card, disableEvent) {
+export function showCardPopup(cardName, card, disableEvent, disableCampaign) {
     const [event, campaign, issues, media] = showPopup(
         `What would you like to use '${cardName}' for?`, 
         "Event", "Campaign", "Issues", "Media"
     );
     event.disabled = disableEvent;
+    if (disableCampaign) campaign.disabled = disableCampaign;
     showCard(cardName, card);
 
     return {eventButton: event, cpButton: campaign, issueButton: issues, mediaButton: media};

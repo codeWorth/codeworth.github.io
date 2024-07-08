@@ -219,13 +219,17 @@ class GameLogic {
         return true;
     }
 
+    nixonCanCampaignAnywhere() {
+        if (flagActive(this.data, FLAGS.NIXONS_KNEE) && !this.data.nixon.canMomentum(1)) return false;
+        return true;
+    }
+
     /** 
      * @param {string} state
      * @returns {boolean}
      */
     nixonCanCampaign(state) {
         if (flagActive(this.data, FLAGS.NIXON_EGGED) && STATE_REGION[state] === REGION.MIDWEST) return false;
-        if (flagActive(this.data, FLAGS.NIXONS_KNEE) && !this.data.nixon.canMomentum(1)) return false;
 
         const oldSouth = this.data.flags[FLAGS.OLD_SOUTH];
         if (oldSouth && 
@@ -319,7 +323,8 @@ class GameLogic {
         if (this.data.currentPlayer !== playerCandidate) return false;
     
         const disableEvent = isCandidate || !this.canCardEvent(cardName);
-        const {eventButton, cpButton, issueButton, mediaButton} = showCardPopup(cardName, card, disableEvent);
+        const disableCampaign = playerCandidate === NIXON && !this.nixonCanCampaignAnywhere();
+        const {eventButton, cpButton, issueButton, mediaButton} = showCardPopup(cardName, card, disableEvent, disableCampaign);
         const selectedButton = await popupSelector(this.cancelSignal)
             .withAwaitClick(UI.choosePopup)
             .withAwaitKey(document, "Escape")
@@ -423,7 +428,7 @@ class GameLogic {
      */
     async useCampaignPoints(points, cardSlot, doneButton) {
         const player = getPlayerCandidate(this.data);
-        if (flagActive(this.data, FLAGS.NIXONS_KNEE) && player === NIXON)  this.data[player].momentum--;
+        if (flagActive(this.data, FLAGS.NIXONS_KNEE) && player === NIXON) this.data[player].momentum--;
 
         const stateItems = stateNames.map(name => ({
             name: name,

@@ -432,7 +432,7 @@ class EventHandler {
 
     async pttv() {
         const dp = candidateDp(this.data.event.target);
-        await this._changePer(true, state => Math.sign(this.data.media[STATE_REGION[state]]) === dp);
+        await this._changePer(true, state => Math.sign(this.data.media[REGION_NAME[STATE_REGION[state]]]) === dp);
     }
 
     async suburban() {

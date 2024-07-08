@@ -1,4 +1,4 @@
-import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, STATE_CODES, CP_MOD_TYPE, CARD_MODE, ISSUE, CANDIDATE, ELECTORS } from "./constants.js";
+import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, STATE_CODES, CP_MOD_TYPE, CARD_MODE, ISSUE, CANDIDATE, REGION_NAME } from "./constants.js";
 import { ENDORSE_REGIONS, LIFETIME } from "./cards.js";
 import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate, stateWinner, sum } from "./util.js";
 
@@ -318,7 +318,7 @@ class Cubes extends FieldsObj {
         const dp = candidateDp(player);
 
         if (this._parent.phase === PHASE.DEBATE_RESOLVE) return false;
-        if (Math.sign(this._parent.media[STATE_REGION[stateName]]) === dp) return false;
+        if (Math.sign(this._parent.media[REGION_NAME[STATE_REGION[stateName]]]) === dp) return false;
         const flag = this._parent.flags[FLAGS.ADVANCE_MEN];
         if (flag && flag.player === player && flag.round === this._parent.round) return false;
 

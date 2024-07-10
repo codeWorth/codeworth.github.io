@@ -75,8 +75,14 @@ export const subTurnIndicator = byId("subTurnIndicator");
 export const handDiv = byId("hand");
 export const campaignDiv = byId("campaign");
 export const effectsDiv = byId("effects");
-export const handModeButton = byId("handMode");
-export const handLabelDiv = byId("handLabel");
+export const discardDiv = byId("discard");
+export const handModeContainer = byId("handMode");
+export const handModeButtons = [
+    byId("mode1"),
+    byId("mode2"),
+    byId("mode3"),
+    byId("mode4")
+];
 
 export const choosePopup = byId("choosePopup");
 export const chooseWindow =  byId("chooseWindow");

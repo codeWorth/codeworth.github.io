@@ -716,7 +716,8 @@ const _CARDS = {
 		issue: ISSUE.CIVIL_RIGHTS,
 		state: "az",
 		location: LOCATION.NONE,
-		event: EVENT.citizensNixon
+		event: EVENT.citizensNixon,
+		eventLifetime: LIFETIME.TURN
 	},
     "Lunch Counter Sit-Ins": {
 		text: "Civil Rights moves up one space on the Issue Track. The leader in Civil Rights may add a total of 3 state support anywhere, no more than 1 per state.",

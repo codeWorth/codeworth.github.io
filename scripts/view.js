@@ -180,44 +180,62 @@ export function toggleShowElectors() {
 }
 
 const VIEWED_CARDS = {
-    HAND: "hand",
-    CAMPAIGN: "campaign",
-    EFFECTS: "effects"
+    HAND: "Hand",
+    CAMPAIGN: "Campaign Strategy",
+    EFFECTS: "Active Effects",
+    DISCARD: "Discard"
 };
-let viewedCards = VIEWED_CARDS.HAND;
-UI.handModeButton.onclick = toggleHandMode;
-function toggleHandMode() {
-    if (viewedCards == VIEWED_CARDS.HAND) {
-        showCampaignDeck();
-    } else if (viewedCards === VIEWED_CARDS.CAMPAIGN) {
-        showEffects();
-    } else if (viewedCards === VIEWED_CARDS.EFFECTS) {
-        showHand();
+const HANDMODE_ORDER = [
+    VIEWED_CARDS.HAND, VIEWED_CARDS.CAMPAIGN, VIEWED_CARDS.EFFECTS, VIEWED_CARDS.DISCARD 
+];
+UI.handModeButtons.forEach((button, i) => button.onclick = () => setHandMode(i));
+function setHandMode(index) {
+    removeCSSClass(UI.handModeContainer, "h0");
+    removeCSSClass(UI.handModeContainer, "h1");
+    removeCSSClass(UI.handModeContainer, "h2");
+    removeCSSClass(UI.handModeContainer, "h3");
+    addCSSClass(UI.handModeContainer, `h${index}`);
+
+    switch (HANDMODE_ORDER[index]) {
+        case VIEWED_CARDS.HAND:
+            showHand();
+            break;
+        case VIEWED_CARDS.CAMPAIGN:
+            showCampaignDeck();
+            break;
+        case VIEWED_CARDS.EFFECTS:
+            showEffects();
+            break;
+        case VIEWED_CARDS.DISCARD:
+            showDiscard();
+            break;
+
     }
 }
-export function showHand() {
-    viewedCards = VIEWED_CARDS.HAND;
-    UI.handModeButton.innerText = "Show Campaign Strategy";
-    UI.handLabelDiv.innerText = "Hand";
-    removeCSSClass(UI.handDiv, "hidden");
+function selectMode(index) {
+    UI.handModeButtons.forEach(button => removeCSSClass(button, "selected"));
+    addCSSClass(UI.handModeButtons[index], "selected");
+
+    addCSSClass(UI.handDiv, "hidden");
     addCSSClass(UI.campaignDiv, "hidden");
     addCSSClass(UI.effectsDiv, "hidden");
+    addCSSClass(UI.discardDiv, "hidden");
+}
+export function showHand() {
+    selectMode(HANDMODE_ORDER.indexOf(VIEWED_CARDS.HAND));
+    removeCSSClass(UI.handDiv, "hidden");
 }
 export function showCampaignDeck() {
-    viewedCards = VIEWED_CARDS.CAMPAIGN;
-    UI.handModeButton.innerText = "Show Active Effects";
-    UI.handLabelDiv.innerText = "Campaign Deck";
+    selectMode(HANDMODE_ORDER.indexOf(VIEWED_CARDS.CAMPAIGN));
     removeCSSClass(UI.campaignDiv, "hidden");
-    addCSSClass(UI.handDiv, "hidden");
-    addCSSClass(UI.effectsDiv, "hidden");
 }
 export function showEffects() {
-    viewedCards = VIEWED_CARDS.EFFECTS;
-    UI.handModeButton.innerText = "Show Hand";
-    UI.handLabelDiv.innerText = "Active Effects";
+    selectMode(HANDMODE_ORDER.indexOf(VIEWED_CARDS.EFFECTS));
     removeCSSClass(UI.effectsDiv, "hidden");
-    addCSSClass(UI.handDiv, "hidden");
-    addCSSClass(UI.campaignDiv, "hidden");
+}
+export function showDiscard() {
+    selectMode(HANDMODE_ORDER.indexOf(VIEWED_CARDS.DISCARD));
+    removeCSSClass(UI.discardDiv, "hidden");
 }
 
 UI.chooseWindow.onclick = e => e.stopPropagation();
@@ -457,6 +475,30 @@ export function displayEffects(discard, turn) {
     return cardItems;
 }
 
+/** @param {import("./gameData.js").Discard[]} discard */
+export function displayDiscard(discard) {
+    const cardItems = [];
+
+    const cardDivs = UI.discardDiv.querySelectorAll(".card");
+    cardDivs.forEach(cardDiv => UI.discardDiv.removeChild(cardDiv));
+
+    for (let i = 0; i < discard.length; i++) {
+        const card = discard[i];
+        const cardSlot = makeEmptyCard();
+        UI.discardDiv.appendChild(cardSlot.card);
+        writeToCard(cardSlot, card.name, CARDS[card.name]);
+
+        cardItems.push({
+            name: card.name,
+            card: card,
+            cardSlot: cardSlot,
+            button: cardSlot.card
+        });
+    }
+
+    return cardItems;
+}
+
 /**
  * @param {GameData} gameData 
  * @param {CANDIDATE} playerCandidate 
@@ -562,7 +604,7 @@ export function highlightSelf(playerCandidate) {
 
 export function showEventCount(count) {
     removeCSSClass(UI.eventCounter, "hidden");
-    UI.eventCounter.innerHTML = count;
+    UI.eventCounter.innerHTML = count === 0 ? "&#10003;" : count;
 }
 export function hideEventCount() {
     addCSSClass(UI.eventCounter, "hidden");

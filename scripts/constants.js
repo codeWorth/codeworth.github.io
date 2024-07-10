@@ -8,16 +8,6 @@ export const NIXON = "nixon";
 export const KENNEDY = "kennedy";
 
 export const RESET_SIGNAL = new Object();
-export const SAVED_FIELDS = [
-    "endorsements",
-    "media",
-    "issueScores",
-    "issues",
-    "cubes",
-    NIXON,
-    KENNEDY,
-    "currentPlayer"
-];
 
 /** @typedef {"nixon"|"kennedy"} CANDIDATE */
 /** @type {Object<string, CANDIDATE>} */
@@ -30,7 +20,8 @@ export const CANDIDATE = {
 export const CP_MOD_TYPE = {
     ALL: "all",
     POSITIONING: "pos",
-    CAMPAIGNING: "cam"
+    CAMPAIGNING: "cam",
+    MEDIA: "med"
 }
 
 /** @enum {string} */

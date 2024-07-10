@@ -240,10 +240,14 @@ class EventHandler {
         );
         const selection = await popupSelector(this.cancelSignal).build();
 
+
         if (selection === noButton) throw RESET_SIGNAL;
         const player = this.data.event.target;
+        this.data.eventFinished(); // end the eventFromDiscard event
         cardItem.card.event(this.data, player);
-        this.data.delayEvent(); // delay event so that progressing events doesn't skip anything
+
+        if (this.data.event) // if the card queued up an event
+            this.data.delayEvent(); // delay event so that progressing events doesn't skip anything
     }
 
     async drawCards() {
@@ -270,7 +274,7 @@ class EventHandler {
         }
         const cardItems = displayHand(
             this.data[player].hand, 
-            this.data[player].exhausted, 
+            true, 
             player
         );
 
@@ -527,7 +531,7 @@ class EventHandler {
     }
 
     async opposition() {
-        showInfo("Click the &#10003; when you're done looking at your opponent's hand.")
+        showInfo("Click the check when you're done looking at your opponent's hand.")
         showEventCount("&#10003;");
         displayHand(this.data.kennedy.hand, this.data.kennedy.exhausted, KENNEDY);
         await awaitClick(this.cancelSignal, UI.eventCounter);

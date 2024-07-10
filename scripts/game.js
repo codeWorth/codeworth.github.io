@@ -73,6 +73,7 @@ export async function gameUpdate(gameData) {
 
     VIEW.displayCampaignDeck(gameData[playerCandidate].campaignDeck);
     VIEW.displayEffects(gameData.discard, gameData.round);
+    VIEW.displayDiscard(gameData.discard);
     if (gameData[playerCandidate].hand.length > 0) {
         VIEW.displayHand(
             gameData[playerCandidate].hand, 
@@ -96,11 +97,6 @@ export async function gameUpdate(gameData) {
     const gameDataCopy = JSON.parse(JSON.stringify(gameData));
     gameAction(gameDataCopy)
         .then(data => {
-            if (data.prev && data.prev.currentPlayer !== data.currentPlayer && (Object.keys(data).length) > 0) {
-                CONSTANTS.SAVED_FIELDS.forEach(field => 
-                    data.prev[field] = gameData[field]
-                );
-            }
             updateDoc(doc(db, "elec_games", gameId), data);
         })
         .catch(error => {
@@ -134,7 +130,7 @@ async function gameAction(gameData) {
     }
 
     if (gameData.choosingPlayer === playerCandidate && gameData.phase === CONSTANTS.PHASE.FINISH_TRIGGER) {
-        await logic.showChosenCard();
+        await logic.showChosenCard(gameData.choosingPlayer === gameData.currentPlayer);
         return logic.getData();
     }
 
@@ -150,7 +146,7 @@ async function gameAction(gameData) {
             logic.getHand();
             VIEW.showHand();
         }
-        await logic.showChosenCard();
+        await logic.showChosenCard(false);
         return logic.getData();
     }
 

@@ -1,11 +1,3 @@
 player should manually step thru rolls
 byrd states BROWN
-wrong person played card "you played" no i didnt!
-maybe rest isnt awarded when card played as event
-card doesnt dissapear from hand when added to campaign strategy deck
-a new frontier doesnt work
-count down to 0 should show check mark instead
-tricky dick doesnt exit you out once youre done
-cubes are taken from bag from wrong person
-momentum subracted wrong during decay
-allow player to view the discard pile
+a new frontier doesnt work (?? cant reproduce)

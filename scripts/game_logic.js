@@ -48,7 +48,8 @@ import {
     CARD_MODE,
     ISSUE,
     REGION_NAME,
-    CANDIDATE
+    CANDIDATE,
+    CP_MOD_TYPE
 } from './constants.js';
 import GameData, { Player } from './gameData.js';
 import { ALL_REGIONS, addPer } from './events.js';
@@ -68,6 +69,8 @@ class GameLogic {
          * @type {AbortSignal}
          */
         this.cancelSignal = cancelSignal;
+
+        if (this.data.missingPrev()) this.data.updatePrev(); // lazily instantiate prev
     }
 
     getData() {
@@ -276,7 +279,7 @@ class GameLogic {
         if (cardName === "Baptist Ministers" && this.data.flags[FLAGS.HOUSTON_ASSOC]) return false;
         if (cardName === "Puerto Rican Bishops" && this.data.flags[FLAGS.HOUSTON_ASSOC]) return false;
 
-        if (cardName === "Eisenhower's Silence" && this.data.flags[FLAGS.SILENCE]) return false;
+        if (cardName === "Eisenhower's Silence" && this.data.flags[FLAGS.STOP_SILENCE]) return false;
 
         if (flagActive(this.data, FLAGS.JACKIE_KENNEDY) && player === NIXON && this.data[player].canMomentum(1)) return false;
 
@@ -286,12 +289,14 @@ class GameLogic {
     /** 
      * @param {number} points
      * @param {string} player 
+     * @param {CP_MOD_TYPE} type
      * @returns {number}
      */
-    modCardPoints(points, player) {
+    modCardPoints(points, player, type) {
         this.data.cpMods
             .filter(mod => mod.player === player)
             .filter(mod => mod.round === this.data.round)
+            .filter(mod => mod.type === type || mod.type === CP_MOD_TYPE.ALL)
             .forEach(mod => {
                 points += mod.boost;
                 if (mod.min) points = Math.max(mod.min, points);
@@ -351,10 +356,11 @@ class GameLogic {
             if (playerCandidate === NIXON && flagActive(this.data, FLAGS.NIXON_PLEDGE)) {
                 this.data.kennedy.momentum++;
             }
-            this.activateEvent(card, playerCandidate);
+            this.activateEvent(card, playerCandidate, true);
             this.data.cardMode = CARD_MODE.EVENT;
+            this.usedCard(card);
         } else if (selectedButton === cpButton) {
-            const modPoints = this.modCardPoints(card.points, playerCandidate);
+            const modPoints = this.modCardPoints(card.points, playerCandidate, CP_MOD_TYPE.CAMPAIGNING);
             showPointsOnCard(cardSlot.pointsCover, modPoints);
     
             await this.useCampaignPoints(modPoints, cardSlot, cardSlot.card);
@@ -364,7 +370,7 @@ class GameLogic {
             this.data.cardMode = CARD_MODE.CAMPAIGN;
         }
         else if (selectedButton === issueButton) {
-            const modPoints = this.modCardPoints(card.points, playerCandidate);
+            const modPoints = this.modCardPoints(card.points, playerCandidate, CP_MOD_TYPE.POSITIONING);
             showPointsOnCard(cardSlot.pointsCover, modPoints);
     
             await this.useIssuePoints(modPoints, cardSlot.card, p => showPointsOnCard(cardSlot.pointsCover, p));
@@ -374,7 +380,7 @@ class GameLogic {
             this.data.cardMode = CARD_MODE.ISSUES;
         }
         else if (selectedButton === mediaButton) {
-            const modPoints = this.modCardPoints(card.points, playerCandidate);
+            const modPoints = this.modCardPoints(card.points, playerCandidate, CP_MOD_TYPE.MEDIA);
             let points = 0;
 
             if (playerCandidate === KENNEDY && flagActive(this.data, FLAGS.PROFILES_COURAGE)) {
@@ -410,9 +416,10 @@ class GameLogic {
     /**
      * @param {import('./cards.js').Card} card 
      * @param {string} player 
+     * @param {boolean} cardPlayed
      */
-    activateEvent(card, player) {
-        if (flagActive(this.data, FLAGS.JACKIE_KENNEDY) && player === NIXON) this.data[player].momentum--;
+    activateEvent(card, player, cardPlayed) {
+        if (cardPlayed && flagActive(this.data, FLAGS.JACKIE_KENNEDY) && player === NIXON) this.data[player].momentum--;
 
         if (!card.event) {
             console.error("Event-less card activated!");
@@ -599,7 +606,8 @@ class GameLogic {
         return phrase;
     }
 
-    async showChosenCard() {
+    /** @param {boolean} wasTriggered */
+    async showChosenCard(wasTriggered) {
         await timeout(500);
         const cardName = this.data.chosenCard;
         if (cardName === null || this.data.cardMode === null) {
@@ -611,13 +619,15 @@ class GameLogic {
         const card = cardName === CANDIDATE_CARD_NAME 
             ? CANDIDATE_CARD(getOtherCandidate(this.data))
             : CARDS[cardName];
-        const who = this.data.choosingPlayer === this.data.currentPlayer ? "Your opponent" : "You";
+        
+        const message = wasTriggered ? "Your opponent triggered this card's event." : `Your opponent played this card${this.phraseForCardMode(this.data.cardMode)}.`;
         showPopupWithCard(
-            `${who} played this card${this.phraseForCardMode(this.data.cardMode)}.`, 
+            message, 
             cardName, card,
             "Okay",
         );
         await popupSelector(this.cancelSignal).build();
+
         const asEvent = this.data.cardMode === CARD_MODE.EVENT;
         this.data.chosenCard = null;
         this.data.cardMode = null;
@@ -626,6 +636,8 @@ class GameLogic {
 
         hideTurnSummary();
         this.nextTurn(cardName, asEvent);
+
+        this.data.updatePrev();
     }
 
     async triggerEvent() {
@@ -637,7 +649,7 @@ class GameLogic {
             throw RESET_SIGNAL;
         }
 
-        if (!this.data[player].canMomentum(1)) return this.showChosenCard();
+        if (!this.data[player].canMomentum(1)) return this.showChosenCard(false);
 
         showTurnSummary(this.data, candidateDp(getOtherCandidate(this.data)));
         const card = cardName === CANDIDATE_CARD_NAME 
@@ -654,7 +666,7 @@ class GameLogic {
         if (selection === triggerButton) {
             const card = CARDS[cardName];
             this.data[player].momentum--;
-            this.activateEvent(card, player);
+            this.activateEvent(card, player, false);
             this.data.cardMode = CARD_MODE.EVENT;
             this.data.phase = PHASE.FINISH_TRIGGER;
         } else if (selection === continueButton) {
@@ -664,6 +676,8 @@ class GameLogic {
             this.data.phase = PHASE.PLAY_CARDS;
             this.nextTurn(cardName, false);
         }
+
+        this.data.updatePrev();
     }
 
     /**
@@ -855,7 +869,9 @@ class GameLogic {
     
             playerData.campaignDeck.push(selectedCard.name);
             playerData.hand = playerData.hand.filter(name => name !== selectedCard.name);
-        }        
+        }      
+        
+        displayHand(playerData.hand, true, playerCandidate);
     }
 
     async tryGiveIssue1Reward() {
@@ -905,6 +921,8 @@ class GameLogic {
             nixon: check.nixon,
             name: "Initiative"
         };
+
+        this.data.updatePrev();
 
         if (this.data.round === DEBATE_ROUND) {
             this.data.debate = {

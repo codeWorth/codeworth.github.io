@@ -2,6 +2,17 @@ import { FLAGS, KENNEDY, NIXON, PHASE, RESET_SIGNAL, STATE_REGION, STATE_CODES, 
 import { ENDORSE_REGIONS, LIFETIME } from "./cards.js";
 import { candidateDp, chooseFromBags, flagActive, getOtherCandidate, getPlayerCandidate, stateWinner, sum } from "./util.js";
 
+const SAVED_FIELDS = [
+    "endorsements",
+    "media",
+    "issueScores",
+    "issues",
+    "cubes",
+    NIXON,
+    KENNEDY,
+    "currentPlayer"
+];
+
 /**
  * @typedef {Object} HandsPair
  * @property {string[]} nixon
@@ -173,7 +184,7 @@ class GameData extends FieldsObj {
     }
 
     eventFinished() {
-        if (this.event.after) {
+        if (this.event && this.event.after) {
             this._event = this.event.after;
         } else {
             this._event = null;
@@ -198,6 +209,22 @@ class GameData extends FieldsObj {
 
     delayEvent() {
         this._event = {after: this._event};
+    }
+
+    updatePrev() {
+        const asDict = this.toDict();
+        SAVED_FIELDS.forEach(field => {
+            if (asDict[field]) {
+                this.prev[field] = asDict[field];
+            } else {
+                console.error(`Unable to save field ${field}, not found on data ${this}`);
+            }
+        });
+    }
+
+    /** @returns {boolean} */
+    missingPrev() {
+        return SAVED_FIELDS.some(field => !this.prev[field]);
     }
 }
 

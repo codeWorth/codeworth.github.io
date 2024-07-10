@@ -8,9 +8,11 @@ import GameLogic from "./game_logic.js";
 import { popupSelector, showPopup, showPopupWithCard } from "./popup.js";
 import { addCSSClass, candidateDp, chooseFromBags, flagActive, getPlayerCandidate, listAndCapitalize, playerIsKennedy, popRandom, removeCSSClass } from "./util.js";
 import {
+    displayDiscard,
     displayHand,
     hideEventCount,
     showCubes,
+    showDiscard,
     showEventCount,
     showInfo, showIssues, showMedia
 } from "./view.js";
@@ -51,8 +53,8 @@ class EventHandler {
     }
 
     async chooseCardFromDiscard() {
-        const player = getPlayerCandidate(this.data);
-        const cardItems = displayHand(this.data.discard.map(c => c.name), true, player);
+        const cardItems = displayDiscard(this.data.discard, true);
+        showDiscard();
         return await Deferred(this.cancelSignal)
             .withAwaitClickAndReturn(...cardItems)
             .withAwaitClick(UI.eventCounter)
@@ -245,6 +247,11 @@ class EventHandler {
         const player = this.data.event.target;
         this.data.eventFinished(); // end the eventFromDiscard event
         cardItem.card.event(this.data, player);
+
+        if (CARDS[cardItem.name].eventLifetime === LIFETIME.TURN) {
+            const discardedCard = this.data.discard.find(_card => _card.name === cardItem.name);
+            if (discardedCard) discardedCard.lifetime = this.data.round;
+        }
 
         if (this.data.event) // if the card queued up an event
             this.data.delayEvent(); // delay event so that progressing events doesn't skip anything

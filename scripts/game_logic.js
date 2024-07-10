@@ -345,7 +345,7 @@ class GameLogic {
             const popupButton = await popupSelector(this.cancelSignal).build();
             
             if (popupButton === yesButton) {
-                this.data[playerCandidate].momentum -= 2;
+                this.data[playerCandidate].momentum -= this.preemptNeedsMmtm(playerCandidate) ? 2 : 0;
                 this.data.preempted = true;
                 showMomentum(this.data);
             }

@@ -255,13 +255,13 @@
     background-color: rgb(250, 250, 250);
     box-shadow: 0 0 5rem rgba(33,33,33,.2);
     height: 444rem;
-    width: 642rem;
+    width: calc(642rem + 17px); /*+ 15rem*/
     border-radius: 4rem;
     top: 400rem;
-    left: 1050rem;
+    left: 1035rem;
 
     overflow-x: hidden;
-    overflow-y: auto;
+    overflow-y: overlay;
 }
 #hand, #campaign, #effects {
     width: 642rem;
@@ -297,8 +297,10 @@
     float: left;
     transition: box-shadow .2s;
 }
-.card:hover {
+.card.selectable {
     cursor: pointer;
+}
+.card.selectable:hover {
     box-shadow: 0 0 5em rgba(33,33,33,.3); 
 }
 
@@ -391,7 +393,7 @@
 }
 
 #handMode {
-    z-index: 3;
+    z-index: 1;
 
     position: absolute;
     bottom: -395rem;

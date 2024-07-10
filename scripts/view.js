@@ -190,12 +190,6 @@ const HANDMODE_ORDER = [
 ];
 UI.handModeButtons.forEach((button, i) => button.onclick = () => setHandMode(i));
 function setHandMode(index) {
-    removeCSSClass(UI.handModeContainer, "h0");
-    removeCSSClass(UI.handModeContainer, "h1");
-    removeCSSClass(UI.handModeContainer, "h2");
-    removeCSSClass(UI.handModeContainer, "h3");
-    addCSSClass(UI.handModeContainer, `h${index}`);
-
     switch (HANDMODE_ORDER[index]) {
         case VIEWED_CARDS.HAND:
             showHand();
@@ -220,22 +214,35 @@ function selectMode(index) {
     addCSSClass(UI.campaignDiv, "hidden");
     addCSSClass(UI.effectsDiv, "hidden");
     addCSSClass(UI.discardDiv, "hidden");
+    
+    removeCSSClass(UI.handModeContainer, "h0");
+    removeCSSClass(UI.handModeContainer, "h1");
+    removeCSSClass(UI.handModeContainer, "h2");
+    removeCSSClass(UI.handModeContainer, "h3");
 }
 export function showHand() {
-    selectMode(HANDMODE_ORDER.indexOf(VIEWED_CARDS.HAND));
+    const index = HANDMODE_ORDER.indexOf(VIEWED_CARDS.HAND);
+    selectMode(index);
     removeCSSClass(UI.handDiv, "hidden");
+    addCSSClass(UI.handModeContainer, `h${index}`);
 }
 export function showCampaignDeck() {
-    selectMode(HANDMODE_ORDER.indexOf(VIEWED_CARDS.CAMPAIGN));
+    const index = HANDMODE_ORDER.indexOf(VIEWED_CARDS.CAMPAIGN);
+    selectMode(index);
     removeCSSClass(UI.campaignDiv, "hidden");
+    addCSSClass(UI.handModeContainer, `h${index}`);
 }
 export function showEffects() {
-    selectMode(HANDMODE_ORDER.indexOf(VIEWED_CARDS.EFFECTS));
+    const index = HANDMODE_ORDER.indexOf(VIEWED_CARDS.EFFECTS);
+    selectMode(index);
     removeCSSClass(UI.effectsDiv, "hidden");
+    addCSSClass(UI.handModeContainer, `h${index}`);
 }
 export function showDiscard() {
-    selectMode(HANDMODE_ORDER.indexOf(VIEWED_CARDS.DISCARD));
+    const index = HANDMODE_ORDER.indexOf(VIEWED_CARDS.DISCARD);
+    selectMode(index);
     removeCSSClass(UI.discardDiv, "hidden");
+    addCSSClass(UI.handModeContainer, `h${index}`);
 }
 
 UI.chooseWindow.onclick = e => e.stopPropagation();
@@ -371,6 +378,7 @@ export function displayHand(hand, exhausted, candidate, handDiv) {
         const cardName = hand[i];
         const card = handCards[i];
         const cardSlot = makeEmptyCard();
+        addCSSClass(cardSlot.card, "selectable");
         handDiv.appendChild(cardSlot.card);
         writeToCard(cardSlot, cardName, card);
 
@@ -475,8 +483,11 @@ export function displayEffects(discard, turn) {
     return cardItems;
 }
 
-/** @param {import("./gameData.js").Discard[]} discard */
-export function displayDiscard(discard) {
+/** 
+ * @param {import("./gameData.js").Discard[]} discard 
+ * @param {boolean} [selectable]
+ */
+export function displayDiscard(discard, selectable) {
     const cardItems = [];
 
     const cardDivs = UI.discardDiv.querySelectorAll(".card");
@@ -485,12 +496,13 @@ export function displayDiscard(discard) {
     for (let i = 0; i < discard.length; i++) {
         const card = discard[i];
         const cardSlot = makeEmptyCard();
+        if (selectable) addCSSClass(cardSlot.card, "selectable");
         UI.discardDiv.appendChild(cardSlot.card);
         writeToCard(cardSlot, card.name, CARDS[card.name]);
 
         cardItems.push({
             name: card.name,
-            card: card,
+            card: CARDS[card.name],
             cardSlot: cardSlot,
             button: cardSlot.card
         });
